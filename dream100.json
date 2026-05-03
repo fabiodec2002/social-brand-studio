@@ -1,0 +1,210 @@
+{
+  "_note": "Verified all handles before running Apify actors. Updated based on 2026-04-22 audit.",
+  "accounts": [
+    {
+      "name": "Dan Martell",
+      "instagram": "danmartell",
+      "linkedin": "https://www.linkedin.com/in/danmartell"
+    },
+    {
+      "name": "Daniel Priestley",
+      "instagram": "danielpriestley",
+      "linkedin": "https://www.linkedin.com/in/danielpriestley"
+    },
+    {
+      "name": "Alex Hormozi",
+      "instagram": "hormozi",
+      "linkedin": "https://www.linkedin.com/in/alexhormozi"
+    },
+    {
+      "name": "Jordan Belfort",
+      "instagram": "wolfofwallst",
+      "linkedin": "https://www.linkedin.com/in/jordan-belfort"
+    },
+    {
+      "name": "Jeremy Miner",
+      "instagram": "jeremyleeminer",
+      "linkedin": "https://www.linkedin.com/in/jeremy-miner"
+    },
+    {
+      "name": "Grant Cardone",
+      "instagram": "grantcardone",
+      "linkedin": "https://www.linkedin.com/in/grantcardone"
+    },
+    {
+      "name": "Jack Roberts",
+      "instagram": "jackroberts___",
+      "linkedin": "https://www.linkedin.com/in/jack-roberts-ai-automations"
+    },
+    {
+      "name": "Nik Setting",
+      "instagram": "niksetting",
+      "linkedin": "https://www.linkedin.com/in/niksetting"
+    },
+    {
+      "name": "Nate Herk",
+      "instagram": "nateherk",
+      "linkedin": "https://www.linkedin.com/in/nateherk"
+    },
+    {
+      "name": "Casey Neistat",
+      "instagram": "caseyneistat",
+      "linkedin": "https://www.linkedin.com/in/caseyneistat"
+    },
+    {
+      "name": "Matthew McConaughey",
+      "instagram": "officiallymcconaughey",
+      "linkedin": ""
+    },
+    {
+      "name": "Steven Bartlett",
+      "instagram": "steven",
+      "linkedin": "https://www.linkedin.com/in/steven-bartlett-94a799b3"
+    },
+    {
+      "name": "Andrew Huberman",
+      "instagram": "hubermanlab",
+      "linkedin": "https://www.linkedin.com/in/andrew-huberman"
+    },
+    {
+      "name": "Nicholas Crown",
+      "instagram": "nicholascrown",
+      "linkedin": "https://www.linkedin.com/in/nicholas-crown"
+    },
+    {
+      "name": "Chris Josephs",
+      "instagram": "chrisjosephs",
+      "linkedin": "https://www.linkedin.com/in/chris-josephs"
+    },
+    {
+      "name": "Brian Schardt",
+      "instagram": "brianschardt",
+      "linkedin": "https://www.linkedin.com/in/brian-schardt"
+    },
+    {
+      "name": "James Kardatzke",
+      "instagram": "",
+      "linkedin": "https://www.linkedin.com/in/james-kardatzke"
+    },
+    {
+      "name": "Luigi Lauro",
+      "instagram": "luigi_lauro",
+      "linkedin": "https://www.linkedin.com/in/luigi-lauro"
+    },
+    {
+      "name": "Pirrone Massimo",
+      "instagram": "pirronemassimo",
+      "linkedin": "https://www.linkedin.com/in/massimo-pirrone"
+    },
+    {
+      "name": "Nick Saraev",
+      "instagram": "nick_saraev",
+      "linkedin": "https://www.linkedin.com/in/nicksaraev"
+    },
+    {
+      "name": "Brian Tracy",
+      "instagram": "briantracy",
+      "linkedin": "https://www.linkedin.com/in/brian-tracy-author"
+    },
+    {
+      "name": "Chris Williamson",
+      "instagram": "chriswillx",
+      "linkedin": "https://www.linkedin.com/in/chriswillx"
+    },
+    {
+      "name": "Tony Robbins",
+      "instagram": "tonyrobbins",
+      "linkedin": "https://www.linkedin.com/in/tony-robbins"
+    },
+    {
+      "name": "Yes Theory",
+      "instagram": "yestheory",
+      "linkedin": ""
+    },
+    {
+      "name": "Andrej Karpathy",
+      "instagram": "",
+      "linkedin": "https://www.linkedin.com/in/andrej-karpathy-9a650160"
+    },
+    {
+      "name": "Dario Amodei",
+      "instagram": "",
+      "linkedin": "https://www.linkedin.com/in/darioamodei"
+    },
+    {
+      "name": "Russell Brunson",
+      "instagram": "russellbrunson",
+      "linkedin": "https://www.linkedin.com/in/russellbrunson"
+    },
+    {
+      "name": "Gary Vaynerchuk",
+      "instagram": "garyvee",
+      "linkedin": "https://www.linkedin.com/in/garyvaynerchuk"
+    },
+    {
+      "name": "Scott Galloway",
+      "instagram": "profgalloway",
+      "linkedin": "https://www.linkedin.com/in/prof-scott-galloway"
+    },
+    {
+      "name": "Andy Frisella",
+      "instagram": "andyfrisella",
+      "linkedin": "https://www.linkedin.com/in/andy-frisella"
+    },
+    {
+      "name": "Lex Fridman",
+      "instagram": "lexfridman",
+      "linkedin": "https://www.linkedin.com/in/lexfridman"
+    },
+    {
+      "name": "Jeff Cavaliere",
+      "instagram": "athleanx",
+      "linkedin": "https://www.linkedin.com/in/jeff-cavaliere"
+    },
+    {
+      "name": "Brett Bartholomew",
+      "instagram": "coach_brettb",
+      "linkedin": "https://www.linkedin.com/in/brett-bartholomew"
+    },
+    {
+      "name": "Peter Zeihan",
+      "instagram": "",
+      "linkedin": "https://www.linkedin.com/in/peter-zeihan"
+    },
+    {
+      "name": "George Friedman",
+      "instagram": "",
+      "linkedin": "https://www.linkedin.com/in/george-friedman-stratfor"
+    },
+    {
+      "name": "Ray Dalio",
+      "instagram": "raydalio",
+      "linkedin": "https://www.linkedin.com/in/raydalio"
+    },
+    {
+      "name": "Dylan Lewis",
+      "instagram": "",
+      "linkedin": "https://www.linkedin.com/in/dylan-lewis-motley-fool"
+    },
+    {
+      "name": "Bill Ackman",
+      "instagram": "",
+      "linkedin": "https://www.linkedin.com/in/bill-ackman"
+    },
+    {
+      "name": "Jay Baer",
+      "instagram": "jaybaer",
+      "linkedin": "https://www.linkedin.com/in/jaybaer"
+    },
+    {
+      "name": "Chris Do",
+      "instagram": "thechrisdo",
+      "linkedin": "https://www.linkedin.com/in/thechrisdo"
+    },
+    {
+      "name": "Ryan Serhant",
+      "instagram": "ryanserhant",
+      "linkedin": "https://www.linkedin.com/in/ryan-serhant"
+    }
+  ]
+}

@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Brand Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0c0b;
+      --bg2: #141413;
+      --bg3: #1c1c1a;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.12);
+      --gold: #c9a96e;
+      --gold2: #e8c98a;
+      --text: #f0ede8;
+      --text2: #a09890;
+      --text3: #605850;
+      --red: #8B0000;
+      --linkedin: #0077b5;
+      --instagram: #c13584;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    .app { position: relative; z-index: 1; }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--text);
+    }
+
+    .logo span { color: var(--gold); font-style: italic; }
+
+    .logo-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: var(--text3);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Screens */
+    .screen { display: none; min-height: calc(100vh - 73px); }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* Upload screen */
+    #upload-screen {
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+    }
+
+    .upload-hero {
+      text-align: center;
+      max-width: 580px;
+    }
+
+    .upload-hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+
+    .upload-hero h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .upload-hero p {
+      color: var(--text2);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+    }
+
+    .upload-zone {
+      border: 1px dashed var(--border2);
+      border-radius: 2px;
+      padding: 3rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      background: var(--bg2);
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--gold);
+      background: rgba(201, 169, 110, 0.03);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 1rem;
+      border: 1px solid var(--border2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      font-size: 1.2rem;
+    }
+
+    .upload-zone h3 {
+      font-weight: 400;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-zone p {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* Loading */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 12, 11, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .loading-overlay.active { display: flex; }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--text2);
+      text-transform: uppercase;
+    }
+
+    /* Main app layout */
+    #app-screen {
+      flex-direction: row;
+      height: calc(100vh - 73px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      background: var(--bg2);
+    }
+
+    .sidebar-section {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 1rem;
+    }
+
+    .brand-statement {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    .nav-item {
+      padding: 0.5rem 0;
+      cursor: pointer;
+      color: var(--text2);
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: color 0.2s;
+    }
+
+    .nav-item:hover, .nav-item.active { color: var(--text); }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 2px;
+      height: 20px;
+      background: var(--gold);
+    }
+
+    .nav-item { position: relative; }
+
+    .nav-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0;
+    }
+
+    .nav-item.active .nav-dot { background: var(--gold); }
+
+    /* Main content area */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2.5rem 3rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2.5rem;
+    }
+
+    .tab {
+      padding-bottom: 1rem;
+      font-size: 0.875rem;
+      color: var(--text3);
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+
+    .tab:hover { color: var(--text2); }
+    .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* Strategy view */
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .strategy-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1.5rem;
+    }
+
+    .strategy-card h3 {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 0.75rem;
+    }
+
+    .strategy-card p {
+      font-size: 0.9rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    .strategy-card.full-width { grid-column: 1 / -1; }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      padding: 0.3rem 0.75rem;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      letter-spacing: 0.05em;
+    }
+
+    .tag.do { border-color: rgba(100, 200, 130, 0.3); color: #7dba90; }
+    .tag.dont { border-color: rgba(200, 80, 80, 0.3); color: #c47070; }
+
+    /* Pillars */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .pillar-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pillar-card:hover { border-color: var(--border2); }
+    .pillar-card.selected { border-color: var(--gold); }
+
+    .pillar-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+
+    .pillar-desc {
+      font-size: 0.8rem;
+      color: var(--text2);
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+
+    .pillar-freq {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+    }
+
+    .platform-dots { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+    .platform-dot {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+    }
+
+    .platform-dot.linkedin { background: rgba(0, 119, 181, 0.15); color: #5aa3c9; }
+    .platform-dot.instagram { background: rgba(193, 53, 132, 0.15); color: #d47ab0; }
+
+    /* Post generator */
+    .generator-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 2rem;
+    }
+
+    .generator-controls { display: flex; flex-direction: column; gap: 1rem; }
+
+    .control-group label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text3);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    select, .select-styled {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 300;
+      appearance: none;
+      cursor: pointer;
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:hover, select:focus { border-color: var(--border2); }
+
+    .pillar-select-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .pillar-select-item {
+      padding: 0.75rem 1rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: var(--text2);
+      transition: all 0.2s;
+    }
+
+    .pillar-select-item:hover { border-color: var(--border2); color: var(--text); }
+    .pillar-select-item.active { border-color: var(--gold); color: var(--gold); }
+
+    .generate-btn {
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+      padding: 1rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      width: 100%;
+      border-radius: 2px;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .generate-btn:hover { background: var(--gold2); }
+    .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Post output */
+    .post-output { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .post-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      animation: fadeUp 0.4s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .post-card-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .platform-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+    }
+
+    .platform-badge.linkedin { background: rgba(0, 119, 181, 0.15); color: #5aa3c9; }
+    .platform-badge.instagram { background: rgba(193, 53, 132, 0.15); color: #d47ab0; }
+
+    .post-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+
+    .post-body {
+      padding: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: var(--text2);
+      white-space: pre-wrap;
+      min-height: 120px;
+    }
+
+    .post-body.generating {
+      color: var(--text3);
+      font-style: italic;
+    }
+
+    .post-card-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .post-action-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .post-action-btn:hover { border-color: var(--border2); color: var(--text); }
+    .post-action-btn.copied { border-color: rgba(100, 200, 130, 0.3); color: #7dba90; }
+
+    /* Refine row */
+    .refine-row {
+      padding: 0.75rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .refine-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .refine-input::placeholder { color: var(--text3); }
+    .refine-input:focus { border-color: var(--border2); }
+
+    .refine-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .refine-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .refine-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Custom topic */
+    .custom-topic-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 300;
+      padding: 0.75rem 1rem;
+      outline: none;
+      resize: vertical;
+      min-height: 70px;
+      transition: border-color 0.2s;
+      display: none;
+    }
+
+    .custom-topic-input::placeholder { color: var(--text3); }
+    .custom-topic-input:focus { border-color: var(--border2); }
+    .pillar-select-item.custom { border-style: dashed; }
+
+    /* Platform strategy */
+    .platform-strategy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .platform-strategy-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1.5rem;
+    }
+
+    .platform-strategy-card h3 {
+      font-size: 1rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .platform-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-family: 'DM Mono', monospace;
+      font-weight: 400;
+    }
+
+    .platform-icon.li { background: rgba(0,119,181,0.2); color: #5aa3c9; }
+    .platform-icon.ig { background: rgba(193,53,132,0.2); color: #d47ab0; }
+
+    .platform-detail {
+      margin-bottom: 0.75rem;
+    }
+
+    .platform-detail .label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 0.25rem;
+    }
+
+    .platform-detail .value {
+      font-size: 0.85rem;
+      color: var(--text2);
+    }
+
+    /* Section title */
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem;
+      font-weight: 300;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.85rem;
+      color: var(--text3);
+      margin-bottom: 2rem;
+    }
+
+    /* Upload new */
+    .upload-new-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .upload-new-btn:hover { border-color: var(--border2); color: var(--text2); }
+
+    /* Previous sessions */
+    .sessions-section {
+      margin-top: 3rem;
+      max-width: 580px;
+      width: 100%;
+    }
+
+    .sessions-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 1rem;
+    }
+
+    .session-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.875rem 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .session-item:hover { border-color: var(--border2); }
+
+    .session-info { flex: 1; min-width: 0; }
+
+    .session-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      margin-top: 0.2rem;
+    }
+
+    .session-actions { display: flex; gap: 0.5rem; flex-shrink: 0; margin-left: 1rem; }
+
+    .session-load-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .session-load-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    .session-delete-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 0.35rem 0.5rem;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text3);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .session-delete-btn:hover { color: #c47070; }
+
+    /* Tone select styling */
+    .tone-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .tone-btn {
+      padding: 0.6rem 0.75rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      color: var(--text2);
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .tone-btn:hover { border-color: var(--border2); color: var(--text); }
+    .tone-btn.active { border-color: var(--gold); color: var(--gold); }
+
+    /* Remake This panel */
+    .platform-toggle {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .platform-toggle-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.5rem 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .platform-toggle-btn:hover { border-color: var(--border2); color: var(--text2); }
+    .platform-toggle-btn.active.linkedin { border-color: #0077b5; color: #5aa3c9; background: rgba(0,119,181,0.08); }
+    .platform-toggle-btn.active.instagram { border-color: #c13584; color: #d47ab0; background: rgba(193,53,132,0.08); }
+
+    .fetch-viral-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.5rem;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .fetch-viral-btn:hover { background: rgba(201,169,110,0.08); }
+    .fetch-viral-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .viral-notice {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      margin-top: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .viral-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .viral-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      animation: fadeUp 0.4s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viral-card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .viral-author {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--text);
+    }
+
+    .viral-author span {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .fit-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 400;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .fit-badge.high { background: rgba(100,200,130,0.15); color: #7dba90; border: 1px solid rgba(100,200,130,0.3); }
+    .fit-badge.med  { background: rgba(201,169,110,0.15); color: var(--gold); border: 1px solid rgba(201,169,110,0.3); }
+
+    .viral-text {
+      padding: 1rem 1.25rem;
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .viral-reason {
+      padding: 0.6rem 1.25rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      letter-spacing: 0.03em;
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+
+    .viral-card-footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .viral-engagement {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+
+    .remake-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.45rem 1rem;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .remake-btn:hover { background: rgba(201,169,110,0.1); }
+    .remake-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .remade-post-wrap {
+      margin-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      animation: fadeUp 0.3s ease;
+    }
+
+    .remade-label {
+      padding: 0.6rem 1.25rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      background: rgba(201,169,110,0.04);
+    }
+
+    .remade-body {
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .remade-actions {
+      padding: 0.6rem 1.25rem;
+      display: flex;
+      gap: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .viral-empty {
+      color: var(--text3);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      padding: 3rem 0;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      header { padding: 1rem 1.5rem; }
+      .main-content { padding: 1.5rem; }
+      .strategy-grid { grid-template-columns: 1fr; }
+      .generator-layout { grid-template-columns: 1fr; }
+      .platform-strategy-grid { grid-template-columns: 1fr; }
+      .sidebar { width: 240px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-text">Analyzing your personality map...</div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div>
+      <div class="logo">Social <span>Brand</span> Studio</div>
+      <div class="logo-sub">Powered by your personality map</div>
+    </div>
+    <button class="upload-new-btn" id="upload-new-btn" style="display:none" onclick="resetToUpload()">Upload new map</button>
+  </header>
+
+  <!-- Upload Screen -->
+  <div class="screen active" id="upload-screen">
+    <div class="upload-hero">
+      <h1>Build your brand<br>from <em>who you are</em></h1>
+      <p>Upload your Marketing Mindset personality map PDF and get a full social media strategy — plus AI-generated posts tailored to your voice, values, and expertise.</p>
+
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".pdf" onchange="handleFileUpload(this.files[0])">
+        <div class="upload-icon">↑</div>
+        <h3>Drop your personality map PDF</h3>
+        <p>PDF · up to 10MB</p>
+      </div>
+
+      <div class="sessions-section" id="sessions-section" style="display:none">
+        <div class="sessions-label">Previous uploads</div>
+        <div id="sessions-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Screen -->
+  <div class="screen" id="app-screen">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Your brand</div>
+        <div class="brand-statement" id="sidebar-brand-statement">Loading...</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Navigation</div>
+        <div class="nav-item active" onclick="showTab('strategy')" id="nav-strategy">
+          <div class="nav-dot"></div>Strategy overview
+        </div>
+        <div class="nav-item" onclick="showTab('pillars')" id="nav-pillars">
+          <div class="nav-dot"></div>Content pillars
+        </div>
+        <div class="nav-item" onclick="showTab('platforms')" id="nav-platforms">
+          <div class="nav-dot"></div>Platform guide
+        </div>
+        <div class="nav-item" onclick="showTab('generator')" id="nav-generator">
+          <div class="nav-dot"></div>Post generator
+        </div>
+        <div class="nav-item" onclick="showTab('remake')" id="nav-remake">
+          <div class="nav-dot"></div>Remake this
+        </div>
+      </div>
+      <div class="sidebar-section" id="sidebar-expertise">
+        <div class="sidebar-label">Expertise</div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- Strategy Tab -->
+      <div id="tab-strategy" class="tab-content">
+        <div class="section-title">Your social strategy</div>
+        <div class="section-subtitle">Built from your personality map</div>
+
+        <div class="strategy-grid">
+          <div class="strategy-card full-width">
+            <h3>Brand statement</h3>
+            <p id="brand-statement" style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); font-style: italic;"></p>
+          </div>
+          <div class="strategy-card">
+            <h3>Target audience</h3>
+            <p id="target-audience"></p>
+          </div>
+          <div class="strategy-card">
+            <h3>Unique value proposition</h3>
+            <p id="uvp"></p>
+          </div>
+          <div class="strategy-card">
+            <h3>Brand voice — always do</h3>
+            <div class="tag-list" id="voice-do"></div>
+          </div>
+          <div class="strategy-card">
+            <h3>Brand voice — never do</h3>
+            <div class="tag-list" id="voice-dont"></div>
+          </div>
+          <div class="strategy-card full-width">
+            <h3>Voice adjectives</h3>
+            <div class="tag-list" id="voice-adjectives"></div>
+          </div>
+          <div class="strategy-card full-width">
+            <h3>Growth tactics</h3>
+            <div id="growth-tactics"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pillars Tab -->
+      <div id="tab-pillars" class="tab-content" style="display:none">
+        <div class="section-title">Content pillars</div>
+        <div class="section-subtitle">Your core topics — the foundation of your content strategy</div>
+        <div class="pillars-grid" id="pillars-grid"></div>
+      </div>
+
+      <!-- Platforms Tab -->
+      <div id="tab-platforms" class="tab-content" style="display:none">
+        <div class="section-title">Platform guide</div>
+        <div class="section-subtitle">How to show up differently on each platform</div>
+        <div class="platform-strategy-grid" id="platform-strategy-grid"></div>
+      </div>
+
+      <!-- Remake Tab -->
+      <div id="tab-remake" class="tab-content" style="display:none">
+        <div class="section-title">Remake This</div>
+        <div class="section-subtitle">Viral posts from your Dream 100 — matched to your brand, ready to rewrite in your voice</div>
+
+        <div style="display:flex; align-items:flex-start; gap:2rem; flex-wrap:wrap;">
+          <div class="platform-toggle">
+            <button class="platform-toggle-btn active linkedin" id="toggle-instagram" onclick="switchViralPlatform('instagram')">Instagram</button>
+            <button class="platform-toggle-btn linkedin" id="toggle-linkedin" onclick="switchViralPlatform('linkedin')">LinkedIn</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <button class="fetch-viral-btn" id="fetch-viral-btn" onclick="loadViralTrends()">Fetch this week's viral posts</button>
+            <button class="fetch-viral-btn" id="reload-viral-btn" onclick="loadViralTrends(true)" style="font-size:0.7rem;padding:0.5rem 1rem;opacity:0.7;" title="Load data from the last completed scan without re-scraping">Use last scan</button>
+            <div class="viral-notice" style="margin-top:0;">First load: 5–8 min while we scan your Dream 100.<br>Results cached for 7 days — instant after that.</div>
+          </div>
+        </div>
+
+        <div class="viral-grid" id="viral-grid">
+          <div class="viral-empty">Click "Fetch this week's viral posts" to see what's going viral in your niche.</div>
+        </div>
+      </div>
+
+      <!-- Generator Tab -->
+      <div id="tab-generator" class="tab-content" style="display:none">
+        <div class="section-title">Post generator</div>
+        <div class="section-subtitle">Generate platform-optimized posts from your pillars</div>
+
+        <div class="generator-layout">
+          <div class="generator-controls">
+
+            <div class="control-group">
+              <label>Platform</label>
+              <select id="gen-platform" onchange="onPlatformChange(this.value)">
+                <option value="linkedin">LinkedIn</option>
+                <option value="instagram">Instagram</option>
+                <option value="both">Both platforms</option>
+              </select>
+            </div>
+
+            <div class="control-group" id="ig-format-group" style="display:none">
+              <label>Instagram format</label>
+              <div class="tone-grid" id="ig-format-list">
+                <button class="tone-btn active" data-format="post" onclick="selectIgFormat(this)">Carousel Post</button>
+                <button class="tone-btn" data-format="story" onclick="selectIgFormat(this)">Story</button>
+                <button class="tone-btn" data-format="reel" onclick="selectIgFormat(this)">Reel</button>
+              </div>
+            </div>
+
+            <div class="control-group" id="ig-subtype-group" style="display:none">
+              <label id="ig-subtype-label">Carousel category</label>
+              <select id="ig-subtype-select" onchange="selectedIgSubType = this.value"></select>
+            </div>
+
+            <div class="control-group">
+              <label>Content pillar</label>
+              <div class="pillar-select-list" id="pillar-select-list"></div>
+              <textarea class="custom-topic-input" id="custom-topic-input" placeholder="Describe the topic or angle you want to write about..."></textarea>
+            </div>
+
+            <div class="control-group">
+              <label>Tone</label>
+              <div class="tone-grid" id="tone-grid">
+                <button class="tone-btn active" data-tone="authentic" onclick="selectTone(this)">Authentic</button>
+                <button class="tone-btn" data-tone="educational" onclick="selectTone(this)">Educational</button>
+                <button class="tone-btn" data-tone="storytelling" onclick="selectTone(this)">Storytelling</button>
+                <button class="tone-btn" data-tone="motivational" onclick="selectTone(this)">Motivational</button>
+                <button class="tone-btn" data-tone="casual" onclick="selectTone(this)">Casual</button>
+                <button class="tone-btn" data-tone="contrarian" onclick="selectTone(this)">Contrarian</button>
+              </div>
+            </div>
+
+            <button class="generate-btn" onclick="generatePost()" id="gen-btn">Generate post</button>
+          </div>
+
+          <div class="post-output" id="post-output">
+            <div style="color: var(--text3); font-size: 0.85rem; padding: 2rem 0; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.1rem;">
+              Select your options and generate your first post...
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let appData = { personalityMap: null, strategy: null };
+  let selectedPillar = null;
+  let selectedTone = 'authentic';
+  let selectedIgFormat = 'post';
+  let selectedIgSubType = 'educational';
+
+  const IG_SUBTYPES = {
+    post: {
+      label: 'Carousel category',
+      items: [
+        { value: 'educational',    text: 'Educational / Tips' },
+        { value: 'how-to',         text: 'Step-by-step / How-to' },
+        { value: 'transformation', text: 'Transformation / Before & After' },
+        { value: 'myth-busting',   text: 'Myth-busting / Challenges' },
+        { value: 'storytelling',   text: 'Storytelling / Personal example' },
+        { value: 'frameworks',     text: 'Frameworks / Cheatsheets' },
+      ],
+    },
+    story: {
+      label: 'Story pillar',
+      items: [
+        { value: 'personality', text: 'My Personality' },
+        { value: 'life',        text: 'My Life' },
+        { value: 'expertise',   text: 'My Expertise' },
+      ],
+    },
+    reel: {
+      label: 'Reel style',
+      items: [
+        { value: 'talking',     text: 'Type 1 — Talking (direct to camera)' },
+        { value: 'motivation',  text: 'Type 2 — Motivation / Values' },
+        { value: 'tips-tricks', text: 'Type 3 — Tips & Tricks' },
+      ],
+    },
+  };
+
+  function onPlatformChange(value) {
+    const show = value === 'instagram' || value === 'both';
+    document.getElementById('ig-format-group').style.display = show ? 'block' : 'none';
+    document.getElementById('ig-subtype-group').style.display = show ? 'block' : 'none';
+    if (show) populateIgSubTypes(selectedIgFormat);
+  }
+
+  function populateIgSubTypes(format) {
+    const cfg = IG_SUBTYPES[format];
+    document.getElementById('ig-subtype-label').textContent = cfg.label;
+    const sel = document.getElementById('ig-subtype-select');
+    sel.innerHTML = cfg.items.map(i => `<option value="${i.value}">${i.text}</option>`).join('');
+    selectedIgSubType = cfg.items[0].value;
+    sel.value = selectedIgSubType;
+  }
+
+  function selectIgFormat(btn) {
+    selectedIgFormat = btn.dataset.format;
+    document.querySelectorAll('#ig-format-list .tone-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    populateIgSubTypes(selectedIgFormat);
+  }
+
+  function getIgOptions() {
+    const platform = document.getElementById('gen-platform').value;
+    if (platform === 'linkedin') return null;
+    return { format: selectedIgFormat, subType: selectedIgSubType };
+  }
+
+  // Load previous sessions on page load
+  async function loadSessions() {
+    try {
+      const res = await fetch('/api/sessions');
+      const sessions = await res.json();
+
+      // Auto-load most recent session
+      if (sessions.length) {
+        showLoading('Loading your brand strategy...');
+        await loadSession(sessions[0].id, { stopPropagation: () => {} });
+        return;
+      }
+
+      const section = document.getElementById('sessions-section');
+      const list = document.getElementById('sessions-list');
+      section.style.display = 'block';
+      list.innerHTML = '';
+      sessions.forEach(s => {
+        const date = new Date(s.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const item = document.createElement('div');
+        item.className = 'session-item';
+        item.innerHTML = `
+          <div class="session-info">
+            <div class="session-name">${s.name || 'Unnamed'}</div>
+            <div class="session-meta">${s.pdfName} &middot; ${date}</div>
+          </div>
+          <div class="session-actions">
+            <button class="session-load-btn" onclick="loadSession('${s.id}', event)">Load</button>
+            <button class="session-delete-btn" onclick="deleteSession('${s.id}', event)" title="Delete">✕</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    } catch (err) {
+      console.error('Could not load sessions', err);
+    }
+  }
+
+  async function loadSession(id, e) {
+    e.stopPropagation();
+    showLoading('Loading your strategy...');
+    try {
+      const res = await fetch(`/api/sessions/${id}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      appData = { personalityMap: data.personalityMap, strategy: data.strategy };
+      populateApp(data.strategy, data.personalityMap);
+      showApp();
+    } catch (err) {
+      hideLoading();
+      alert('Error loading session: ' + err.message);
+    }
+  }
+
+  async function deleteSession(id, e) {
+    e.stopPropagation();
+    await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+    loadSessions();
+  }
+
+  loadSessions();
+
+  // Allow Enter to submit refine inputs
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.classList.contains('refine-input')) {
+      const platform = e.target.id.replace('refine-input-', '');
+      refinePost(platform);
+    }
+  });
+
+  // Drag and drop
+  const uploadZone = document.getElementById('upload-zone');
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') handleFileUpload(file);
+  });
+
+  async function handleFileUpload(file) {
+    if (!file) return;
+    showLoading('Extracting your personality map...');
+
+    const formData = new FormData();
+    formData.append('pdf', file);
+
+    try {
+      setTimeout(() => setLoadingText('Analyzing your values, achievements & expertise...'), 1500);
+      setTimeout(() => setLoadingText('Building your personal brand strategy...'), 4000);
+      setTimeout(() => setLoadingText('Identifying your content pillars...'), 7000);
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.error);
+
+      appData = { personalityMap: data.personalityMap, strategy: data.strategy };
+      populateApp(data.strategy, data.personalityMap);
+      showApp();
+    } catch (err) {
+      hideLoading();
+      alert('Error processing your PDF: ' + err.message);
+    }
+  }
+
+  function populateApp(strategy, map) {
+    // Brand statement
+    document.getElementById('brand-statement').textContent = strategy.brand_statement;
+    document.getElementById('sidebar-brand-statement').textContent = strategy.brand_statement;
+    document.getElementById('target-audience').textContent = strategy.target_audience;
+    document.getElementById('uvp').textContent = strategy.unique_value_proposition;
+
+    // Voice
+    const doCont = document.getElementById('voice-do');
+    strategy.brand_voice.do.forEach(d => {
+      const tag = document.createElement('span');
+      tag.className = 'tag do';
+      tag.textContent = d;
+      doCont.appendChild(tag);
+    });
+
+    const dontCont = document.getElementById('voice-dont');
+    strategy.brand_voice.dont.forEach(d => {
+      const tag = document.createElement('span');
+      tag.className = 'tag dont';
+      tag.textContent = d;
+      dontCont.appendChild(tag);
+    });
+
+    const adjCont = document.getElementById('voice-adjectives');
+    strategy.brand_voice.adjectives.forEach(a => {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = a;
+      adjCont.appendChild(tag);
+    });
+
+    // Growth tactics
+    const gtCont = document.getElementById('growth-tactics');
+    strategy.growth_tactics.forEach((t, i) => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;gap:1rem;margin-bottom:0.75rem;align-items:start;';
+      div.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);margin-top:2px;flex-shrink:0;">0${i+1}</span><span style="font-size:0.875rem;color:var(--text2);line-height:1.5;">${t}</span>`;
+      gtCont.appendChild(div);
+    });
+
+    // Pillars
+    const pillarsGrid = document.getElementById('pillars-grid');
+    const pillarSelectList = document.getElementById('pillar-select-list');
+
+    strategy.content_pillars.forEach((pillar, i) => {
+      // Grid card
+      const card = document.createElement('div');
+      card.className = 'pillar-card';
+      card.innerHTML = `
+        <div class="pillar-name">${pillar.name}</div>
+        <div class="pillar-desc">${pillar.description}</div>
+        <div class="pillar-freq">${pillar.post_frequency}</div>
+        <div class="platform-dots">
+          ${pillar.platform_fit.includes('linkedin') ? '<span class="platform-dot linkedin">LinkedIn</span>' : ''}
+          ${pillar.platform_fit.includes('instagram') ? '<span class="platform-dot instagram">Instagram</span>' : ''}
+        </div>
+        <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+          ${pillar.content_ideas.map(idea => `<div style="font-size:0.78rem;color:var(--text3);margin-bottom:0.4rem;padding-left:0.75rem;border-left:1px solid var(--border2);">${idea}</div>`).join('')}
+        </div>
+      `;
+      pillarsGrid.appendChild(card);
+
+      // Select item for generator
+      const item = document.createElement('div');
+      item.className = 'pillar-select-item' + (i === 0 ? ' active' : '');
+      item.dataset.pillarId = pillar.id;
+      item.textContent = pillar.name;
+      item.onclick = () => {
+        document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        selectedPillar = pillar.id;
+        document.getElementById('custom-topic-input').style.display = 'none';
+      };
+      pillarSelectList.appendChild(item);
+      if (i === 0) selectedPillar = pillar.id;
+    });
+
+    // Custom topic option
+    const customItem = document.createElement('div');
+    customItem.className = 'pillar-select-item custom';
+    customItem.dataset.pillarId = 'custom';
+    customItem.textContent = '+ Custom topic';
+    customItem.onclick = () => {
+      document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
+      customItem.classList.add('active');
+      selectedPillar = 'custom';
+      document.getElementById('custom-topic-input').style.display = 'block';
+      document.getElementById('custom-topic-input').focus();
+    };
+    pillarSelectList.appendChild(customItem);
+
+    // Platform strategy
+    const platGrid = document.getElementById('platform-strategy-grid');
+    ['linkedin', 'instagram'].forEach(p => {
+      const ps = strategy.platform_strategy[p];
+      if (!ps) return;
+      const card = document.createElement('div');
+      card.className = 'platform-strategy-card';
+      card.innerHTML = `
+        <h3>
+          <span class="platform-icon ${p === 'linkedin' ? 'li' : 'ig'}">${p === 'linkedin' ? 'in' : 'ig'}</span>
+          ${p === 'linkedin' ? 'LinkedIn' : 'Instagram'}
+        </h3>
+        <div class="platform-detail">
+          <div class="label">Focus</div>
+          <div class="value">${ps.focus}</div>
+        </div>
+        <div class="platform-detail">
+          <div class="label">Posting frequency</div>
+          <div class="value" style="color:var(--gold);">${ps.posting_frequency}</div>
+        </div>
+        <div class="platform-detail">
+          <div class="label">Tone</div>
+          <div class="value">${ps.tone}</div>
+        </div>
+        <div class="platform-detail">
+          <div class="label">Content types</div>
+          <div class="tag-list">${ps.content_types.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+      `;
+      platGrid.appendChild(card);
+    });
+
+    // Sidebar expertise
+    const expSection = document.getElementById('sidebar-expertise');
+    if (map.professional_experience?.areas_of_expertise?.length) {
+      map.professional_experience.areas_of_expertise.forEach(area => {
+        const div = document.createElement('div');
+        div.className = 'nav-item';
+        div.style.cursor = 'default';
+        div.innerHTML = `<div class="nav-dot"></div>${area}`;
+        expSection.appendChild(div);
+      });
+    }
+  }
+
+  function selectTone(btn) {
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTone = btn.dataset.tone;
+  }
+
+  function getCustomTopic() {
+    return selectedPillar === 'custom' ? document.getElementById('custom-topic-input').value.trim() : null;
+  }
+
+  function buildPostCard(p, pillarLabel) {
+    const igFormatLabel = p === 'instagram'
+      ? { post: 'Carousel', story: 'Story', reel: 'Reel' }[selectedIgFormat] + ' · '
+      : '';
+    const card = document.createElement('div');
+    card.className = 'post-card';
+    card.innerHTML = `
+      <div class="post-card-header">
+        <span class="platform-badge ${p}">${p === 'linkedin' ? 'LinkedIn' : 'Instagram'}</span>
+        <span class="post-meta">${igFormatLabel}${pillarLabel} · ${selectedTone}</span>
+      </div>
+      <div class="post-body generating" id="post-body-${p}">Generating your post...</div>
+      <div class="post-card-footer">
+        <button class="post-action-btn" id="copy-btn-${p}" onclick="copyPost('${p}')">Copy</button>
+        <button class="post-action-btn" onclick="regenerate('${p}')">Regenerate</button>
+      </div>
+      <div class="refine-row">
+        <input class="refine-input" id="refine-input-${p}" placeholder="Edit instruction — e.g. make it shorter, change the hook, add more personality...">
+        <button class="refine-btn" id="refine-btn-${p}" onclick="refinePost('${p}')">Refine</button>
+      </div>
+    `;
+    return card;
+  }
+
+  async function generatePost() {
+    const platform = document.getElementById('gen-platform').value;
+    const customTopic = getCustomTopic();
+    if (selectedPillar === 'custom' && !customTopic) {
+      document.getElementById('custom-topic-input').focus();
+      return;
+    }
+    const btn = document.getElementById('gen-btn');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    const platforms = platform === 'both' ? ['linkedin', 'instagram'] : [platform];
+    const outputEl = document.getElementById('post-output');
+    outputEl.innerHTML = '';
+
+    const pillarLabel = customTopic
+      ? customTopic.slice(0, 40) + (customTopic.length > 40 ? '…' : '')
+      : (appData.strategy.content_pillars.find(c => c.id === selectedPillar)?.name || '');
+
+    for (const p of platforms) {
+      const card = buildPostCard(p, pillarLabel);
+      outputEl.appendChild(card);
+
+      try {
+        const res = await fetch('/api/generate-post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            personalityMap: appData.personalityMap,
+            strategy: appData.strategy,
+            platform: p,
+            pillar: selectedPillar,
+            tone: selectedTone,
+            customTopic,
+            instagramOptions: p === 'instagram' ? getIgOptions() : null,
+          })
+        });
+        const data = await res.json();
+        const bodyEl = document.getElementById(`post-body-${p}`);
+        bodyEl.textContent = data.post;
+        bodyEl.classList.remove('generating');
+      } catch (err) {
+        document.getElementById(`post-body-${p}`).textContent = 'Error generating post. Try again.';
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Generate post';
+  }
+
+  async function regenerate(platform) {
+    const bodyEl = document.getElementById(`post-body-${platform}`);
+    bodyEl.textContent = 'Regenerating...';
+    bodyEl.classList.add('generating');
+
+    try {
+      const res = await fetch('/api/generate-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          personalityMap: appData.personalityMap,
+          strategy: appData.strategy,
+          platform,
+          pillar: selectedPillar,
+          tone: selectedTone,
+          customTopic: getCustomTopic(),
+          instagramOptions: platform === 'instagram' ? getIgOptions() : null,
+        })
+      });
+      const data = await res.json();
+      bodyEl.textContent = data.post;
+      bodyEl.classList.remove('generating');
+    } catch (err) {
+      bodyEl.textContent = 'Error. Try again.';
+    }
+  }
+
+  async function refinePost(platform) {
+    const instruction = document.getElementById(`refine-input-${platform}`).value.trim();
+    if (!instruction) return;
+    const bodyEl = document.getElementById(`post-body-${platform}`);
+    const btn = document.getElementById(`refine-btn-${platform}`);
+    const currentPost = bodyEl.textContent;
+
+    btn.disabled = true;
+    btn.textContent = 'Refining...';
+    bodyEl.classList.add('generating');
+
+    try {
+      const res = await fetch('/api/refine-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          post: currentPost,
+          instruction,
+          platform,
+          strategy: appData.strategy,
+        })
+      });
+      const data = await res.json();
+      bodyEl.textContent = data.post;
+      bodyEl.classList.remove('generating');
+      document.getElementById(`refine-input-${platform}`).value = '';
+    } catch (err) {
+      bodyEl.textContent = 'Error refining post. Try again.';
+      bodyEl.classList.remove('generating');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Refine';
+  }
+
+  function copyPost(platform) {
+    const text = document.getElementById(`post-body-${platform}`).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById(`copy-btn-${platform}`);
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.getElementById(`tab-${tabName}`).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(`nav-${tabName}`).classList.add('active');
+  }
+
+  function showApp() {
+    hideLoading();
+    document.getElementById('upload-screen').classList.remove('active');
+    document.getElementById('app-screen').classList.add('active');
+    document.getElementById('upload-new-btn').style.display = 'block';
+  }
+
+  function resetToUpload() {
+    appData = { personalityMap: null, strategy: null };
+    document.getElementById('app-screen').classList.remove('active');
+    document.getElementById('upload-screen').classList.add('active');
+    document.getElementById('upload-new-btn').style.display = 'none';
+    document.getElementById('file-input').value = '';
+    // Reset populated content
+    ['brand-statement', 'target-audience', 'uvp'].forEach(id => document.getElementById(id).textContent = '');
+    ['voice-do', 'voice-dont', 'voice-adjectives', 'growth-tactics', 'pillars-grid', 'pillar-select-list', 'platform-strategy-grid', 'post-output'].forEach(id => document.getElementById(id).innerHTML = '');
+    document.getElementById('sidebar-expertise').innerHTML = '<div class="sidebar-label">Expertise</div>';
+    loadSessions();
+  }
+
+  // ── Remake This ─────────────────────────────────────────────────────────────
+
+  let viralPlatform = 'instagram';
+  let viralPollTimer = null;
+  let viralPollSeconds = 0;
+
+  function switchViralPlatform(platform) {
+    viralPlatform = platform;
+    document.getElementById('toggle-instagram').className = 'platform-toggle-btn' + (platform === 'instagram' ? ' active instagram' : '');
+    document.getElementById('toggle-linkedin').className = 'platform-toggle-btn' + (platform === 'linkedin' ? ' active linkedin' : '');
+  }
+
+  function stopViralPolling() {
+    if (viralPollTimer) { clearTimeout(viralPollTimer); viralPollTimer = null; }
+    viralPollSeconds = 0;
+  }
+
+  function viralScanningMessage() {
+    const mins = Math.floor(viralPollSeconds / 60);
+    const secs = viralPollSeconds % 60;
+    const elapsed = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    const platform = viralPlatform === 'instagram' ? 'Instagram' : 'LinkedIn';
+    const eta = viralPlatform === 'instagram' ? 'Instagram takes 5–8 min' : 'LinkedIn takes 1–2 min';
+    return `<div class="viral-empty">Scanning your Dream 100 on ${platform}...<br><span style="font-size:0.8rem;font-family:'DM Mono',monospace;color:var(--text3);">Running for ${elapsed} — ${eta}.</span></div>`;
+  }
+
+  let viralReload = false;
+
+  async function pollViralTrends() {
+    const btn = document.getElementById('fetch-viral-btn');
+    const grid = document.getElementById('viral-grid');
+    try {
+      const mapEncoded = encodeURIComponent(JSON.stringify(appData.personalityMap));
+      const reloadParam = viralReload ? '&reload=true' : '';
+      const res = await fetch(`/api/viral-trends?platform=${viralPlatform}&personalityMap=${mapEncoded}${reloadParam}`);
+      const data = await res.json();
+
+      if (data.status === 'processing') {
+        viralPollSeconds += 15;
+        grid.innerHTML = viralScanningMessage();
+        viralPollTimer = setTimeout(pollViralTrends, 15000);
+        return;
+      }
+
+      stopViralPolling();
+      btn.disabled = false;
+      btn.textContent = 'Refresh';
+      document.getElementById('reload-viral-btn').disabled = false;
+
+      if (!data.success) {
+        grid.innerHTML = `<div class="viral-empty" style="color:#c47070;">Scrape failed: ${data.error || 'unknown error'}.<br><span style="font-size:0.8rem;color:var(--text3);">Click Refresh to try again.</span></div>`;
+        return;
+      }
+      if (!data.posts || !data.posts.length) {
+        grid.innerHTML = `<div class="viral-empty">No posts found from your Dream 100 on ${viralPlatform === 'instagram' ? 'Instagram' : 'LinkedIn'} this week.<br><span style="font-size:0.8rem;color:var(--text3);">Try the other platform, or click Refresh to re-scan.</span></div>`;
+        return;
+      }
+      grid.innerHTML = '';
+      data.posts.forEach(post => grid.appendChild(buildViralCard(post)));
+    } catch (err) {
+      stopViralPolling();
+      btn.disabled = false;
+      btn.textContent = 'Retry';
+      document.getElementById('reload-viral-btn').disabled = false;
+      grid.innerHTML = `<div class="viral-empty" style="color:#c47070;">Error: ${err.message}</div>`;
+    }
+  }
+
+  async function loadViralTrends(reload = false) {
+    if (!appData.personalityMap) { alert('Upload your personality map first.'); return; }
+    stopViralPolling();
+    viralReload = reload;
+    const btn = document.getElementById('fetch-viral-btn');
+    const reloadBtn = document.getElementById('reload-viral-btn');
+    const grid = document.getElementById('viral-grid');
+    btn.disabled = true;
+    reloadBtn.disabled = true;
+    btn.textContent = reload ? 'Loading last scan...' : 'Scanning Dream 100...';
+    viralPollSeconds = 0;
+    grid.innerHTML = reload
+      ? `<div class="viral-empty">Loading results from last scan...</div>`
+      : viralScanningMessage();
+    await pollViralTrends();
+  }
+
+  function buildViralCard(post) {
+    const card = document.createElement('div');
+    card.className = 'viral-card';
+    const scoreClass = post.fitScore >= 9 ? 'high' : 'med';
+    const engText = post.platform === 'instagram'
+      ? `${post.likes?.toLocaleString()} likes · ${post.comments?.toLocaleString()} comments`
+      : `${post.likes?.toLocaleString()} reactions · ${post.comments?.toLocaleString()} comments`;
+    const snippet = (post.text || '').slice(0, 220) + ((post.text || '').length > 220 ? '…' : '');
+    const cardId = `viral-${Math.random().toString(36).slice(2)}`;
+
+    card.innerHTML = `
+      <div class="viral-card-header">
+        <div class="viral-author">
+          @${post.author}
+          <span>${post.platform === 'instagram' ? 'Instagram' : 'LinkedIn'}</span>
+        </div>
+        <div class="fit-badge ${scoreClass}" title="Brand fit score">${post.fitScore}</div>
+      </div>
+      <div class="viral-text">${snippet}</div>
+      <div class="viral-reason">↳ ${post.fitReason}</div>
+      <div class="viral-card-footer">
+        <div class="viral-engagement">${engText}</div>
+        <button class="remake-btn" id="remake-btn-${cardId}" onclick="remakeViralPost(this, '${cardId}')">Remake in my voice</button>
+      </div>
+      <div id="remade-${cardId}"></div>
+    `;
+
+    card._post = post;
+    card.dataset.cardId = cardId;
+
+    // Store post data on the button for retrieval
+    card.querySelector(`#remake-btn-${cardId}`)._post = post;
+    return card;
+  }
+
+  async function remakeViralPost(btn, cardId) {
+    if (!appData.personalityMap || !appData.strategy) return;
+    const post = btn._post;
+    const wrap = document.getElementById(`remade-${cardId}`);
+
+    btn.disabled = true;
+    btn.textContent = 'Writing...';
+    wrap.innerHTML = `
+      <div class="remade-post-wrap">
+        <div class="remade-label">Your version — generating...</div>
+        <div class="remade-body" style="color:var(--text3);font-style:italic;">Rewriting in your voice...</div>
+      </div>`;
+
+    try {
+      const res = await fetch('/api/remake-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          viralPost: post,
+          personalityMap: appData.personalityMap,
+          strategy: appData.strategy,
+          platform: post.platform,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      const remadeId = `remade-body-${cardId}`;
+      wrap.innerHTML = `
+        <div class="remade-post-wrap">
+          <div class="remade-label">Your version — remade from @${post.author}</div>
+          <div class="remade-body" id="${remadeId}">${data.post}</div>
+          <div class="remade-actions">
+            <button class="post-action-btn" onclick="copyRemade('${remadeId}', this)">Copy</button>
+            <button class="post-action-btn" onclick="sendToGenerator('${remadeId}')">Edit in generator</button>
+          </div>
+        </div>`;
+    } catch (err) {
+      wrap.innerHTML = `<div class="remade-post-wrap"><div class="remade-body" style="color:#c47070;">Error: ${err.message}</div></div>`;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Remake again';
+  }
+
+  function copyRemade(bodyId, btn) {
+    const text = document.getElementById(bodyId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function sendToGenerator(bodyId) {
+    const text = document.getElementById(bodyId).textContent;
+    showTab('generator');
+    document.getElementById('custom-topic-input').value = text;
+    document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
+    document.querySelector('.pillar-select-item.custom').classList.add('active');
+    selectedPillar = 'custom';
+    document.getElementById('custom-topic-input').style.display = 'block';
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  function showLoading(text) {
+    document.getElementById('loading-text').textContent = text;
+    document.getElementById('loading').classList.add('active');
+  }
+
+  function setLoadingText(text) { document.getElementById('loading-text').textContent = text; }
+  function hideLoading() { document.getElementById('loading').classList.remove('active'); }
+</script>
+</body>
+</html>
