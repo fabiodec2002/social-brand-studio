@@ -205,34 +205,64 @@ async function generatePost(personalityMap, strategy, platform, pillar, tone, cu
     ? { name: 'Custom Topic', description: customTopic }
     : (strategy.content_pillars.find(p => p.id === pillar) || strategy.content_pillars[0]);
 
-  const igFormat = instagramOptions.format || 'post';
-  const igSubType = instagramOptions.subType || '';
+  const igFormat = (instagramOptions || {}).format || 'post';
+  const igSubType = (instagramOptions || {}).subType || '';
 
   const platformInstructions = {
-    linkedin: `Write a LinkedIn post (180-280 words).
-      - Start with a strong hook — a bold statement, question, or surprising insight
-      - Use short punchy paragraphs (1-3 lines max)
-      - Share a specific insight, story or lesson
-      - End with a clear call to action or thought-provoking question
-      - Include 3-5 relevant hashtags on a new line at the end
-      - Professional but human and personal`,
+    linkedin: `Write a LinkedIn post (150-250 words).
+
+STRUCTURE:
+- Hook (1-2 lines): Drop the reader mid-scene or mid-thought. No windup. No "Today I want to talk about..."
+- Body (3-5 short paragraphs, 1-3 lines each): One idea per block. Build from the hook.
+- Ending: A real question they're still sitting with, or a quiet observation. NOT a call-to-action prompt.
+
+SENTENCE RHYTHM — non-negotiable:
+Vary sentence length deliberately. Use fragments for emphasis. Like this. Then a longer sentence that earns the emphasis by adding context and showing you've actually lived through something. Short again. The rhythm itself signals authenticity.
+
+SPECIFICITY RULE:
+Every abstract claim needs one concrete anchor: a number, a name, a date, a place, a specific conversation. "We lost the client" is nothing. "We lost the €40k client two days before payroll" is a post.
+
+BANNED OPENERS — the first word must NOT be:
+"I" / "Today" / "In" / "As" / "The" / "We"
+
+BANNED PHRASES — never write these:
+"In today's world/landscape/fast-paced environment"
+"I'm excited/humbled/thrilled/honored to share"
+"Let that sink in."
+"Here's the thing:" / "Here's what I've learned:" / "Here's the truth:"
+"Not many people talk about this" / "Unpopular opinion:"
+"This changed everything" / "game-changer" / "game changer"
+"Key takeaway:" / "The lesson here is:" / "What this taught me:"
+"Moving the needle" / "leverage" (as verb) / "synergy" / "bandwidth"
+"I'm passionate about" / "I'm on a mission to"
+"At the end of the day"
+"Drop your thoughts in the comments" / "What do you think? Let me know below"
+"I am grateful for" / "I am blessed"
+
+WHAT AUTHENTIC POSTS DO:
+- Start with a specific moment already in progress, not a setup
+- Let the story prove the point — never state the lesson out loud
+- Include one moment of doubt, self-correction, or things not going to plan
+- End before the moral, not after it
+
+FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless natural to their voice. Line break between each paragraph.`,
     instagram: buildInstagramInstructions(igFormat, igSubType),
   };
 
   const toneInstructions = {
-    authentic: 'Raw, vulnerable, honest. Share real struggles and wins. Like talking to a trusted friend.',
-    educational: 'Share knowledge generously. Give concrete, actionable insights. Be the expert who explains things simply.',
-    storytelling: 'Start in the middle of a scene. Use sensory details. Build tension and resolution.',
-    motivational: 'Draw from personal experience. Be specific about challenges overcome. Inspire without being preachy.',
-    casual: 'Relaxed, witty, with personality. Light humor where natural. Real talk, no corporate speak.',
-    contrarian: 'Challenge a common belief in your industry. Back it up with experience. Be bold but not inflammatory.'
+    authentic: `Write like you're thinking out loud mid-conversation. Anchor it in one specific real moment — a number, a name, a date. Use at least one sentence fragment for emphasis. Somewhere in the post, show a crack: a mistake, a doubt, something still unresolved. Do NOT tie it up neatly at the end.`,
+    educational: `Teach from a specific situation, not from a list of tips. Open with the moment you encountered the problem — not the solution. Each insight must connect to something real from their background. End with a question they're genuinely still sitting with, not one engineered to drive engagement.`,
+    storytelling: `First line must drop the reader into a moment already in progress — no setup, no "let me tell you about the time...". Include at least one line of actual dialogue. Include one small physical or situational detail that only they would know. Do NOT explain what the story means — end the story and stop.`,
+    motivational: `Motivation through specificity, not inspiration. Show the exact moment of failure or the exact second of doubt — not the lesson from it. Give a number, a name, or a date to make it real. Avoid all motivational poster language. Trust the specific truth to do the inspiring — don't explain it.`,
+    casual: `Write like a DM to a smart friend who'd call you out if you were performing. Contractions everywhere. One self-deprecating aside. No professional distance. Something slightly unpolished — a thought that trails off, a sentence that doesn't wrap up cleanly. Should feel like it was written in 15 minutes, then lightly edited.`,
+    contrarian: `Name the specific belief you're challenging — quote it or show exactly where you see it repeated. Use one concrete example from their own work to show where it breaks down. Do not hedge. Do not add a balanced take at the end. State your actual position and stop. It's fine if the skeptics aren't convinced.`
   };
 
   const response = await openai.chat.completions.create({
     model: MODEL,
     messages: [{
       role: 'user',
-      content: `You are writing a social media post FOR this specific person. Write in first person as them.
+      content: `You are ghostwriting a social media post for a specific person. You will write in their voice, in first person, as if they typed it themselves.
 
 THEIR PERSONALITY MAP:
 ${JSON.stringify(personalityMap, null, 2)}
@@ -245,15 +275,25 @@ CONTENT PILLAR: ${pillarData.name} — ${pillarData.description}
 PLATFORM: ${platform.toUpperCase()}
 ${platformInstructions[platform]}
 
-TONE: ${toneInstructions[tone]}
+TONE DIRECTION: ${toneInstructions[tone]}
 
-IMPORTANT:
-- Use specific details from their real life (actual experiences, achievements, countries, skills)
-- Sound like a real human, not a marketer
-- Do NOT use corporate buzzwords or clichés like "game-changer", "crushing it", "hustle"
-- Make it feel like THEY wrote it
+HOW AI-WRITTEN POSTS FAIL — avoid every one of these patterns:
+- Explaining the lesson instead of showing it ("This taught me that persistence pays off" → just show the persistence, let the reader conclude)
+- Vague time references ("Recently", "A few years ago", "Early in my career") → use specific timeframes from their actual history
+- Starting 3 or more sentences in the post with "I"
+- Transition words that signal AI: "Moreover", "Furthermore", "In essence", "Ultimately", "Importantly", "Notably"
+- Perfect grammar and symmetrical structure throughout — human writing has natural rough edges
+- Generic emotional language ("I felt so overwhelmed") → use a specific situation or detail instead
+- Building to a neat, resolved conclusion — real stories often just stop
+- Any sentence that reads like a motivational poster
 
-Write ONLY the post text, nothing else.`
+WHAT MAKES IT FEEL REAL:
+- One specific, surprising detail that only they would know (a real number, a name, a specific place or date from their map)
+- At least one sentence fragment used deliberately for emphasis
+- The vocabulary and references fit their background and geography — not generic Western corporate English
+- Something slightly unresolved at the end — a question they're still holding, not one they've answered
+
+Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
     }],
   });
 
