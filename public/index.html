@@ -1010,6 +1010,150 @@
       padding: 3rem 0;
     }
 
+    /* Analytics tab */
+    .analytics-platform-toggle { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+
+    .analytics-import-zone {
+      border: 1px dashed var(--border2);
+      border-radius: 2px;
+      padding: 1.5rem 2rem;
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+      position: relative;
+    }
+
+    .analytics-import-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .analytics-import-zone:hover { border-color: var(--gold); }
+
+    .analytics-import-text { flex: 1; min-width: 180px; }
+    .analytics-import-text strong { font-size: 0.875rem; font-weight: 400; display: block; margin-bottom: 0.25rem; }
+    .analytics-import-text span { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text3); letter-spacing: 0.05em; }
+
+    .analytics-import-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 1.25rem;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      border-radius: 2px;
+      cursor: pointer;
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+
+    .analytics-instructions {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      letter-spacing: 0.04em;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .analytics-use-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      padding: 0.875rem 1.25rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+    }
+
+    .analytics-use-toggle label {
+      font-size: 0.875rem;
+      color: var(--text2);
+      cursor: pointer;
+    }
+
+    .analytics-use-toggle input[type="checkbox"] { accent-color: var(--gold); width: 14px; height: 14px; cursor: pointer; }
+
+    .analytics-use-toggle .use-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--text3);
+      margin-left: auto;
+      letter-spacing: 0.04em;
+    }
+
+    .analytics-table-wrap { overflow-x: auto; margin-top: 1.5rem; }
+
+    .analytics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .analytics-table th {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      text-align: left;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .analytics-table td {
+      padding: 0.75rem 1rem;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .analytics-table tr:last-child td { border-bottom: none; }
+
+    .analytics-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .analytics-rank {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--gold);
+      font-weight: 400;
+    }
+
+    .analytics-excerpt {
+      max-width: 360px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    .analytics-stat {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .analytics-empty {
+      color: var(--text3);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      padding: 2.5rem 0;
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -1089,6 +1233,9 @@
         </div>
         <div class="nav-item" onclick="showTab('remake')" id="nav-remake">
           <div class="nav-dot"></div>Remake this
+        </div>
+        <div class="nav-item" onclick="showTab('analytics')" id="nav-analytics">
+          <div class="nav-dot"></div>Analytics
         </div>
       </div>
       <div class="sidebar-section" id="sidebar-expertise">
@@ -1172,6 +1319,53 @@
         </div>
       </div>
 
+      <!-- Analytics Tab -->
+      <div id="tab-analytics" class="tab-content" style="display:none">
+        <div class="section-title">Analytics</div>
+        <div class="section-subtitle">Import your post performance data — top posts will inform what AI generates next</div>
+
+        <div class="analytics-platform-toggle">
+          <button class="platform-toggle-btn active linkedin" id="analytics-toggle-linkedin" onclick="switchAnalyticsPlatform('linkedin')">LinkedIn</button>
+          <button class="platform-toggle-btn" id="analytics-toggle-instagram" onclick="switchAnalyticsPlatform('instagram')">Instagram</button>
+        </div>
+
+        <div class="analytics-use-toggle">
+          <input type="checkbox" id="use-analytics-toggle" checked>
+          <label for="use-analytics-toggle">Use my top posts to inform generation</label>
+          <span class="use-note" id="analytics-status-note">No data imported yet</span>
+        </div>
+
+        <div id="analytics-linkedin-section">
+          <div class="analytics-import-zone" id="analytics-import-zone-linkedin">
+            <input type="file" accept=".csv" onchange="handleAnalyticsCSV(this.files[0], 'linkedin')">
+            <div class="analytics-import-text">
+              <strong>Import LinkedIn CSV</strong>
+              <span>Drop or click to select your exported CSV file</span>
+            </div>
+            <div class="analytics-import-btn">Import CSV</div>
+          </div>
+          <div class="analytics-instructions" id="analytics-instructions-linkedin">
+            How to export: LinkedIn → Me → Posts &amp; Activity → Creator analytics → Posts tab → Export (top right) → select a date range → Download CSV
+          </div>
+          <div id="analytics-table-linkedin"></div>
+        </div>
+
+        <div id="analytics-instagram-section" style="display:none">
+          <div class="analytics-import-zone" id="analytics-import-zone-instagram">
+            <input type="file" accept=".csv" onchange="handleAnalyticsCSV(this.files[0], 'instagram')">
+            <div class="analytics-import-text">
+              <strong>Import Instagram CSV</strong>
+              <span>Drop or click to select your exported CSV file</span>
+            </div>
+            <div class="analytics-import-btn">Import CSV</div>
+          </div>
+          <div class="analytics-instructions" id="analytics-instructions-instagram">
+            How to export: Meta Business Suite → Posts &amp; Stories → select date range → Export data (top right) → Export as CSV
+          </div>
+          <div id="analytics-table-instagram"></div>
+        </div>
+      </div>
+
       <!-- Generator Tab -->
       <div id="tab-generator" class="tab-content" style="display:none">
         <div class="section-title">Post generator</div>
@@ -1238,7 +1432,7 @@
 </div>
 
 <script>
-  let appData = { personalityMap: null, strategy: null };
+  let appData = { sessionId: null, personalityMap: null, strategy: null };
   let selectedPillar = null;
   let selectedTone = 'authentic';
   let selectedIgFormat = 'post';
@@ -1348,9 +1542,10 @@
       const res = await fetch(`/api/sessions/${id}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      appData = { personalityMap: data.personalityMap, strategy: data.strategy };
+      appData = { sessionId: id, personalityMap: data.personalityMap, strategy: data.strategy };
       populateApp(data.strategy, data.personalityMap);
       showApp();
+      loadAnalyticsForSession(id);
     } catch (err) {
       hideLoading();
       alert('Error loading session: ' + err.message);
@@ -1401,9 +1596,10 @@
 
       if (!data.success) throw new Error(data.error);
 
-      appData = { personalityMap: data.personalityMap, strategy: data.strategy };
+      appData = { sessionId: data.id, personalityMap: data.personalityMap, strategy: data.strategy };
       populateApp(data.strategy, data.personalityMap);
       showApp();
+      loadAnalyticsForSession(data.id);
     } catch (err) {
       hideLoading();
       alert('Error processing your PDF: ' + err.message);
@@ -1616,6 +1812,8 @@
             tone: selectedTone,
             customTopic,
             instagramOptions: p === 'instagram' ? getIgOptions() : null,
+            sessionId: appData.sessionId,
+            useAnalytics: document.getElementById('use-analytics-toggle')?.checked ?? false,
           })
         });
         const data = await res.json();
@@ -1648,6 +1846,8 @@
           tone: selectedTone,
           customTopic: getCustomTopic(),
           instagramOptions: platform === 'instagram' ? getIgOptions() : null,
+          sessionId: appData.sessionId,
+          useAnalytics: document.getElementById('use-analytics-toggle')?.checked ?? false,
         })
       });
       const data = await res.json();
@@ -1718,7 +1918,8 @@
   }
 
   function resetToUpload() {
-    appData = { personalityMap: null, strategy: null };
+    appData = { sessionId: null, personalityMap: null, strategy: null };
+    analyticsData = { linkedin: [], instagram: [] };
     document.getElementById('app-screen').classList.remove('active');
     document.getElementById('upload-screen').classList.add('active');
     document.getElementById('upload-new-btn').style.display = 'none';
@@ -1912,6 +2113,177 @@
     document.querySelector('.pillar-select-item.custom').classList.add('active');
     selectedPillar = 'custom';
     document.getElementById('custom-topic-input').style.display = 'block';
+  }
+
+  // ── Analytics ────────────────────────────────────────────────────────────────
+
+  let analyticsPlatform = 'linkedin';
+  let analyticsData = { linkedin: [], instagram: [] };
+
+  function switchAnalyticsPlatform(platform) {
+    analyticsPlatform = platform;
+    document.getElementById('analytics-toggle-linkedin').className = 'platform-toggle-btn' + (platform === 'linkedin' ? ' active linkedin' : '');
+    document.getElementById('analytics-toggle-instagram').className = 'platform-toggle-btn' + (platform === 'instagram' ? ' active instagram' : '');
+    document.getElementById('analytics-linkedin-section').style.display = platform === 'linkedin' ? 'block' : 'none';
+    document.getElementById('analytics-instagram-section').style.display = platform === 'instagram' ? 'block' : 'none';
+  }
+
+  function parseCSVLine(line) {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (ch === ',' && !inQ) { cols.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    return cols.map(c => c.trim());
+  }
+
+  function normalizeAnalyticsCSV(text, platform) {
+    const lines = text.trim().split(/\r?\n/);
+    if (lines.length < 2) return null;
+    const rawHeaders = parseCSVLine(lines[0]);
+    const headers = rawHeaders.map(h => h.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim());
+    const rows = lines.slice(1).filter(l => l.trim()).map(l => {
+      const vals = parseCSVLine(l);
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+      return obj;
+    });
+    if (!rows.length) return null;
+
+    const getNum = (row, ...keys) => {
+      for (const k of keys) {
+        const found = Object.keys(row).find(h => h.includes(k));
+        if (found) return parseInt((row[found] || '').replace(/,/g, ''), 10) || 0;
+      }
+      return 0;
+    };
+    const getStr = (row, ...keys) => {
+      for (const k of keys) {
+        const found = Object.keys(row).find(h => h.includes(k));
+        if (found && row[found]) return row[found];
+      }
+      return '';
+    };
+
+    return rows.map(r => {
+      if (platform === 'linkedin') {
+        const likes = getNum(r, 'reaction', 'like');
+        const comments = getNum(r, 'comment');
+        const shares = getNum(r, 'repost', 'share');
+        const impressions = getNum(r, 'impression');
+        const text = getStr(r, 'content', 'post', 'title');
+        const date = getStr(r, 'published', 'date');
+        return { text, likes, comments, shares, impressions, saves: 0, date,
+          engagementScore: likes + comments * 2 + shares * 3 };
+      } else {
+        const likes = getNum(r, 'like');
+        const comments = getNum(r, 'comment');
+        const saves = getNum(r, 'save');
+        const impressions = getNum(r, 'impression', 'reach');
+        const shares = getNum(r, 'share');
+        const text = getStr(r, 'caption', 'post', 'description');
+        const date = getStr(r, 'date');
+        return { text, likes, comments, saves, impressions, shares, date,
+          engagementScore: likes + comments * 2 + saves * 3 };
+      }
+    }).filter(p => p.text).sort((a, b) => b.engagementScore - a.engagementScore);
+  }
+
+  async function handleAnalyticsCSV(file, platform) {
+    if (!file) return;
+    if (!appData.sessionId) { alert('Load a personality map session first.'); return; }
+
+    const text = await file.text();
+    const posts = normalizeAnalyticsCSV(text, platform);
+
+    if (!posts || !posts.length) {
+      alert('Could not parse this CSV. Make sure you exported it from LinkedIn Creator Analytics or Meta Business Suite.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/analytics/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: appData.sessionId, platform, posts }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      analyticsData[platform] = posts;
+      renderAnalyticsTable(platform, posts);
+      updateAnalyticsStatusNote();
+    } catch (err) {
+      alert('Error saving analytics: ' + err.message);
+    }
+  }
+
+  function updateAnalyticsStatusNote() {
+    const liCount = analyticsData.linkedin.length;
+    const igCount = analyticsData.instagram.length;
+    const note = document.getElementById('analytics-status-note');
+    if (!liCount && !igCount) { note.textContent = 'No data imported yet'; return; }
+    const parts = [];
+    if (liCount) parts.push(`${liCount} LinkedIn posts`);
+    if (igCount) parts.push(`${igCount} Instagram posts`);
+    note.textContent = parts.join(' · ') + ' imported';
+    note.style.color = 'var(--gold)';
+  }
+
+  function renderAnalyticsTable(platform, posts) {
+    const container = document.getElementById(`analytics-table-${platform}`);
+    if (!posts.length) {
+      container.innerHTML = '<div class="analytics-empty">No posts found in this file.</div>';
+      return;
+    }
+    const isIG = platform === 'instagram';
+    const rows = posts.map((p, i) => `
+      <tr>
+        <td><span class="analytics-rank">#${i + 1}</span></td>
+        <td><div class="analytics-excerpt">${p.text.replace(/</g, '&lt;')}</div></td>
+        <td><span class="analytics-stat">${(p.likes || 0).toLocaleString()}</span></td>
+        <td><span class="analytics-stat">${(p.comments || 0).toLocaleString()}</span></td>
+        ${isIG ? `<td><span class="analytics-stat">${(p.saves || 0).toLocaleString()}</span></td>` : `<td><span class="analytics-stat">${(p.shares || 0).toLocaleString()}</span></td>`}
+        <td><span class="analytics-stat" style="color:var(--gold);">${(p.engagementScore || 0).toLocaleString()}</span></td>
+      </tr>`).join('');
+
+    container.innerHTML = `
+      <div class="analytics-table-wrap">
+        <table class="analytics-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Post excerpt</th>
+              <th>${isIG ? 'Likes' : 'Reactions'}</th>
+              <th>Comments</th>
+              <th>${isIG ? 'Saves' : 'Shares'}</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  async function loadAnalyticsForSession(sessionId) {
+    analyticsData = { linkedin: [], instagram: [] };
+    for (const platform of ['linkedin', 'instagram']) {
+      try {
+        const res = await fetch(`/api/analytics/${sessionId}/${platform}`);
+        const data = await res.json();
+        if (data.success && data.posts.length) {
+          analyticsData[platform] = data.posts;
+          renderAnalyticsTable(platform, data.posts);
+        }
+      } catch (_) {}
+    }
+    updateAnalyticsStatusNote();
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

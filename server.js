@@ -43,6 +43,15 @@ async function initDb() {
   await sql`ALTER TABLE viral_cache ADD COLUMN IF NOT EXISTS run_id TEXT`;
   await sql`ALTER TABLE viral_cache ADD COLUMN IF NOT EXISTS run_status TEXT DEFAULT 'ready'`;
   await sql`ALTER TABLE viral_cache ADD COLUMN IF NOT EXISTS dataset_id TEXT`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS post_analytics (
+      session_id TEXT NOT NULL,
+      platform TEXT NOT NULL,
+      posts JSONB NOT NULL DEFAULT '[]',
+      imported_at TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (session_id, platform)
+    )
+  `;
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
@@ -200,7 +209,7 @@ function buildInstagramInstructions(format, subType) {
 }
 
 // Generate a social post
-async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}) {
+async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = []) {
   const pillarData = customTopic
     ? { name: 'Custom Topic', description: customTopic }
     : (strategy.content_pillars.find(p => p.id === pillar) || strategy.content_pillars[0]);
@@ -292,7 +301,11 @@ WHAT MAKES IT FEEL REAL:
 - At least one sentence fragment used deliberately for emphasis
 - The vocabulary and references fit their background and geography — not generic Western corporate English
 - Something slightly unresolved at the end — a question they're still holding, not one they've answered
-
+${topPosts.length > 0 ? `
+THEIR TOP PERFORMING POSTS — these have gotten the highest engagement from their real audience. Study the emotional tone, level of specificity, and structural approach that made each one work. Do not copy them — extract the pattern and apply it:
+${topPosts.slice(0, 3).map((p, i) => `[Top post ${i + 1} — ${p.likes} likes${p.saves ? `, ${p.saves} saves` : ''}${p.comments ? `, ${p.comments} comments` : ''}]
+"${p.text.slice(0, 350)}"`).join('\n\n')}
+` : ''}
 Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
     }],
   });
@@ -486,8 +499,17 @@ app.delete('/api/sessions/:id', async (req, res) => {
 
 app.post('/api/generate-post', async (req, res) => {
   try {
-    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions } = req.body;
-    const post = await generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions);
+    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics } = req.body;
+
+    let topPosts = [];
+    if (sessionId && useAnalytics && ['linkedin', 'instagram'].includes(platform)) {
+      const rows = await sql`SELECT posts FROM post_analytics WHERE session_id = ${sessionId} AND platform = ${platform}`;
+      if (rows.length && Array.isArray(rows[0].posts)) {
+        topPosts = rows[0].posts.slice(0, 3);
+      }
+    }
+
+    const post = await generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, topPosts);
     res.json({ success: true, post });
   } catch (err) {
     console.error(err);
@@ -646,6 +668,43 @@ Write ONLY the post. First person. Ground the pivot in their real experiences fr
     });
 
     res.json({ success: true, post: response.choices[0].message.content.trim() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+app.post('/api/analytics/import', async (req, res) => {
+  try {
+    const { sessionId, platform, posts } = req.body;
+    if (!sessionId || !platform || !Array.isArray(posts)) {
+      return res.status(400).json({ error: 'sessionId, platform, and posts array required' });
+    }
+    if (!['linkedin', 'instagram'].includes(platform)) {
+      return res.status(400).json({ error: 'platform must be linkedin or instagram' });
+    }
+    await sql`
+      INSERT INTO post_analytics (session_id, platform, posts, imported_at)
+      VALUES (${sessionId}, ${platform}, ${JSON.stringify(posts)}, NOW())
+      ON CONFLICT (session_id, platform) DO UPDATE SET posts = EXCLUDED.posts, imported_at = NOW()
+    `;
+    res.json({ success: true, count: posts.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/analytics/:sessionId/:platform', async (req, res) => {
+  try {
+    const { sessionId, platform } = req.params;
+    const rows = await sql`
+      SELECT posts, imported_at FROM post_analytics WHERE session_id = ${sessionId} AND platform = ${platform}
+    `;
+    if (!rows.length) return res.json({ success: true, posts: [], importedAt: null });
+    res.json({ success: true, posts: rows[0].posts, importedAt: rows[0].imported_at });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
