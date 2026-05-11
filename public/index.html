@@ -2249,7 +2249,12 @@
     const posts = normalizeAnalyticsCSV(text, platform);
 
     if (!posts || !posts.length) {
-      alert('Could not parse this CSV. Make sure you exported it from LinkedIn Creator Analytics or Meta Business Suite.');
+      const isOverview = /impressies|bereikte leden|algehele prestatie|overall performance|ontdekking|discovery/i.test(text);
+      if (isOverview && platform === 'linkedin') {
+        alert('This looks like the Discovery or Overview CSV (Ontdekking/Algehele prestatie).\n\nLinkedIn exports separate files per tab. Look in your downloads for a file with "Berichten" or "Posts" in the name — that\'s the one with individual post data.');
+      } else {
+        alert('Could not find post data in this file.\n\nFor LinkedIn: upload the "Berichten" (Posts) CSV.\nFor Instagram: upload the export from Meta Business Suite → Posts & Stories.');
+      }
       return;
     }
 
