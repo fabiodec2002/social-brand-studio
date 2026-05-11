@@ -2143,23 +2143,69 @@
     return cols.map(c => c.trim());
   }
 
-  function normalizeAnalyticsCSV(text, platform) {
-    const lines = text.trim().split(/\r?\n/);
+  // LinkedIn exports a single CSV with multiple sections stacked vertically,
+  // separated by blank lines. Each section has its own header row.
+  // We split into sections and find the one that looks like per-post data.
+  function splitCSVIntoSections(text) {
+    const lines = text.split(/\r?\n/);
+    const sections = [];
+    let current = [];
+    for (const line of lines) {
+      if (line.trim() === '') {
+        if (current.length) { sections.push(current); current = []; }
+      } else {
+        current.push(line);
+      }
+    }
+    if (current.length) sections.push(current);
+    return sections;
+  }
+
+  function parseSection(lines) {
     if (lines.length < 2) return null;
-    const rawHeaders = parseCSVLine(lines[0]);
-    const headers = rawHeaders.map(h => h.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim());
-    const rows = lines.slice(1).filter(l => l.trim()).map(l => {
+    const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim());
+    const rows = lines.slice(1).map(l => {
       const vals = parseCSVLine(l);
       const obj = {};
       headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
       return obj;
     });
-    if (!rows.length) return null;
+    return { headers, rows };
+  }
+
+  function isPostSection(headers, platform) {
+    const h = headers.join(' ');
+    if (platform === 'linkedin') {
+      // Must have some form of post content column and an engagement metric
+      return (h.includes('inhoud') || h.includes('bericht') || h.includes('content') || h.includes('post') || h.includes('title')) &&
+             (h.includes('impressie') || h.includes('impression') || h.includes('reactie') || h.includes('reaction'));
+    } else {
+      return (h.includes('bijschrift') || h.includes('caption') || h.includes('beschrijving') || h.includes('description')) &&
+             (h.includes('impressie') || h.includes('impression') || h.includes('like') || h.includes('bereik') || h.includes('reach'));
+    }
+  }
+
+  function normalizeAnalyticsCSV(text, platform) {
+    const sections = splitCSVIntoSections(text);
+
+    // Find the section that contains per-post data
+    let target = null;
+    for (const section of sections) {
+      const parsed = parseSection(section);
+      if (parsed && isPostSection(parsed.headers, platform)) {
+        target = parsed;
+        break;
+      }
+    }
+
+    if (!target || !target.rows.length) return null;
+
+    const { rows } = target;
 
     const getNum = (row, ...keys) => {
       for (const k of keys) {
         const found = Object.keys(row).find(h => h.includes(k));
-        if (found) return parseInt((row[found] || '').replace(/,/g, ''), 10) || 0;
+        if (found) return parseInt((row[found] || '').replace(/[.,]/g, ''), 10) || 0;
       }
       return 0;
     };
@@ -2173,7 +2219,6 @@
 
     return rows.map(r => {
       if (platform === 'linkedin') {
-        // Dutch: reacties=reactions/likes, opmerkingen=comments, reposts, impressies, inhoud/bericht=content, datum=date
         const likes = getNum(r, 'reactie', 'reaction', 'like');
         const comments = getNum(r, 'opmerking', 'comment');
         const shares = getNum(r, 'repost', 'share');
@@ -2183,7 +2228,6 @@
         return { text, likes, comments, shares, impressions, saves: 0, date,
           engagementScore: likes + comments * 2 + shares * 3 };
       } else {
-        // Dutch: vind ik leuks=likes, opmerkingen=comments, opgeslagen=saves, bereik=reach, bijschrift=caption
         const likes = getNum(r, 'vind ik leuk', 'like');
         const comments = getNum(r, 'opmerking', 'comment');
         const saves = getNum(r, 'opgeslagen', 'save');
