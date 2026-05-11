@@ -2143,9 +2143,55 @@
     return cols.map(c => c.trim());
   }
 
-  // LinkedIn exports a single CSV with multiple sections stacked vertically,
-  // separated by blank lines. Each section has its own header row.
-  // We split into sections and find the one that looks like per-post data.
+  // TOPBIJDRAGEN format: two tables side by side, URL+date+interactions | URL+date+impressions
+  // No post text — only URLs and metrics.
+  function parseTOPBIJDRAGEN(lines) {
+    // Find the header line (contains bijdrage-url and interacties)
+    let headerIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const lower = lines[i].toLowerCase();
+      if (lower.includes('bijdrage') && (lower.includes('interacties') || lower.includes('impressies'))) {
+        headerIdx = i; break;
+      }
+    }
+    if (headerIdx === -1) return null;
+
+    const dataLines = lines.slice(headerIdx + 1).filter(l => l.trim() && !/^,+$/.test(l.trim()));
+    const byUrl = {};
+
+    for (const line of dataLines) {
+      const vals = parseCSVLine(line);
+      // Left table: col 0 = URL, col 1 = date, col 2 = interactions
+      const leftUrl = vals[0];
+      if (leftUrl && leftUrl.startsWith('http')) {
+        if (!byUrl[leftUrl]) byUrl[leftUrl] = { url: leftUrl, date: vals[1] || '', interactions: 0, impressions: 0 };
+        byUrl[leftUrl].interactions = parseInt(vals[2], 10) || 0;
+      }
+      // Right table: col 4 = URL, col 5 = date, col 6 = impressions
+      const rightUrl = vals[4];
+      if (rightUrl && rightUrl.startsWith('http')) {
+        if (!byUrl[rightUrl]) byUrl[rightUrl] = { url: rightUrl, date: vals[5] || '', interactions: 0, impressions: 0 };
+        byUrl[rightUrl].impressions = parseInt(vals[6], 10) || 0;
+      }
+    }
+
+    const result = Object.values(byUrl)
+      .map(p => ({
+        text: '',
+        url: p.url,
+        date: p.date,
+        likes: p.interactions,
+        comments: 0,
+        shares: 0,
+        impressions: p.impressions,
+        saves: 0,
+        engagementScore: p.interactions * 2 + p.impressions,
+      }))
+      .sort((a, b) => b.engagementScore - a.engagementScore);
+
+    return result.length ? result : null;
+  }
+
   function splitCSVIntoSections(text) {
     const lines = text.split(/\r?\n/);
     const sections = [];
@@ -2176,7 +2222,6 @@
   function isPostSection(headers, platform) {
     const h = headers.join(' ');
     if (platform === 'linkedin') {
-      // Must have some form of post content column and an engagement metric
       return (h.includes('inhoud') || h.includes('bericht') || h.includes('content') || h.includes('post') || h.includes('title')) &&
              (h.includes('impressie') || h.includes('impression') || h.includes('reactie') || h.includes('reaction'));
     } else {
@@ -2186,22 +2231,23 @@
   }
 
   function normalizeAnalyticsCSV(text, platform) {
-    const sections = splitCSVIntoSections(text);
+    // Check for TOPBIJDRAGEN format first (URL-only, two tables side by side)
+    if (platform === 'linkedin' && /bijdrage-url|interacties/i.test(text)) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      const result = parseTOPBIJDRAGEN(lines);
+      if (result) return result;
+    }
 
-    // Find the section that contains per-post data
+    // Fall back to multi-section text-based format
+    const sections = splitCSVIntoSections(text);
     let target = null;
     for (const section of sections) {
       const parsed = parseSection(section);
-      if (parsed && isPostSection(parsed.headers, platform)) {
-        target = parsed;
-        break;
-      }
+      if (parsed && isPostSection(parsed.headers, platform)) { target = parsed; break; }
     }
-
     if (!target || !target.rows.length) return null;
 
     const { rows } = target;
-
     const getNum = (row, ...keys) => {
       for (const k of keys) {
         const found = Object.keys(row).find(h => h.includes(k));
@@ -2225,7 +2271,7 @@
         const impressions = getNum(r, 'impressie', 'impression');
         const text = getStr(r, 'inhoud', 'bericht', 'content', 'post', 'title');
         const date = getStr(r, 'datum', 'published', 'date');
-        return { text, likes, comments, shares, impressions, saves: 0, date,
+        return { text, url: '', likes, comments, shares, impressions, saves: 0, date,
           engagementScore: likes + comments * 2 + shares * 3 };
       } else {
         const likes = getNum(r, 'vind ik leuk', 'like');
@@ -2235,7 +2281,7 @@
         const shares = getNum(r, 'share', 'delen');
         const text = getStr(r, 'bijschrift', 'caption', 'post', 'description');
         const date = getStr(r, 'datum', 'date');
-        return { text, likes, comments, saves, impressions, shares, date,
+        return { text, url: '', likes, comments, saves, impressions, shares, date,
           engagementScore: likes + comments * 2 + saves * 3 };
       }
     }).filter(p => p.text).sort((a, b) => b.engagementScore - a.engagementScore);
@@ -2249,11 +2295,11 @@
     const posts = normalizeAnalyticsCSV(text, platform);
 
     if (!posts || !posts.length) {
-      const isOverview = /impressies|bereikte leden|algehele prestatie|overall performance|ontdekking|discovery/i.test(text);
-      if (isOverview && platform === 'linkedin') {
-        alert('This looks like the Discovery or Overview CSV (Ontdekking/Algehele prestatie).\n\nLinkedIn exports separate files per tab. Look in your downloads for a file with "Berichten" or "Posts" in the name — that\'s the one with individual post data.');
+      const isOverview = /bereikte leden|algehele prestatie|overall performance/i.test(text);
+      if (isOverview) {
+        alert('This looks like the Discovery/Overview CSV (Ontdekking).\n\nYou need the TOPBIJDRAGEN CSV — open the Excel file, click the Topbijdragen tab, then File → Download → CSV.');
       } else {
-        alert('Could not find post data in this file.\n\nFor LinkedIn: upload the "Berichten" (Posts) CSV.\nFor Instagram: upload the export from Meta Business Suite → Posts & Stories.');
+        alert('Could not find post data in this file.\n\nFor LinkedIn: export the Topbijdragen tab as CSV.\nFor Instagram: export from Meta Business Suite → Posts & Stories.');
       }
       return;
     }
@@ -2283,8 +2329,9 @@
     const parts = [];
     if (liCount) parts.push(`${liCount} LinkedIn posts`);
     if (igCount) parts.push(`${igCount} Instagram posts`);
-    note.textContent = parts.join(' · ') + ' imported';
-    note.style.color = 'var(--gold)';
+    const hasText = [...analyticsData.linkedin, ...analyticsData.instagram].some(p => p.text);
+    note.textContent = parts.join(' · ') + (hasText ? ' · AI learning active' : ' · paste post texts below to enable AI');
+    note.style.color = hasText ? 'var(--gold)' : 'var(--text2)';
   }
 
   function renderAnalyticsTable(platform, posts) {
@@ -2294,15 +2341,45 @@
       return;
     }
     const isIG = platform === 'instagram';
-    const rows = posts.map((p, i) => `
-      <tr>
-        <td><span class="analytics-rank">#${i + 1}</span></td>
-        <td><div class="analytics-excerpt">${p.text.replace(/</g, '&lt;')}</div></td>
-        <td><span class="analytics-stat">${(p.likes || 0).toLocaleString()}</span></td>
-        <td><span class="analytics-stat">${(p.comments || 0).toLocaleString()}</span></td>
-        ${isIG ? `<td><span class="analytics-stat">${(p.saves || 0).toLocaleString()}</span></td>` : `<td><span class="analytics-stat">${(p.shares || 0).toLocaleString()}</span></td>`}
-        <td><span class="analytics-stat" style="color:var(--gold);">${(p.engagementScore || 0).toLocaleString()}</span></td>
-      </tr>`).join('');
+    const hasText = posts.some(p => p.text);
+    const hasUrl = posts.some(p => p.url);
+
+    const tableRows = posts.map((p, i) => {
+      const contentCell = p.text
+        ? `<div class="analytics-excerpt">${p.text.replace(/</g, '&lt;')}</div>`
+        : p.url
+          ? `<a href="${p.url}" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);text-decoration:none;letter-spacing:0.05em;">View post →</a>`
+          : '<span style="color:var(--text3);font-size:0.75rem;">—</span>';
+      return `
+        <tr>
+          <td><span class="analytics-rank">#${i + 1}</span></td>
+          <td>${contentCell}</td>
+          <td><span class="analytics-stat">${(p.likes || 0).toLocaleString()}</span></td>
+          <td><span class="analytics-stat">${(p.comments || 0).toLocaleString()}</span></td>
+          ${isIG ? `<td><span class="analytics-stat">${(p.saves || 0).toLocaleString()}</span></td>` : `<td><span class="analytics-stat">${(p.shares || 0).toLocaleString()}</span></td>`}
+          <td><span class="analytics-stat" style="color:var(--gold);">${(p.engagementScore || 0).toLocaleString()}</span></td>
+        </tr>`;
+    }).join('');
+
+    const noTextNote = !hasText ? `
+      <div style="margin-top:1.5rem;padding:1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:2px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem;">Teach the AI — paste your top post texts</div>
+        <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1.25rem;line-height:1.6;">This export only contains links and metrics — no post text. Open each post using the links above, copy the text, and paste it below. The AI will use these to match what resonates with your audience.</div>
+        ${posts.slice(0, 3).map((p, i) => `
+          <div style="margin-bottom:1rem;">
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:0.4rem;">
+              #${i + 1} — ${p.likes || 0} interactions · ${p.impressions || 0} impressions
+              ${p.url ? `· <a href="${p.url}" target="_blank" rel="noopener" style="color:var(--gold);">open post</a>` : ''}
+            </div>
+            <textarea
+              id="manual-text-${platform}-${i}"
+              placeholder="Paste the full text of post #${i + 1} here..."
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:'Outfit',sans-serif;font-size:0.82rem;font-weight:300;padding:0.75rem 1rem;outline:none;resize:vertical;min-height:80px;transition:border-color 0.2s;"
+              onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='var(--border)'"
+            ></textarea>
+          </div>`).join('')}
+        <button onclick="saveManualTexts('${platform}')" style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.6rem 1.5rem;background:var(--gold);color:var(--bg);border:none;border-radius:2px;cursor:pointer;">Save & enable AI learning</button>
+      </div>` : '';
 
     container.innerHTML = `
       <div class="analytics-table-wrap">
@@ -2310,16 +2387,43 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Post excerpt</th>
-              <th>${isIG ? 'Likes' : 'Reactions'}</th>
+              <th>${hasText ? 'Post excerpt' : 'Post link'}</th>
+              <th>${isIG ? 'Likes' : 'Interactions'}</th>
               <th>Comments</th>
-              <th>${isIG ? 'Saves' : 'Shares'}</th>
+              <th>${isIG ? 'Saves' : 'Impressions'}</th>
               <th>Score</th>
             </tr>
           </thead>
-          <tbody>${rows}</tbody>
+          <tbody>${tableRows}</tbody>
         </table>
-      </div>`;
+      </div>
+      ${noTextNote}`;
+  }
+
+  async function saveManualTexts(platform) {
+    const posts = analyticsData[platform];
+    if (!posts || !posts.length) return;
+
+    const updated = posts.map((p, i) => {
+      const ta = document.getElementById(`manual-text-${platform}-${i}`);
+      const manualText = ta ? ta.value.trim() : '';
+      return { ...p, text: manualText || p.text };
+    });
+
+    try {
+      const res = await fetch('/api/analytics/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: appData.sessionId, platform, posts: updated }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      analyticsData[platform] = updated;
+      renderAnalyticsTable(platform, updated);
+      updateAnalyticsStatusNote();
+    } catch (err) {
+      alert('Error saving: ' + err.message);
+    }
   }
 
   async function loadAnalyticsForSession(sessionId) {
