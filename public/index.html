@@ -1345,7 +1345,7 @@
             <div class="analytics-import-btn">Import CSV</div>
           </div>
           <div class="analytics-instructions" id="analytics-instructions-linkedin">
-            How to export: LinkedIn → Me → Posts &amp; Activity → Creator analytics → Posts tab → Export (top right) → select a date range → Download CSV
+            How to export: LinkedIn → Analytics (creator mode) → Posts tab → Export (top right) → select date range → Download CSV. If your LinkedIn is in Dutch: Analyses → Berichten → Exporteren.
           </div>
           <div id="analytics-table-linkedin"></div>
         </div>
@@ -2173,22 +2173,24 @@
 
     return rows.map(r => {
       if (platform === 'linkedin') {
-        const likes = getNum(r, 'reaction', 'like');
-        const comments = getNum(r, 'comment');
+        // Dutch: reacties=reactions/likes, opmerkingen=comments, reposts, impressies, inhoud/bericht=content, datum=date
+        const likes = getNum(r, 'reactie', 'reaction', 'like');
+        const comments = getNum(r, 'opmerking', 'comment');
         const shares = getNum(r, 'repost', 'share');
-        const impressions = getNum(r, 'impression');
-        const text = getStr(r, 'content', 'post', 'title');
-        const date = getStr(r, 'published', 'date');
+        const impressions = getNum(r, 'impressie', 'impression');
+        const text = getStr(r, 'inhoud', 'bericht', 'content', 'post', 'title');
+        const date = getStr(r, 'datum', 'published', 'date');
         return { text, likes, comments, shares, impressions, saves: 0, date,
           engagementScore: likes + comments * 2 + shares * 3 };
       } else {
-        const likes = getNum(r, 'like');
-        const comments = getNum(r, 'comment');
-        const saves = getNum(r, 'save');
-        const impressions = getNum(r, 'impression', 'reach');
-        const shares = getNum(r, 'share');
-        const text = getStr(r, 'caption', 'post', 'description');
-        const date = getStr(r, 'date');
+        // Dutch: vind ik leuks=likes, opmerkingen=comments, opgeslagen=saves, bereik=reach, bijschrift=caption
+        const likes = getNum(r, 'vind ik leuk', 'like');
+        const comments = getNum(r, 'opmerking', 'comment');
+        const saves = getNum(r, 'opgeslagen', 'save');
+        const impressions = getNum(r, 'impressie', 'bereik', 'impression', 'reach');
+        const shares = getNum(r, 'share', 'delen');
+        const text = getStr(r, 'bijschrift', 'caption', 'post', 'description');
+        const date = getStr(r, 'datum', 'date');
         return { text, likes, comments, saves, impressions, shares, date,
           engagementScore: likes + comments * 2 + saves * 3 };
       }
