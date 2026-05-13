@@ -190,6 +190,23 @@ function buildInstagramInstructions(format, subType) {
       - Include 8–12 hashtags on a new line at the end.`;
   }
 
+  if (format === 'normal') {
+    const subTypeNotes = {
+      personal: 'Post type — Personal moment: Share a specific experience, observation, or behind-the-scenes moment from real life. Write it as a flowing caption, not a list.',
+      insight: 'Post type — Opinion / Insight: Share one strong opinion or hard-won lesson backed by a single specific example from your work. Do not hedge the claim.',
+      question: 'Post type — Open question: Pose a genuine question you are wrestling with in your field. Give 2–3 sentences of context that show why the question matters to you personally, then end with the question itself.',
+    };
+    return `Write a single Instagram post caption (100-180 words).
+      - First line is everything: 5-10 words max, scroll-stopping. Creates curiosity or pattern-interrupt without clickbait. No "Have you ever…" or "Did you know…"
+      - Body: 3-5 short paragraphs, 1-3 lines each. White space between paragraphs.
+      - ${subTypeNotes[subType] || subTypeNotes.personal}
+      - Include one specific detail (number, name, date, or place) in the first 3 lines.
+      - At least one sentence of 5 words or fewer for emphasis.
+      - End with a question that feels like you genuinely want to know the answer — not an engagement hook.
+      - 8-12 hashtags on a new line at the end.
+      - Banned: Moreover, Furthermore, journey (as career metaphor), tapestry, resonate, delve, pivotal, showcase, "That being said".`;
+  }
+
   // Default: carousel post
   const categoryNotes = {
     educational: 'Carousel Category — Educational / Tips: "5 mistakes people make when X" or "5 things to know about Y." Each tip is one clear slide.',

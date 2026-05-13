@@ -1387,6 +1387,7 @@
               <label>Instagram format</label>
               <div class="tone-grid" id="ig-format-list">
                 <button class="tone-btn active" data-format="post" onclick="selectIgFormat(this)">Carousel Post</button>
+                <button class="tone-btn" data-format="normal" onclick="selectIgFormat(this)">Single Post</button>
                 <button class="tone-btn" data-format="story" onclick="selectIgFormat(this)">Story</button>
                 <button class="tone-btn" data-format="reel" onclick="selectIgFormat(this)">Reel</button>
               </div>
@@ -1448,6 +1449,14 @@
         { value: 'myth-busting',   text: 'Myth-busting / Challenges' },
         { value: 'storytelling',   text: 'Storytelling / Personal example' },
         { value: 'frameworks',     text: 'Frameworks / Cheatsheets' },
+      ],
+    },
+    normal: {
+      label: 'Post type',
+      items: [
+        { value: 'personal', text: 'Personal moment' },
+        { value: 'insight',  text: 'Opinion / Insight' },
+        { value: 'question', text: 'Open question' },
       ],
     },
     story: {
@@ -1755,7 +1764,7 @@
 
   function buildPostCard(p, pillarLabel) {
     const igFormatLabel = p === 'instagram'
-      ? { post: 'Carousel', story: 'Story', reel: 'Reel' }[selectedIgFormat] + ' · '
+      ? { post: 'Carousel', normal: 'Single Post', story: 'Story', reel: 'Reel' }[selectedIgFormat] + ' · '
       : '';
     const card = document.createElement('div');
     card.className = 'post-card';
