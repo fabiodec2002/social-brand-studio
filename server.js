@@ -7,6 +7,10 @@ const os = require('os');
 const OpenAI = require('openai');
 const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 const { neon } = require('@neondatabase/serverless');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'changeme-please-set-JWT_SECRET-in-env';
 
 const app = express();
 const UPLOADS_DIR = path.join(os.tmpdir(), 'uploads');
@@ -52,6 +56,16 @@ async function initDb() {
       PRIMARY KEY (session_id, platform)
     )
   `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS user_id TEXT`;
+  await sql`ALTER TABLE post_analytics ADD COLUMN IF NOT EXISTS user_id TEXT`;
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
@@ -165,64 +179,120 @@ function buildInstagramInstructions(format, subType) {
     const pillarNotes = {
       personality: 'Story Pillar — My Personality: Draw from an event that changed you, a core value shown through a real situation, a key achievement, your current phase/feeling, or a recurring Q&A / "this or that".',
       life: 'Story Pillar — My Life: Draw from your current routine (nutrition/sleep/workouts/education), something from your phone, how you relax or spend free time, a spontaneous plan shared step by step, or your full day documented.',
-      expertise: 'Story Pillar — My Expertise: Draw from your journey becoming an expert, a 3–5 step plan in your field, answering a common question in your niche, current trends or industry challenges, or your learning plan and goals.',
+      expertise: 'Story Pillar — My Expertise: Draw from your path becoming an expert, a 3–5 step plan in your field, answering a common question in your niche, current trends or industry challenges, or your learning plan and goals.',
     };
     return `Write an Instagram Story (format as 2–4 text overlay slides: [Slide 1], [Slide 2], etc. — or a short talking script).
       - Stories build daily trust and familiarity — more raw and unfiltered than feed posts.
       - ${pillarNotes[subType] || pillarNotes.personality}
-      - Write like you're talking to one person, not broadcasting to an audience.
+      - Write like you're talking to one specific person, not broadcasting to an audience.
       - Each slide: 1 punchy idea, 1–2 sentences max.
-      - End with a question, poll prompt ("Which are you? A or B?"), or "DM me" CTA to spark replies.
+      - End with a binary-choice poll ("Which are you? A or B?"), a fill-in-the-blank ("The thing I wish I'd done earlier was ___"), or "DM me [specific keyword]" to drive replies. These get responses; "What do you think?" does not.
       - No hashtags needed for Stories.`;
   }
 
   if (format === 'reel') {
     const styleNotes = {
-      talking: 'Reel Style — Talking (direct to camera): Share a mindset shift, unpopular opinion, or personal insight. Be direct, personal, confident. Write as a short script. First 3 seconds = a bold statement or provocative question that stops the scroll.',
-      motivation: 'Reel Style — Motivation / Values: One powerful value-driven statement with text overlay energy (e.g. "The only way to impress me is being a good person"). Write the hook text (max 15 words) then expand in the caption with the "why" from your real life.',
-      'tips-tricks': 'Reel Style — Tips & Tricks: The reel cover/hook grabs attention; the caption delivers the value. Use a proven hook formula then list 3–5 tips as a numbered caption. Hooks: "5 unusual ways to X that actually work", "Most people do this wrong every day…", "X things successful people do — are you doing them?"',
+      talking: "Reel Style — Talking (direct to camera): Share a mindset shift, unpopular opinion, or personal insight. Write as a short spoken script. First 3 seconds = a bold declarative statement — not a question. 'Most people get this completely backwards.' Not 'Have you ever wondered why...?' Be direct, personal, confident.",
+      motivation: "Reel Style — Motivation / Values: Write the hook text (max 12 words) — one powerful value-driven statement. Then expand in the caption with a specific real moment that earned this belief. The caption is the proof the hook promises. Without that proof, it's just a poster quote.",
+      'tips-tricks': "Reel Style — Tips & Tricks: The reel hook grabs attention; the caption delivers the value. Use an odd number of items (3 or 5 — odd numbers feel more credible than even). Each tip: one sentence, specific, actionable. Hooks: '5 things I stopped doing that changed everything', '3 mistakes I made so you don't have to'.",
     };
     return `Write a Reel hook + caption (80–150 words total).
       - ${styleNotes[subType] || styleNotes.talking}
-      - First 3 seconds are everything — open with a scroll-stopping statement.
-      - Short sentences, high energy, punchy rhythm throughout.
-      - End with a comment-driving question.
-      - Include 8–12 hashtags on a new line at the end.`;
+      - First 3 seconds are everything — open with a scroll-stopping declarative, not a question.
+      - Short sentences, high energy, punchy rhythm. Use sentence fragments for emphasis.
+      - PRONOUN ARCHITECTURE: Open with "I" (specific experience). Pivot to "you" in the lesson (payoff is about the reader, not the creator).
+      - CTA: one specific ask only. "Comment [keyword] and I'll DM you the full breakdown" drives both comments and DMs simultaneously. Or: "Which of these surprised you most? Comment the number."
+      - HASHTAGS: 3–5 specific hashtags after two blank lines. No hashtag with over 500k posts. Hard platform limit: 5 maximum.`;
   }
 
   if (format === 'normal') {
     const subTypeNotes = {
-      personal: 'Post type — Personal moment: Share a specific experience, observation, or behind-the-scenes moment from real life. Write it as a flowing caption, not a list.',
-      insight: 'Post type — Opinion / Insight: Share one strong opinion or hard-won lesson backed by a single specific example from your work. Do not hedge the claim.',
-      question: 'Post type — Open question: Pose a genuine question you are wrestling with in your field. Give 2–3 sentences of context that show why the question matters to you personally, then end with the question itself.',
+      personal: `Post type — Personal moment (micro three-act structure):
+ACT 1 — Setup (2-3 lines): Name the specific situation with one concrete detail. Time, place, or number. No abstractions.
+ACT 2 — Tension (3-4 lines): What went wrong, what was unexpected, what you were feeling in that moment. Do not resolve it yet. This is the emotional core.
+ACT 3 — Landing (2-3 lines): The realization — stated as personal experience ("I now think / I stopped / I finally understood"), never as universal advice ("The lesson is / This shows that").
+The insight must appear in the LAST paragraph of the body, not the first. Burying the payoff makes people read to the end.`,
+      insight: `Post type — Opinion / Insight:
+Open with a bold declarative — no warmup, no "I've been thinking about this a lot." Just the claim. "Most people get [X] completely backwards."
+Back it immediately with one specific example from their actual work or background — proper noun, number, or named situation.
+Do not hedge the claim anywhere in the body. State it as true.
+Close with the implication for the reader's next decision, not a summary of the post.`,
+      question: `Post type — Open question:
+Do NOT open with the question itself — that kills tension. Open with the specific situation that made you start asking it.
+Give 2–3 sentences of context showing why this question matters and why you haven't resolved it.
+End with the actual question — short, direct, one sentence. It must feel like you genuinely do not know the answer.
+The best open-question posts make readers comment because they actually have an answer.`,
     };
-    return `Write a single Instagram post caption (100-180 words).
-      - First line is everything: 5-10 words max, scroll-stopping. Creates curiosity or pattern-interrupt without clickbait. No "Have you ever…" or "Did you know…"
-      - Body: 3-5 short paragraphs, 1-3 lines each. White space between paragraphs.
-      - ${subTypeNotes[subType] || subTypeNotes.personal}
-      - Include one specific detail (number, name, date, or place) in the first 3 lines.
-      - At least one sentence of 5 words or fewer for emphasis.
-      - End with a question that feels like you genuinely want to know the answer — not an engagement hook.
-      - 8-12 hashtags on a new line at the end.
-      - Banned: Moreover, Furthermore, journey (as career metaphor), tapestry, resonate, delve, pivotal, showcase, "That being said".`;
+    return `Write a single Instagram feed caption (150-220 words).
+
+ABOVE THE FOLD — first ~20 words (critical):
+These appear before the "more" cutoff on mobile. All-or-nothing. Must establish tension and withhold resolution. Must NOT complete its thought.
+Proven hook openers (pick the type that fits the content):
+- Confession: "I almost [quit/lost everything/fired my best client]..."
+- Challenge: "Hard pill:" / "Stop [gerund]." / "Unpopular opinion:"
+- Story: "[Specific timeframe]. [One concrete detail, no explanation.]"
+- Revelation: "Nobody talks about [specific thing] enough."
+- Proof: "I spent [specific time] on [specific thing]. Here's what I found."
+NEVER start with: "Have you ever…" / "Did you know…" / a greeting / "Happy [day]" / "Good morning".
+
+BODY STRUCTURE:
+- 3–5 short paragraphs, 1–3 lines each, blank line between each.
+- Rhythm pattern: short paragraph → longer paragraph → short → CTA. Never all paragraphs the same length.
+- At least one sentence fragment used for emphasis (once only — not in every paragraph).
+- ${subTypeNotes[subType] || subTypeNotes.personal}
+
+PRONOUN ARCHITECTURE:
+Open with "I" (establishes credibility through specific experience). Pivot to "you" for the application (transforms creator experience into reader insight). Use "we" only for shared struggle.
+
+TENSE STRATEGY — narrative transportation technique:
+Past tense for narrative setup. Shift to PRESENT TENSE for the emotional peak moment ("I'm standing there thinking..."). Return to past or present for the landing. This tense shift extends dwell time — readers slow down at present-tense emotional scenes.
+
+CTA (one line, pick one type and be specific):
+- For SHARES (highest algorithm weight): "Send this to [specific type of person] without saying a word."
+- For SAVES: "Save this for when you're [specific named situation — not just 'save this']."
+- For COMMENTS: binary choice ("A or B?"), fill-in-blank, or "Drop a [emoji] if this is you."
+Never: "Let me know in the comments" / "What do you think?" / "Drop your thoughts below."
+
+KEYWORD-FIRST: Embed the primary topic keyword naturally in the first 1–2 sentences. Instagram now crawls captions for search ranking.
+
+HASHTAGS: 3–5 specific hashtags after two blank lines. No hashtag broader than 500k posts. Maximum 5 — hard platform limit since December 2025.
+
+BANNED: "In today's world" / "It's no secret that" / "When it comes to" / "At the end of the day" / "I'm excited to share" / "Honored and humbled" / passive voice / capitalizing Success / Mindset / Abundance / Journey as spiritual nouns / any sentence that could appear on a motivational poster unchanged.`;
   }
 
   // Default: carousel post
   const categoryNotes = {
-    educational: 'Carousel Category — Educational / Tips: "5 mistakes people make when X" or "5 things to know about Y." Each tip is one clear slide.',
-    'how-to': 'Carousel Category — Step-by-step / How-to: Walk through a clear process. Each slide = one step. End with the result they will achieve.',
-    transformation: 'Carousel Category — Transformation / Before & After: Show a before state, the journey, and the after. Make it relatable and specific to your real experience.',
-    'myth-busting': 'Carousel Category — Myth-busting / Challenges: Directly challenge a common belief in your niche. Be bold and back it with your real experience.',
-    storytelling: 'Carousel Category — Storytelling / Personal Example: Structure as situation → problem → insight → lesson. Personal, specific, no generic advice.',
-    frameworks: 'Carousel Category — Frameworks / Cheatsheets: Give a practical, repeatable system. Clear steps, no fluff. Make it saveable.',
+    educational: 'Carousel Category — Educational / Tips: Use an odd number of items (5 or 7, never 4 or 6 — odd numbers feel more credible and less calculated). Each tip = one clear, actionable sentence.',
+    'how-to': 'Carousel Category — Step-by-step / How-to: Each slide = one step with an action verb that tells the reader exactly what to do. End with the specific measurable result they will have achieved.',
+    transformation: "Carousel Category — Transformation: Slide 1 = the before state with one specific detail ('47 unread emails, no system'). Last body slide = the after state, equally specific. The transformation must be real and measurable.",
+    'myth-busting': "Carousel Category — Myth-busting: Slide 1 names the myth as it is commonly stated — quote it or show exactly where you've heard it. Each subsequent slide dismantles one aspect with a specific counter-example from their real work.",
+    storytelling: 'Carousel Category — Storytelling: Structure as: specific moment (time + place) → what happened → what changed → what you do differently now. End before the moral — stop after the last real event.',
+    frameworks: 'Carousel Category — Frameworks / Cheatsheets: Each slide = one component of the system with a clear label. Last slide = the trigger (when to use this framework). Make it screenshot-worthy.',
   };
   return `Write a carousel post with labeled slides:
-      - [Slide 1 — Hook]: Thumb-stopping first line. Proven hooks: "Here's what most people get wrong about X…", "Stop making this mistake…", "X things I wish I knew before Y." The hook must name a specific problem or outcome — not a vague promise.
-      - [Slides 2–5 — Body]: Each slide = 1 clear idea, tip, or step (1–3 short sentences max per slide). At least one slide must contain a specific number, name, or concrete example. Vary slide length — not all slides can be the same number of sentences.
-      - [Last Slide — CTA]: Specific ask: "Comment the number of the tip you're trying first" beats "Let me know what you think." Or end with a question you're genuinely uncertain about.
-      - ${categoryNotes[subType] || categoryNotes.educational}
-      - Caption (after slides): 2–4 sentences that add context or vulnerability not in the slides. Must contain one personal detail. Hashtags (8–12) on a new line.
-      - Banned words in captions and slides: Moreover, Furthermore, That being said, journey (as metaphor), tapestry, resonate, delve, pivotal, showcase.`;
+
+[Slide 1 — Hook]: Contains a specific problem or outcome — not a vague promise.
+Proven structures:
+- "X things I wish I knew before [specific situation]" (use odd numbers)
+- "Here's what most [specific role] get wrong about [specific thing]"
+- "Stop [doing specific thing]. Here's what to do instead."
+
+[Slides 2–6 — Body]: 1–3 short sentences per slide. Vary lengths — never all slides identical.
+At least one slide must contain a specific number, name, or concrete example.
+Use odd total item counts (5 or 7 items feel more authentic than 4 or 6).
+
+[Last Slide — CTA]: Optimize for SAVES — highest-value engagement signal on Instagram.
+- "Save this for when you're [specific named situation]" outperforms "Save this post" by 3x.
+- Or: "Comment [number] of the step you need most" (drives comments and reach simultaneously).
+- Never: "Let me know what you think" / "Drop your thoughts."
+
+${categoryNotes[subType] || categoryNotes.educational}
+
+Caption (after last slide): 2–4 sentences. Add context, vulnerability, or a personal detail not in the slides.
+Embed the primary keyword naturally in the first sentence (Instagram indexes captions for search).
+HASHTAGS: 3–5 specific hashtags after two blank lines. Maximum 5 — hard platform limit since December 2025.
+
+BANNED in slides and caption: Moreover, Furthermore, That being said, tapestry, resonate, delve, pivotal, showcase, passive voice, "It goes without saying", "As you can see".`;
 }
 
 async function selfCritiquePost(post, platform) {
@@ -511,8 +581,51 @@ async function saveRunStart(platform, runId) {
   `;
 }
 
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+function requireAuth(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    req.user = jwt.verify(auth.slice(7), JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    const hash = await bcrypt.hash(password, 10);
+    const id = Date.now().toString();
+    await sql`INSERT INTO users (id, email, password_hash) VALUES (${id}, ${email.toLowerCase()}, ${hash})`;
+    const token = jwt.sign({ id, email: email.toLowerCase() }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ success: true, token, email: email.toLowerCase() });
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Email already registered' });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    const rows = await sql`SELECT id, email, password_hash FROM users WHERE email = ${email.toLowerCase()}`;
+    if (!rows.length) return res.status(401).json({ error: 'Invalid email or password' });
+    const valid = await bcrypt.compare(password, rows[0].password_hash);
+    if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
+    const token = jwt.sign({ id: rows[0].id, email: rows[0].email }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ success: true, token, email: rows[0].email });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Routes ──────────────────────────────────────────────────────────────────
-app.post('/api/upload', upload.single('pdf'), async (req, res) => {
+app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
@@ -524,8 +637,8 @@ app.post('/api/upload', upload.single('pdf'), async (req, res) => {
 
     const id = Date.now().toString();
     await sql`
-      INSERT INTO sessions (id, name, pdf_name, personality_map, strategy)
-      VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)})
+      INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, user_id)
+      VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)}, ${req.user.id})
     `;
 
     res.json({ success: true, id, personalityMap, strategy });
@@ -539,18 +652,18 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/api/sessions', async (req, res) => {
+app.get('/api/sessions', requireAuth, async (req, res) => {
   try {
-    const rows = await sql`SELECT id, name, pdf_name, created_at FROM sessions ORDER BY created_at DESC`;
+    const rows = await sql`SELECT id, name, pdf_name, created_at FROM sessions WHERE user_id = ${req.user.id} ORDER BY created_at DESC`;
     res.json(rows.map(r => ({ id: r.id, name: r.name, pdfName: r.pdf_name, createdAt: r.created_at })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/sessions/:id', async (req, res) => {
+app.get('/api/sessions/:id', requireAuth, async (req, res) => {
   try {
-    const rows = await sql`SELECT personality_map, strategy FROM sessions WHERE id = ${req.params.id}`;
+    const rows = await sql`SELECT personality_map, strategy FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     if (!rows.length) return res.status(404).json({ error: 'Session not found' });
     res.json({ success: true, personalityMap: rows[0].personality_map, strategy: rows[0].strategy });
   } catch (err) {
@@ -558,16 +671,16 @@ app.get('/api/sessions/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/sessions/:id', async (req, res) => {
+app.delete('/api/sessions/:id', requireAuth, async (req, res) => {
   try {
-    await sql`DELETE FROM sessions WHERE id = ${req.params.id}`;
+    await sql`DELETE FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/generate-post', async (req, res) => {
+app.post('/api/generate-post', requireAuth, async (req, res) => {
   try {
     const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics } = req.body;
 
@@ -587,7 +700,7 @@ app.post('/api/generate-post', async (req, res) => {
   }
 });
 
-app.post('/api/refine-post', async (req, res) => {
+app.post('/api/refine-post', requireAuth, async (req, res) => {
   try {
     const { post, instruction, platform, strategy } = req.body;
     const response = await openai.chat.completions.create({
@@ -614,7 +727,7 @@ Return ONLY the updated post text, nothing else.`
   }
 });
 
-app.get('/api/viral-trends', async (req, res) => {
+app.get('/api/viral-trends', requireAuth, async (req, res) => {
   const platform = req.query.platform === 'linkedin' ? 'linkedin' : 'instagram';
   const { personalityMap, reload } = req.query;
 
@@ -695,7 +808,7 @@ app.get('/api/viral-trends', async (req, res) => {
   }
 });
 
-app.post('/api/remake-post', async (req, res) => {
+app.post('/api/remake-post', requireAuth, async (req, res) => {
   try {
     const { viralPost, personalityMap, strategy, platform } = req.body;
     if (!viralPost || !personalityMap || !strategy) {
@@ -704,7 +817,7 @@ app.post('/api/remake-post', async (req, res) => {
 
     const platformInstructions = {
       linkedin: 'LinkedIn post (180-280 words). Short paragraphs, strong hook, end with a question or CTA. 3-5 hashtags.',
-      instagram: 'Instagram caption (100-180 words). Thumb-stopping first line, casual tone, end with a question. 8-12 hashtags.',
+      instagram: 'Instagram caption (100-180 words). Thumb-stopping first line, casual tone, end with a question. 3–5 hashtags maximum (platform limit).',
     };
 
     const response = await openai.chat.completions.create({
@@ -746,7 +859,7 @@ Write ONLY the post. First person. Ground the pivot in their real experiences fr
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
-app.post('/api/analytics/import', async (req, res) => {
+app.post('/api/analytics/import', requireAuth, async (req, res) => {
   try {
     const { sessionId, platform, posts } = req.body;
     if (!sessionId || !platform || !Array.isArray(posts)) {
@@ -756,9 +869,9 @@ app.post('/api/analytics/import', async (req, res) => {
       return res.status(400).json({ error: 'platform must be linkedin or instagram' });
     }
     await sql`
-      INSERT INTO post_analytics (session_id, platform, posts, imported_at)
-      VALUES (${sessionId}, ${platform}, ${JSON.stringify(posts)}, NOW())
-      ON CONFLICT (session_id, platform) DO UPDATE SET posts = EXCLUDED.posts, imported_at = NOW()
+      INSERT INTO post_analytics (session_id, platform, posts, imported_at, user_id)
+      VALUES (${sessionId}, ${platform}, ${JSON.stringify(posts)}, NOW(), ${req.user.id})
+      ON CONFLICT (session_id, platform) DO UPDATE SET posts = EXCLUDED.posts, imported_at = NOW(), user_id = EXCLUDED.user_id
     `;
     res.json({ success: true, count: posts.length });
   } catch (err) {
@@ -767,11 +880,11 @@ app.post('/api/analytics/import', async (req, res) => {
   }
 });
 
-app.get('/api/analytics/:sessionId/:platform', async (req, res) => {
+app.get('/api/analytics/:sessionId/:platform', requireAuth, async (req, res) => {
   try {
     const { sessionId, platform } = req.params;
     const rows = await sql`
-      SELECT posts, imported_at FROM post_analytics WHERE session_id = ${sessionId} AND platform = ${platform}
+      SELECT posts, imported_at FROM post_analytics WHERE session_id = ${sessionId} AND platform = ${platform} AND user_id = ${req.user.id}
     `;
     if (!rows.length) return res.json({ success: true, posts: [], importedAt: null });
     res.json({ success: true, posts: rows[0].posts, importedAt: rows[0].imported_at });
