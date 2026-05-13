@@ -200,12 +200,43 @@ function buildInstagramInstructions(format, subType) {
     frameworks: 'Carousel Category — Frameworks / Cheatsheets: Give a practical, repeatable system. Clear steps, no fluff. Make it saveable.',
   };
   return `Write a carousel post with labeled slides:
-      - [Slide 1 — Hook]: Thumb-stopping first line. Proven hooks: "Here's what most people get wrong about X…", "Stop making this mistake…", "X things I wish I knew before Y."
-      - [Slides 2–5 — Body]: Each slide = 1 clear idea, tip, or step (1–3 short sentences max per slide).
-      - [Last Slide — CTA]: "Save this", "DM me to work together", "Try this today", or a compelling question.
+      - [Slide 1 — Hook]: Thumb-stopping first line. Proven hooks: "Here's what most people get wrong about X…", "Stop making this mistake…", "X things I wish I knew before Y." The hook must name a specific problem or outcome — not a vague promise.
+      - [Slides 2–5 — Body]: Each slide = 1 clear idea, tip, or step (1–3 short sentences max per slide). At least one slide must contain a specific number, name, or concrete example. Vary slide length — not all slides can be the same number of sentences.
+      - [Last Slide — CTA]: Specific ask: "Comment the number of the tip you're trying first" beats "Let me know what you think." Or end with a question you're genuinely uncertain about.
       - ${categoryNotes[subType] || categoryNotes.educational}
-      - Caption hashtags (8–12) listed after the slides.
-      - Visual, emotional language — paint a picture on every slide.`;
+      - Caption (after slides): 2–4 sentences that add context or vulnerability not in the slides. Must contain one personal detail. Hashtags (8–12) on a new line.
+      - Banned words in captions and slides: Moreover, Furthermore, That being said, journey (as metaphor), tapestry, resonate, delve, pivotal, showcase.`;
+}
+
+async function selfCritiquePost(post, platform) {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    messages: [{
+      role: 'user',
+      content: `Audit this ${platform} post against 6 rules. Fix every violation. Return ONLY the final post — no preamble, no explanation, no quotes around it.
+
+POST TO AUDIT:
+${post}
+
+RULES — check every one, fix any that fail:
+
+1. SPECIFICITY: The first 3 sentences must contain at least one concrete detail: a number, a name, a date, a place, a specific dollar amount, or a measurable outcome. If absent, add one that fits the story naturally.
+
+2. RHYTHM VARIETY: The post must contain (a) at least one sentence of 5 words or fewer used for emphasis, and (b) at least one sentence of 25+ words. If either is missing, adjust a sentence to create it. No two consecutive paragraphs may be the same length — if they are, break one with a standalone short sentence.
+
+3. BANNED WORDS — replace any of these with plain, direct alternatives:
+   delve / delve into / leverage (as verb) / landscape (as metaphor for industry) / tapestry / journey (as metaphor for career or growth) / resonate / illuminate / navigate (metaphorically) / showcase / fostering / bolstered / pivotal / crucial / testament / cornerstone / vibrant / meticulous / Moreover / Furthermore / Additionally / In conclusion / In summary / That being said / Having said that / With that being said / It is worth noting / It's worth noting / Let's dive in / serves as (as a replacement for "is") / stands as / Not only X but also Y (as structural pattern) / nuanced (without specific elaboration following it)
+
+4. NON-RESOLUTION: The ending must NOT summarize the lesson, state the takeaway, or tell the reader what to conclude. If it does, cut that sentence. End at the last real moment, observation, or question the writer is genuinely still holding — not one engineered to sound humble.
+
+5. NO METRONOMIC RHYTHM: If more than 2 consecutive sentences are the same approximate length, break the pattern. Add a fragment. Or let one sentence run long.
+
+6. TEMPORAL OR SENSORY GROUNDING: The post must include at least one grounding detail — a specific time ("last Tuesday at 7am"), a place ("on the train back from Milan"), or a physical sensation ("my hands were shaking when"). If one is missing, weave one in naturally that fits the context.
+
+Return ONLY the revised post. If all 6 rules pass, return the original unchanged.`,
+    }],
+  });
+  return response.choices[0].message.content.trim();
 }
 
 // Generate a social post
@@ -223,18 +254,29 @@ async function generatePost(personalityMap, strategy, platform, pillar, tone, cu
 STRUCTURE:
 - Hook (1-2 lines): Drop the reader mid-scene or mid-thought. No windup. No "Today I want to talk about..."
 - Body (3-5 short paragraphs, 1-3 lines each): One idea per block. Build from the hook.
-- Ending: A real question they're still sitting with, or a quiet observation. NOT a call-to-action prompt.
+- Ending: A real question they're still sitting with, or a quiet observation. NOT a lesson summary. NOT a call-to-action prompt.
 
-SENTENCE RHYTHM — non-negotiable:
-Vary sentence length deliberately. Use fragments for emphasis. Like this. Then a longer sentence that earns the emphasis by adding context and showing you've actually lived through something. Short again. The rhythm itself signals authenticity.
+SENTENCE RHYTHM — mandatory, not optional:
+The post MUST contain:
+- At least one sentence of 5 words or fewer (used for raw emphasis)
+- At least one sentence of 25+ words (earns the short sentence by grounding context)
+- At least one sentence beginning with "And", "But", "So", or "Because" — humans do this constantly
+- No two consecutive sentences beginning with the same word class (noun → verb → clause → fragment — mix it)
 
 SPECIFICITY RULE:
 Every abstract claim needs one concrete anchor: a number, a name, a date, a place, a specific conversation. "We lost the client" is nothing. "We lost the €40k client two days before payroll" is a post.
+Numbers must NOT be round: "17 months" beats "a year and a half". "€2,340" beats "over two thousand".
+
+GROUNDING REQUIREMENT:
+Include at least one temporal or physical anchor — a specific time ("last Tuesday at 6am"), a specific place ("in the elevator after the call"), or a physical detail ("I read it three times before it registered"). This is what separates lived experience from summary.
+
+NON-RESOLUTION — mandatory:
+Do NOT summarize the lesson at the end. Do NOT tell the reader what to take away or conclude. End before the moral — stop at the last real moment, the genuine question still open, or the quiet observation. The reader should feel like they caught you mid-thought, not received a packaged insight.
 
 BANNED OPENERS — the first word must NOT be:
 "I" / "Today" / "In" / "As" / "The" / "We"
 
-BANNED PHRASES — never write these:
+BANNED PHRASES — never write any of these:
 "In today's world/landscape/fast-paced environment"
 "I'm excited/humbled/thrilled/honored to share"
 "Let that sink in."
@@ -247,24 +289,34 @@ BANNED PHRASES — never write these:
 "At the end of the day"
 "Drop your thoughts in the comments" / "What do you think? Let me know below"
 "I am grateful for" / "I am blessed"
+"delve" / "delve into"
+"resonate" / "illuminate" / "navigate" (metaphorically)
+"tapestry" / "journey" (as metaphor for career or growth)
+"Moreover" / "Furthermore" / "Additionally" / "In conclusion" / "In summary"
+"That being said" / "Having said that" / "It is worth noting"
+"serves as" (as replacement for "is") / "stands as a testament to"
+"fostering" / "bolstered" / "pivotal" / "cornerstone" / "vibrant" / "meticulous"
+"Not only X but also Y" (as structural template)
+"showcase" / "showcasing"
 
 WHAT AUTHENTIC POSTS DO:
 - Start with a specific moment already in progress, not a setup
 - Let the story prove the point — never state the lesson out loud
 - Include one moment of doubt, self-correction, or things not going to plan
-- End before the moral, not after it
+- Name something slightly embarrassing or unresolved — not wrapped up
+- Repeat a key word deliberately rather than rotating synonyms for it
 
 FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless natural to their voice. Line break between each paragraph.`,
     instagram: buildInstagramInstructions(igFormat, igSubType),
   };
 
   const toneInstructions = {
-    authentic: `Write like you're thinking out loud mid-conversation. Anchor it in one specific real moment — a number, a name, a date. Use at least one sentence fragment for emphasis. Somewhere in the post, show a crack: a mistake, a doubt, something still unresolved. Do NOT tie it up neatly at the end.`,
-    educational: `Teach from a specific situation, not from a list of tips. Open with the moment you encountered the problem — not the solution. Each insight must connect to something real from their background. End with a question they're genuinely still sitting with, not one engineered to drive engagement.`,
-    storytelling: `First line must drop the reader into a moment already in progress — no setup, no "let me tell you about the time...". Include at least one line of actual dialogue. Include one small physical or situational detail that only they would know. Do NOT explain what the story means — end the story and stop.`,
-    motivational: `Motivation through specificity, not inspiration. Show the exact moment of failure or the exact second of doubt — not the lesson from it. Give a number, a name, or a date to make it real. Avoid all motivational poster language. Trust the specific truth to do the inspiring — don't explain it.`,
-    casual: `Write like a DM to a smart friend who'd call you out if you were performing. Contractions everywhere. One self-deprecating aside. No professional distance. Something slightly unpolished — a thought that trails off, a sentence that doesn't wrap up cleanly. Should feel like it was written in 15 minutes, then lightly edited.`,
-    contrarian: `Name the specific belief you're challenging — quote it or show exactly where you see it repeated. Use one concrete example from their own work to show where it breaks down. Do not hedge. Do not add a balanced take at the end. State your actual position and stop. It's fine if the skeptics aren't convinced.`
+    authentic: `Behavioral requirements: Write as if you're mid-thought, not presenting. At least one sentence must begin with "And" or "But" — humans do this in natural speech. Show a crack somewhere in the post: a mistake, a doubt, something you got wrong, or something still unresolved. Do NOT explain what the crack means — name it and keep moving. Do not tie the ending up neatly. Use "I" at most once per paragraph. Anchor the whole post in one specific real moment — a number, a name, a date from their background — not a general claim.`,
+    educational: `Behavioral requirements: Open with the specific moment you encountered the problem — not the solution, not the lesson. Each insight must trace back to something real from their background, not generic advice. Express conviction at the moment of specific experience ("I know this because in 2021 I..."), then let uncertainty return in the closing question. End with a question you are genuinely still holding — not one engineered to get comments. The question should feel like you wrote the post to think something through, not to teach.`,
+    storytelling: `Behavioral requirements: First line must land the reader mid-action — no setup sentence, no "let me tell you." Include at least one line of actual dialogue (even an internal one: "I kept thinking, just say no."). Include one physical or temporal anchor — a time of day, a specific place, a sensation you remember. Repeat the key noun deliberately rather than using synonyms for it. Do NOT explain what the story means — end the story and stop. Cut the last sentence if it sounds like a lesson.`,
+    motivational: `Behavioral requirements: Show the exact specific moment of failure or doubt — not the lesson extracted from it. Give a real number, a real name, or a real date to ground the moment. The inspiration must come from the specificity of the truth, not from inspiring language — never write a sentence that would look good on a wall poster. Do not start the post with an inspiration frame. Start in the failure, not in the recovery. Allow the ending to point forward without stating the outcome.`,
+    casual: `Behavioral requirements: Write like a DM to a smart friend who'd call you out if you were performing. Use contractions throughout. Include one self-deprecating aside in parentheses or em dash. Allow one "anyway," "honestly," or "look —" to create natural register shifts. One thought should trail off or not fully resolve. Should feel like it was written in 15 minutes, then barely edited. No professional distance — use "you" to mean one specific type of person, not everyone.`,
+    contrarian: `Behavioral requirements: The first sentence must name the specific advice, belief, or claim being challenged — not "conventional wisdom" but the actual thing ("Everyone says you need to post daily to grow. I don't buy it."). Use one concrete example from their actual work or background to show where the conventional belief breaks down. Do not hedge after making the claim. Do not add a "but of course it depends" balance at the end. State your actual position and stop. The post is stronger if the skeptics are not satisfied.`
   };
 
   const response = await openai.chat.completions.create({
@@ -310,7 +362,8 @@ Write ONLY the post text. Nothing else — no preamble, no "here's the post:", n
     }],
   });
 
-  return response.choices[0].message.content.trim();
+  const firstDraft = response.choices[0].message.content.trim();
+  return selfCritiquePost(firstDraft, platform);
 }
 
 // ─── Viral Intelligence ──────────────────────────────────────────────────────
