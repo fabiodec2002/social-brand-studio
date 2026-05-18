@@ -1154,6 +1154,75 @@
       padding: 2.5rem 0;
     }
 
+    /* Auth screen */
+    #auth-screen { align-items: center; justify-content: center; }
+
+    .auth-container {
+      text-align: center;
+      max-width: 380px;
+      width: 100%;
+      padding: 2rem;
+    }
+
+    .auth-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 300;
+      margin-bottom: 2.5rem;
+    }
+
+    .auth-logo span { color: var(--gold); font-style: italic; }
+
+    .auth-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 2rem;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .auth-tab {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .auth-tab.active { color: var(--gold); }
+
+    .auth-error {
+      background: rgba(139, 0, 0, 0.12);
+      border: 1px solid rgba(139, 0, 0, 0.3);
+      color: #c47070;
+      font-size: 0.82rem;
+      padding: 0.65rem 1rem;
+      margin-bottom: 1.25rem;
+      text-align: left;
+    }
+
+    .auth-submit { width: 100%; margin-top: 0.5rem; }
+
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+
+    .user-email-display {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -1167,6 +1236,361 @@
       .generator-layout { grid-template-columns: 1fr; }
       .platform-strategy-grid { grid-template-columns: 1fr; }
       .sidebar { width: 240px; }
+    }
+
+    /* ── Onboarding ─────────────────────────────────────────────────────── */
+    #onboarding-screen {
+      align-items: center;
+      justify-content: flex-start;
+      padding: 3rem 2rem 4rem;
+      overflow-y: auto;
+    }
+
+    .ob-wrap {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .ob-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .ob-step-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    .ob-progress-bar {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      position: relative;
+    }
+
+    .ob-progress-fill {
+      position: absolute;
+      left: 0; top: 0;
+      height: 100%;
+      background: var(--gold);
+      transition: width 0.45s ease;
+    }
+
+    .ob-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+
+    .ob-subtitle {
+      font-size: 0.875rem;
+      color: var(--text3);
+      margin-bottom: 1.75rem;
+    }
+
+    .ob-body { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .ob-field { display: flex; flex-direction: column; gap: 0.35rem; }
+
+    .ob-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .ob-value {
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0.6rem 0.8rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      cursor: text;
+    }
+
+    .ob-value:hover { border-color: var(--border2); }
+    .ob-value:focus { border-color: var(--gold); background: rgba(201,169,110,0.04); }
+
+    .ob-value.large {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      color: var(--gold);
+      font-style: italic;
+    }
+
+    /* Tag editor */
+    .ob-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      padding: 0.45rem 0.6rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      min-height: 40px;
+      transition: border-color 0.2s;
+    }
+
+    .ob-tags:focus-within { border-color: var(--border2); }
+
+    .ob-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      font-size: 0.78rem;
+      color: var(--text2);
+    }
+
+    .ob-tag .tag-txt {
+      outline: none;
+      min-width: 20px;
+      cursor: text;
+    }
+
+    .ob-tag .tag-txt:focus { color: var(--text); }
+
+    .ob-tag .tag-x {
+      font-size: 0.65rem;
+      color: var(--text3);
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 1px;
+    }
+
+    .ob-tag .tag-x:hover { color: #c47070; }
+
+    .ob-tag-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 300;
+      color: var(--text);
+      min-width: 70px;
+    }
+
+    .ob-tag-input::placeholder { color: var(--text3); }
+
+    /* Pillar cards in onboarding */
+    .ob-pillars-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1rem;
+    }
+
+    .ob-pillar-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1.25rem;
+    }
+
+    .ob-pillar-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--text);
+      outline: none;
+      padding: 2px 4px;
+      margin: -2px -4px;
+      border-radius: 2px;
+      transition: background 0.15s;
+    }
+
+    .ob-pillar-name:hover { background: rgba(201,169,110,0.05); cursor: text; }
+    .ob-pillar-name:focus { background: rgba(201,169,110,0.08); }
+
+    /* Platform grid in onboarding */
+    .ob-platform-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .ob-platform-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1.25rem;
+    }
+
+    .ob-platform-card h4 {
+      font-size: 0.875rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Onboarding nav */
+    .ob-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .ob-back-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.7rem 1.5rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .ob-back-btn:hover { border-color: var(--border2); color: var(--text2); }
+
+    .ob-next-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.9rem 2.5rem;
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+
+    .ob-next-btn:hover { background: var(--gold2); }
+
+    /* Onboarding step 5 stat cards */
+    .ob-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .ob-stat {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      border-radius: 2px;
+    }
+
+    .ob-stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.75rem;
+      font-weight: 300;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .ob-stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-top: 0.4rem;
+    }
+
+    /* ── Pillar pain point badge ─────────────────────────────────────── */
+    .pillar-pain {
+      background: rgba(201,169,110,0.06);
+      border: 1px solid rgba(201,169,110,0.15);
+      border-radius: 2px;
+      padding: 0.45rem 0.7rem;
+      margin: 0.6rem 0;
+    }
+
+    .pillar-pain .pain-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.57rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 0.2rem;
+    }
+
+    .pillar-pain .pain-text {
+      font-size: 0.78rem;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    /* ── Inline editing in main app ──────────────────────────────────── */
+    .editable-field {
+      outline: none;
+      border-radius: 2px;
+      cursor: text;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+
+    .editable-field:hover { background: rgba(201,169,110,0.05); }
+
+    .editable-field:focus {
+      background: rgba(201,169,110,0.08);
+      box-shadow: 0 0 0 1px rgba(201,169,110,0.22);
+    }
+
+    .edit-section-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Save indicator */
+    .save-indicator {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--text3);
+      position: fixed;
+      bottom: 1.5rem;
+      right: 2rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .save-indicator.visible { opacity: 1; }
+
+    @media (max-width: 700px) {
+      .ob-platform-grid { grid-template-columns: 1fr; }
+      .ob-pillars-row { grid-template-columns: 1fr; }
+      .ob-stats { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -1185,11 +1609,38 @@
       <div class="logo">Social <span>Brand</span> Studio</div>
       <div class="logo-sub">Powered by your personality map</div>
     </div>
-    <button class="upload-new-btn" id="upload-new-btn" style="display:none" onclick="resetToUpload()">Upload new map</button>
+    <div class="header-right">
+      <span class="user-email-display" id="user-email-display" style="display:none"></span>
+      <button class="upload-new-btn" id="upload-new-btn" style="display:none" onclick="resetToUpload()">Upload new map</button>
+      <button class="upload-new-btn" id="logout-btn" style="display:none" onclick="logout()">Sign out</button>
+    </div>
   </header>
 
+  <!-- Auth Screen -->
+  <div class="screen active" id="auth-screen">
+    <div class="auth-container">
+      <div class="auth-logo">Social <span>Brand</span> Studio</div>
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">Sign in</button>
+          <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">Create account</button>
+        </div>
+        <div id="auth-error" class="auth-error" style="display:none"></div>
+        <div class="control-group">
+          <label>Email</label>
+          <input type="email" id="auth-email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="control-group" style="margin-top:1rem;">
+          <label>Password</label>
+          <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+        </div>
+        <button class="generate-btn auth-submit" id="auth-submit-btn" onclick="submitAuth()">Sign in</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Upload Screen -->
-  <div class="screen active" id="upload-screen">
+  <div class="screen" id="upload-screen">
     <div class="upload-hero">
       <h1>Build your brand<br>from <em>who you are</em></h1>
       <p>Upload your Marketing Mindset personality map PDF and get a full social media strategy — plus AI-generated posts tailored to your voice, values, and expertise.</p>
@@ -1250,6 +1701,7 @@
       <div id="tab-strategy" class="tab-content">
         <div class="section-title">Your social strategy</div>
         <div class="section-subtitle">Built from your personality map</div>
+        <div class="edit-section-hint">Click any field to edit — changes save automatically</div>
 
         <div class="strategy-grid">
           <div class="strategy-card full-width">
@@ -1287,6 +1739,7 @@
       <div id="tab-pillars" class="tab-content" style="display:none">
         <div class="section-title">Content pillars</div>
         <div class="section-subtitle">Your core topics — the foundation of your content strategy</div>
+        <div class="edit-section-hint">Click any field to edit — changes save automatically</div>
         <div class="pillars-grid" id="pillars-grid"></div>
       </div>
 
@@ -1430,9 +1883,156 @@
     </div>
   </div>
 
+  <!-- Onboarding Screen -->
+  <div class="screen" id="onboarding-screen">
+    <div class="ob-wrap">
+      <div class="ob-progress-row">
+        <div class="ob-step-label" id="ob-step-label">Step 1 of 5</div>
+        <div class="ob-progress-bar"><div class="ob-progress-fill" id="ob-progress-fill" style="width:0%"></div></div>
+      </div>
+
+      <div id="ob-panel-1">
+        <div class="ob-title">Here's what we <em style="font-style:italic;color:var(--gold);">found</em></div>
+        <div class="ob-subtitle">Review what we extracted from your map — click any field to edit it before we build your strategy</div>
+        <div class="ob-body" id="ob-body-1"></div>
+      </div>
+
+      <div id="ob-panel-2" style="display:none">
+        <div class="ob-title">Your brand <em style="font-style:italic;color:var(--gold);">foundation</em></div>
+        <div class="ob-subtitle">Core positioning — click to edit anything before you continue</div>
+        <div class="ob-body" id="ob-body-2"></div>
+      </div>
+
+      <div id="ob-panel-3" style="display:none">
+        <div class="ob-title">Your content <em style="font-style:italic;color:var(--gold);">pillars</em></div>
+        <div class="ob-subtitle">3–5 themes that drive every piece of content — including the audience pain each one addresses</div>
+        <div class="ob-body" id="ob-body-3"></div>
+      </div>
+
+      <div id="ob-panel-4" style="display:none">
+        <div class="ob-title">Your platform <em style="font-style:italic;color:var(--gold);">playbook</em></div>
+        <div class="ob-subtitle">How to show up differently on LinkedIn and Instagram — click to edit</div>
+        <div class="ob-body" id="ob-body-4"></div>
+      </div>
+
+      <div id="ob-panel-5" style="display:none">
+        <div class="ob-title">Your strategy is <em style="font-style:italic;color:var(--gold);">ready</em></div>
+        <div class="ob-subtitle">Everything is set. You can edit any field at any time inside the studio.</div>
+        <div class="ob-body" id="ob-body-5"></div>
+      </div>
+
+      <div class="ob-nav">
+        <button class="ob-back-btn" id="ob-back-btn" onclick="obPrev()" style="visibility:hidden">← Back</button>
+        <button class="ob-next-btn" id="ob-next-btn" onclick="obNext()">Continue →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save indicator -->
+  <div class="save-indicator" id="save-indicator">Saved</div>
+
 </div>
 
 <script>
+  // ─── Auth state ──────────────────────────────────────────────────────────────
+  let authToken = localStorage.getItem('token');
+  let currentUserEmail = localStorage.getItem('userEmail');
+  let currentAuthTab = 'login';
+
+  function authFetch(url, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    return fetch(url, { ...options, headers }).then(res => {
+      if (res.status === 401) { logout(); throw new Error('Session expired. Please sign in again.'); }
+      return res;
+    });
+  }
+
+  function switchAuthTab(tab) {
+    currentAuthTab = tab;
+    document.getElementById('auth-tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('auth-tab-register').classList.toggle('active', tab === 'register');
+    document.getElementById('auth-submit-btn').textContent = tab === 'login' ? 'Sign in' : 'Create account';
+    document.getElementById('auth-error').style.display = 'none';
+  }
+
+  async function submitAuth() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const btn = document.getElementById('auth-submit-btn');
+    const errEl = document.getElementById('auth-error');
+    errEl.style.display = 'none';
+
+    if (!email || !password) { errEl.textContent = 'Email and password are required.'; errEl.style.display = 'block'; return; }
+
+    btn.disabled = true;
+    btn.textContent = currentAuthTab === 'login' ? 'Signing in...' : 'Creating account...';
+
+    try {
+      const endpoint = currentAuthTab === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!data.success) { errEl.textContent = data.error || 'Something went wrong.'; errEl.style.display = 'block'; return; }
+
+      authToken = data.token;
+      currentUserEmail = data.email;
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userEmail', data.email);
+      showUploadScreen();
+      loadSessions();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = currentAuthTab === 'login' ? 'Sign in' : 'Create account';
+    }
+  }
+
+  function showAuthScreen() {
+    document.getElementById('auth-screen').classList.add('active');
+    document.getElementById('upload-screen').classList.remove('active');
+    document.getElementById('app-screen').classList.remove('active');
+    document.getElementById('upload-new-btn').style.display = 'none';
+    document.getElementById('logout-btn').style.display = 'none';
+    document.getElementById('user-email-display').style.display = 'none';
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-error').style.display = 'none';
+  }
+
+  function showUploadScreen() {
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('upload-screen').classList.add('active');
+    document.getElementById('app-screen').classList.remove('active');
+    if (currentUserEmail) {
+      const el = document.getElementById('user-email-display');
+      el.textContent = currentUserEmail;
+      el.style.display = 'block';
+    }
+    document.getElementById('logout-btn').style.display = 'block';
+  }
+
+  function logout() {
+    authToken = null;
+    currentUserEmail = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    appData = { sessionId: null, personalityMap: null, strategy: null };
+    analyticsData = { linkedin: [], instagram: [] };
+    showAuthScreen();
+  }
+
+  function initApp() {
+    if (authToken) { showUploadScreen(); loadSessions(); }
+    else showAuthScreen();
+  }
+
+  // ─── App state ───────────────────────────────────────────────────────────────
   let appData = { sessionId: null, personalityMap: null, strategy: null };
   let selectedPillar = null;
   let selectedTone = 'authentic';
@@ -1509,7 +2109,7 @@
   // Load previous sessions on page load
   async function loadSessions() {
     try {
-      const res = await fetch('/api/sessions');
+      const res = await authFetch('/api/sessions');
       const sessions = await res.json();
 
       // Auto-load most recent session
@@ -1548,7 +2148,7 @@
     e.stopPropagation();
     showLoading('Loading your strategy...');
     try {
-      const res = await fetch(`/api/sessions/${id}`);
+      const res = await authFetch(`/api/sessions/${id}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       appData = { sessionId: id, personalityMap: data.personalityMap, strategy: data.strategy };
@@ -1563,11 +2163,11 @@
 
   async function deleteSession(id, e) {
     e.stopPropagation();
-    await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+    await authFetch(`/api/sessions/${id}`, { method: 'DELETE' });
     loadSessions();
   }
 
-  loadSessions();
+  initApp();
 
   // Allow Enter to submit refine inputs
   document.addEventListener('keydown', e => {
@@ -1600,15 +2200,13 @@
       setTimeout(() => setLoadingText('Building your personal brand strategy...'), 4000);
       setTimeout(() => setLoadingText('Identifying your content pillars...'), 7000);
 
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const res = await authFetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();
 
       if (!data.success) throw new Error(data.error);
 
       appData = { sessionId: data.id, personalityMap: data.personalityMap, strategy: data.strategy };
-      populateApp(data.strategy, data.personalityMap);
-      showApp();
-      loadAnalyticsForSession(data.id);
+      showOnboarding(data.strategy, data.personalityMap);
     } catch (err) {
       hideLoading();
       alert('Error processing your PDF: ' + err.message);
@@ -1652,7 +2250,7 @@
     strategy.growth_tactics.forEach((t, i) => {
       const div = document.createElement('div');
       div.style.cssText = 'display:flex;gap:1rem;margin-bottom:0.75rem;align-items:start;';
-      div.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);margin-top:2px;flex-shrink:0;">0${i+1}</span><span style="font-size:0.875rem;color:var(--text2);line-height:1.5;">${t}</span>`;
+      div.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);margin-top:2px;flex-shrink:0;">0${i+1}</span><span class="growth-tactic-text" style="font-size:0.875rem;color:var(--text2);line-height:1.5;">${t}</span>`;
       gtCont.appendChild(div);
     });
 
@@ -1664,9 +2262,14 @@
       // Grid card
       const card = document.createElement('div');
       card.className = 'pillar-card';
+      card.dataset.pillarIdx = i;
+      const painHtml = pillar.audience_pain_point
+        ? `<div class="pillar-pain"><div class="pain-label">Addresses</div><div class="pain-text">${pillar.audience_pain_point}</div></div>`
+        : '';
       card.innerHTML = `
         <div class="pillar-name">${pillar.name}</div>
         <div class="pillar-desc">${pillar.description}</div>
+        ${painHtml}
         <div class="pillar-freq">${pillar.post_frequency}</div>
         <div class="platform-dots">
           ${pillar.platform_fit.includes('linkedin') ? '<span class="platform-dot linkedin">LinkedIn</span>' : ''}
@@ -1714,6 +2317,7 @@
       if (!ps) return;
       const card = document.createElement('div');
       card.className = 'platform-strategy-card';
+      card.dataset.platform = p;
       card.innerHTML = `
         <h3>
           <span class="platform-icon ${p === 'linkedin' ? 'li' : 'ig'}">${p === 'linkedin' ? 'in' : 'ig'}</span>
@@ -1721,15 +2325,15 @@
         </h3>
         <div class="platform-detail">
           <div class="label">Focus</div>
-          <div class="value">${ps.focus}</div>
+          <div class="value" data-edit-key="focus">${ps.focus}</div>
         </div>
         <div class="platform-detail">
           <div class="label">Posting frequency</div>
-          <div class="value" style="color:var(--gold);">${ps.posting_frequency}</div>
+          <div class="value" data-edit-key="posting_frequency" style="color:var(--gold);">${ps.posting_frequency}</div>
         </div>
         <div class="platform-detail">
           <div class="label">Tone</div>
-          <div class="value">${ps.tone}</div>
+          <div class="value" data-edit-key="tone">${ps.tone}</div>
         </div>
         <div class="platform-detail">
           <div class="label">Content types</div>
@@ -1810,7 +2414,7 @@
       outputEl.appendChild(card);
 
       try {
-        const res = await fetch('/api/generate-post', {
+        const res = await authFetch('/api/generate-post', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1844,7 +2448,7 @@
     bodyEl.classList.add('generating');
 
     try {
-      const res = await fetch('/api/generate-post', {
+      const res = await authFetch('/api/generate-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1879,7 +2483,7 @@
     bodyEl.classList.add('generating');
 
     try {
-      const res = await fetch('/api/refine-post', {
+      const res = await authFetch('/api/refine-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1922,21 +2526,23 @@
   function showApp() {
     hideLoading();
     document.getElementById('upload-screen').classList.remove('active');
+    document.getElementById('onboarding-screen').classList.remove('active');
     document.getElementById('app-screen').classList.add('active');
     document.getElementById('upload-new-btn').style.display = 'block';
+    setTimeout(bindAppEditing, 50);
   }
 
   function resetToUpload() {
     appData = { sessionId: null, personalityMap: null, strategy: null };
     analyticsData = { linkedin: [], instagram: [] };
     document.getElementById('app-screen').classList.remove('active');
-    document.getElementById('upload-screen').classList.add('active');
+    document.getElementById('onboarding-screen').classList.remove('active');
     document.getElementById('upload-new-btn').style.display = 'none';
     document.getElementById('file-input').value = '';
-    // Reset populated content
     ['brand-statement', 'target-audience', 'uvp'].forEach(id => document.getElementById(id).textContent = '');
     ['voice-do', 'voice-dont', 'voice-adjectives', 'growth-tactics', 'pillars-grid', 'pillar-select-list', 'platform-strategy-grid', 'post-output'].forEach(id => document.getElementById(id).innerHTML = '');
     document.getElementById('sidebar-expertise').innerHTML = '<div class="sidebar-label">Expertise</div>';
+    showUploadScreen();
     loadSessions();
   }
 
@@ -1974,7 +2580,7 @@
     try {
       const mapEncoded = encodeURIComponent(JSON.stringify(appData.personalityMap));
       const reloadParam = viralReload ? '&reload=true' : '';
-      const res = await fetch(`/api/viral-trends?platform=${viralPlatform}&personalityMap=${mapEncoded}${reloadParam}`);
+      const res = await authFetch(`/api/viral-trends?platform=${viralPlatform}&personalityMap=${mapEncoded}${reloadParam}`);
       const data = await res.json();
 
       if (data.status === 'processing') {
@@ -2074,7 +2680,7 @@
       </div>`;
 
     try {
-      const res = await fetch('/api/remake-post', {
+      const res = await authFetch('/api/remake-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2314,7 +2920,7 @@
     }
 
     try {
-      const res = await fetch('/api/analytics/import', {
+      const res = await authFetch('/api/analytics/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: appData.sessionId, platform, posts }),
@@ -2420,7 +3026,7 @@
     });
 
     try {
-      const res = await fetch('/api/analytics/import', {
+      const res = await authFetch('/api/analytics/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId: appData.sessionId, platform, posts: updated }),
@@ -2439,7 +3045,7 @@
     analyticsData = { linkedin: [], instagram: [] };
     for (const platform of ['linkedin', 'instagram']) {
       try {
-        const res = await fetch(`/api/analytics/${sessionId}/${platform}`);
+        const res = await authFetch(`/api/analytics/${sessionId}/${platform}`);
         const data = await res.json();
         if (data.success && data.posts.length) {
           analyticsData[platform] = data.posts;
@@ -2459,6 +3065,418 @@
 
   function setLoadingText(text) { document.getElementById('loading-text').textContent = text; }
   function hideLoading() { document.getElementById('loading').classList.remove('active'); }
+
+  // ── Onboarding ───────────────────────────────────────────────────────────────
+
+  let obStep = 1;
+  const OB_STEPS = 5;
+  let obMap = null;
+  let obStrat = null;
+
+  function showOnboarding(strategy, personalityMap) {
+    obStrat = JSON.parse(JSON.stringify(strategy));
+    obMap = JSON.parse(JSON.stringify(personalityMap));
+    buildObStep1();
+    buildObStep2();
+    buildObStep3();
+    buildObStep4();
+    buildObStep5();
+    obStep = 1;
+    renderObStep();
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('upload-screen').classList.remove('active');
+    document.getElementById('app-screen').classList.remove('active');
+    document.getElementById('onboarding-screen').classList.add('active');
+    document.getElementById('upload-new-btn').style.display = 'none';
+    hideLoading();
+  }
+
+  function renderObStep() {
+    for (let i = 1; i <= OB_STEPS; i++) {
+      document.getElementById(`ob-panel-${i}`).style.display = i === obStep ? '' : 'none';
+    }
+    const pct = ((obStep - 1) / (OB_STEPS - 1)) * 100;
+    document.getElementById('ob-progress-fill').style.width = pct + '%';
+    document.getElementById('ob-step-label').textContent = `Step ${obStep} of ${OB_STEPS}`;
+    document.getElementById('ob-back-btn').style.visibility = obStep > 1 ? 'visible' : 'hidden';
+    document.getElementById('ob-next-btn').textContent = obStep === OB_STEPS ? 'Enter Studio →' : 'Continue →';
+    document.getElementById('onboarding-screen').scrollTop = 0;
+  }
+
+  function obNext() {
+    if (obStep < OB_STEPS) { obStep++; renderObStep(); }
+    else finalizeOnboarding();
+  }
+
+  function obPrev() {
+    if (obStep > 1) { obStep--; renderObStep(); }
+  }
+
+  function finalizeOnboarding() {
+    appData.strategy = obStrat;
+    appData.personalityMap = obMap;
+    if (appData.sessionId) {
+      authFetch(`/api/sessions/${appData.sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ strategy: obStrat }),
+      }).catch(() => {});
+    }
+    document.getElementById('onboarding-screen').classList.remove('active');
+    populateApp(obStrat, obMap);
+    showApp();
+    loadAnalyticsForSession(appData.sessionId);
+  }
+
+  // ── Inline editing utility ───────────────────────────────────────────────────
+
+  function makeEditable(el, onSave) {
+    el.setAttribute('contenteditable', 'true');
+    el.setAttribute('spellcheck', 'false');
+    el.classList.add('editable-field');
+    el.addEventListener('focus', () => { el._orig = el.textContent; });
+    el.addEventListener('blur', () => {
+      const v = el.textContent.trim();
+      if (!v) { el.textContent = el._orig; return; }
+      if (v !== el._orig) { onSave(v); scheduleSave(); }
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+      if (e.key === 'Escape') { el.textContent = el._orig; el.blur(); }
+    });
+  }
+
+  // ── Tag editor ───────────────────────────────────────────────────────────────
+
+  function renderTagEditor(container, arr, onUpdate) {
+    container.innerHTML = '';
+    arr.forEach((item, i) => {
+      const tag = document.createElement('span');
+      tag.className = 'ob-tag';
+      const txt = document.createElement('span');
+      txt.className = 'tag-txt';
+      txt.setAttribute('contenteditable', 'true');
+      txt.setAttribute('spellcheck', 'false');
+      txt.textContent = item;
+      txt.addEventListener('focus', () => { txt._orig = txt.textContent; });
+      txt.addEventListener('blur', () => {
+        const v = txt.textContent.trim();
+        if (v) { arr[i] = v; if (onUpdate) onUpdate(); }
+        else { txt.textContent = txt._orig; }
+      });
+      txt.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); txt.blur(); }
+        if (e.key === 'Escape') { txt.textContent = txt._orig; txt.blur(); }
+      });
+      const x = document.createElement('span');
+      x.className = 'tag-x';
+      x.textContent = '×';
+      x.onclick = () => { arr.splice(i, 1); if (onUpdate) onUpdate(); renderTagEditor(container, arr, onUpdate); };
+      tag.appendChild(txt);
+      tag.appendChild(x);
+      container.appendChild(tag);
+    });
+    const input = document.createElement('input');
+    input.className = 'ob-tag-input';
+    input.placeholder = '+ add';
+    const addTag = () => {
+      const v = input.value.trim();
+      if (v) { arr.push(v); if (onUpdate) onUpdate(); renderTagEditor(container, arr, onUpdate); }
+      else input.value = '';
+    };
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } });
+    input.addEventListener('blur', addTag);
+    container.appendChild(input);
+  }
+
+  // ── Onboarding step builders ─────────────────────────────────────────────────
+
+  function obFieldEl(label) {
+    const f = document.createElement('div');
+    f.className = 'ob-field';
+    const l = document.createElement('div');
+    l.className = 'ob-label';
+    l.textContent = label;
+    f.appendChild(l);
+    return f;
+  }
+
+  function obValueEl(text, isLarge) {
+    const v = document.createElement('div');
+    v.className = 'ob-value' + (isLarge ? ' large' : '');
+    v.textContent = text;
+    return v;
+  }
+
+  function buildObStep1() {
+    const body = document.getElementById('ob-body-1');
+    body.innerHTML = '';
+
+    const nameF = obFieldEl('Name');
+    const nameV = obValueEl(obMap.name || 'Not found');
+    makeEditable(nameV, v => obMap.name = v);
+    nameF.appendChild(nameV);
+    body.appendChild(nameF);
+
+    const valF = obFieldEl('Core values');
+    const valT = document.createElement('div'); valT.className = 'ob-tags';
+    renderTagEditor(valT, obMap.values || [], null);
+    valF.appendChild(valT); body.appendChild(valF);
+
+    const sklF = obFieldEl('Key skills');
+    const sklT = document.createElement('div'); sklT.className = 'ob-tags';
+    renderTagEditor(sklT, obMap.skills || [], null);
+    sklF.appendChild(sklT); body.appendChild(sklF);
+
+    const expF = obFieldEl('Areas of expertise');
+    const expT = document.createElement('div'); expT.className = 'ob-tags';
+    renderTagEditor(expT, (obMap.professional_experience || {}).areas_of_expertise || [], null);
+    expF.appendChild(expT); body.appendChild(expF);
+
+    if ((obMap.achievements || []).length) {
+      const achF = obFieldEl('Achievements (top 5)');
+      obMap.achievements.slice(0, 5).forEach((a, i) => {
+        const el = obValueEl(a);
+        el.style.marginBottom = '0.35rem';
+        makeEditable(el, v => obMap.achievements[i] = v);
+        achF.appendChild(el);
+      });
+      body.appendChild(achF);
+    }
+  }
+
+  function buildObStep2() {
+    const body = document.getElementById('ob-body-2');
+    body.innerHTML = '';
+
+    const bsF = obFieldEl('Brand statement');
+    const bsV = obValueEl(obStrat.brand_statement, true);
+    makeEditable(bsV, v => obStrat.brand_statement = v);
+    bsF.appendChild(bsV); body.appendChild(bsF);
+
+    const taF = obFieldEl('Target audience');
+    const taV = obValueEl(obStrat.target_audience);
+    makeEditable(taV, v => obStrat.target_audience = v);
+    taF.appendChild(taV); body.appendChild(taF);
+
+    const uvpF = obFieldEl('Unique value proposition');
+    const uvpV = obValueEl(obStrat.unique_value_proposition);
+    makeEditable(uvpV, v => obStrat.unique_value_proposition = v);
+    uvpF.appendChild(uvpV); body.appendChild(uvpF);
+
+    const adjF = obFieldEl('Voice adjectives');
+    const adjT = document.createElement('div'); adjT.className = 'ob-tags';
+    renderTagEditor(adjT, (obStrat.brand_voice || {}).adjectives || [], null);
+    adjF.appendChild(adjT); body.appendChild(adjF);
+
+    const doF = obFieldEl('Always do');
+    const doT = document.createElement('div'); doT.className = 'ob-tags';
+    renderTagEditor(doT, (obStrat.brand_voice || {}).do || [], null);
+    doF.appendChild(doT); body.appendChild(doF);
+
+    const dontF = obFieldEl('Never do');
+    const dontT = document.createElement('div'); dontT.className = 'ob-tags';
+    renderTagEditor(dontT, (obStrat.brand_voice || {}).dont || [], null);
+    dontF.appendChild(dontT); body.appendChild(dontF);
+  }
+
+  function buildObStep3() {
+    const body = document.getElementById('ob-body-3');
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'ob-pillars-row';
+
+    (obStrat.content_pillars || []).forEach((pillar, pi) => {
+      const card = document.createElement('div');
+      card.className = 'ob-pillar-card';
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'ob-pillar-name';
+      nameEl.setAttribute('contenteditable', 'true');
+      nameEl.setAttribute('spellcheck', 'false');
+      nameEl.textContent = pillar.name;
+      makeEditable(nameEl, v => pillar.name = v);
+      card.appendChild(nameEl);
+
+      [
+        { label: 'Description', key: 'description' },
+        { label: 'Audience pain point', key: 'audience_pain_point', gold: true },
+        { label: 'Posting frequency', key: 'post_frequency' },
+      ].forEach(({ label, key, gold }) => {
+        const lbl = document.createElement('div');
+        lbl.className = 'ob-label';
+        lbl.style.marginTop = '0.75rem';
+        lbl.textContent = label;
+        card.appendChild(lbl);
+        const val = document.createElement('div');
+        val.className = 'ob-value';
+        val.style.marginTop = '0.3rem';
+        if (gold) { val.style.borderColor = 'rgba(201,169,110,0.25)'; val.style.color = 'var(--gold)'; }
+        val.textContent = pillar[key] || (gold ? 'Click to add...' : '');
+        makeEditable(val, v => { pillar[key] = v; });
+        card.appendChild(val);
+      });
+
+      const ideasLbl = document.createElement('div');
+      ideasLbl.className = 'ob-label';
+      ideasLbl.style.marginTop = '0.75rem';
+      ideasLbl.textContent = 'Content ideas';
+      card.appendChild(ideasLbl);
+      (pillar.content_ideas || []).forEach((idea, ii) => {
+        const el = document.createElement('div');
+        el.className = 'ob-value';
+        el.style.marginTop = '0.3rem';
+        el.style.marginBottom = '0.35rem';
+        el.textContent = idea;
+        makeEditable(el, v => pillar.content_ideas[ii] = v);
+        card.appendChild(el);
+      });
+
+      grid.appendChild(card);
+    });
+
+    body.appendChild(grid);
+  }
+
+  function buildObStep4() {
+    const body = document.getElementById('ob-body-4');
+    body.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'ob-platform-grid';
+
+    ['linkedin', 'instagram'].forEach(p => {
+      const ps = (obStrat.platform_strategy || {})[p];
+      if (!ps) return;
+      const card = document.createElement('div');
+      card.className = 'ob-platform-card';
+      const h4 = document.createElement('h4');
+      h4.innerHTML = `<span class="platform-icon ${p === 'linkedin' ? 'li' : 'ig'}">${p === 'linkedin' ? 'in' : 'ig'}</span>${p === 'linkedin' ? 'LinkedIn' : 'Instagram'}`;
+      card.appendChild(h4);
+
+      [{ label: 'Focus', key: 'focus' }, { label: 'Posting frequency', key: 'posting_frequency' }, { label: 'Tone', key: 'tone' }].forEach(({ label, key }) => {
+        const lbl = document.createElement('div');
+        lbl.className = 'ob-label';
+        lbl.style.marginBottom = '0.3rem';
+        lbl.textContent = label;
+        card.appendChild(lbl);
+        const val = document.createElement('div');
+        val.className = 'ob-value';
+        val.style.marginBottom = '0.75rem';
+        val.textContent = ps[key] || '';
+        makeEditable(val, v => ps[key] = v);
+        card.appendChild(val);
+      });
+
+      const ctLbl = document.createElement('div');
+      ctLbl.className = 'ob-label';
+      ctLbl.style.marginBottom = '0.3rem';
+      ctLbl.textContent = 'Content types';
+      card.appendChild(ctLbl);
+      const ctT = document.createElement('div');
+      ctT.className = 'ob-tags';
+      renderTagEditor(ctT, ps.content_types || [], null);
+      card.appendChild(ctT);
+
+      grid.appendChild(card);
+    });
+
+    body.appendChild(grid);
+  }
+
+  function buildObStep5() {
+    const body = document.getElementById('ob-body-5');
+    const pillars = obStrat.content_pillars || [];
+    const platforms = Object.keys(obStrat.platform_strategy || {});
+    body.innerHTML = `
+      <div class="ob-stats">
+        <div class="ob-stat"><div class="ob-stat-num">${pillars.length}</div><div class="ob-stat-label">Content pillars</div></div>
+        <div class="ob-stat"><div class="ob-stat-num">${platforms.length}</div><div class="ob-stat-label">Platforms</div></div>
+        <div class="ob-stat"><div class="ob-stat-num">6</div><div class="ob-stat-label">Tone options</div></div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.5rem;border-radius:2px;margin-bottom:1.25rem;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem;">Your content pillars</div>
+        ${pillars.map(p => `<div style="display:flex;gap:1rem;margin-bottom:0.6rem;align-items:flex-start;">
+          <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--gold);flex-shrink:0;margin-top:2px;">→</div>
+          <div>
+            <div style="font-size:0.9rem;font-weight:400;color:var(--text);">${p.name}</div>
+            ${p.audience_pain_point ? `<div style="font-size:0.77rem;color:var(--text3);margin-top:0.15rem;">Addresses: ${p.audience_pain_point}</div>` : ''}
+          </div>
+        </div>`).join('')}
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1.25rem;border-radius:2px;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:var(--gold);">${obStrat.brand_statement}</div>
+      </div>`;
+  }
+
+  // ── Auto-save ────────────────────────────────────────────────────────────────
+
+  let saveTimer = null;
+
+  function scheduleSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persistStrategy, 1500);
+  }
+
+  async function persistStrategy() {
+    if (!appData.sessionId) return;
+    try {
+      await authFetch(`/api/sessions/${appData.sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ strategy: appData.strategy }),
+      });
+      const ind = document.getElementById('save-indicator');
+      if (ind) { ind.classList.add('visible'); setTimeout(() => ind.classList.remove('visible'), 2000); }
+    } catch (_) {}
+  }
+
+  // ── Bind inline editing to main app strategy views ───────────────────────────
+
+  function bindAppEditing() {
+    const bsEl = document.getElementById('brand-statement');
+    if (bsEl && !bsEl.hasAttribute('contenteditable')) {
+      makeEditable(bsEl, v => {
+        appData.strategy.brand_statement = v;
+        const sb = document.getElementById('sidebar-brand-statement');
+        if (sb) sb.textContent = v;
+      });
+    }
+    const taEl = document.getElementById('target-audience');
+    if (taEl && !taEl.hasAttribute('contenteditable')) makeEditable(taEl, v => appData.strategy.target_audience = v);
+
+    const uvpEl = document.getElementById('uvp');
+    if (uvpEl && !uvpEl.hasAttribute('contenteditable')) makeEditable(uvpEl, v => appData.strategy.unique_value_proposition = v);
+
+    document.querySelectorAll('.growth-tactic-text').forEach((el, i) => {
+      if (!el.hasAttribute('contenteditable')) makeEditable(el, v => appData.strategy.growth_tactics[i] = v);
+    });
+
+    document.querySelectorAll('.pillar-card[data-pillar-idx]').forEach(card => {
+      const i = parseInt(card.dataset.pillarIdx);
+      const pillar = (appData.strategy.content_pillars || [])[i];
+      if (!pillar) return;
+      const nameEl = card.querySelector('.pillar-name');
+      if (nameEl && !nameEl.hasAttribute('contenteditable')) makeEditable(nameEl, v => { pillar.name = v; });
+      const descEl = card.querySelector('.pillar-desc');
+      if (descEl && !descEl.hasAttribute('contenteditable')) makeEditable(descEl, v => pillar.description = v);
+      const painEl = card.querySelector('.pain-text');
+      if (painEl && !painEl.hasAttribute('contenteditable')) makeEditable(painEl, v => pillar.audience_pain_point = v);
+      const freqEl = card.querySelector('.pillar-freq');
+      if (freqEl && !freqEl.hasAttribute('contenteditable')) makeEditable(freqEl, v => pillar.post_frequency = v);
+    });
+
+    document.querySelectorAll('.platform-strategy-card[data-platform]').forEach(card => {
+      const p = card.dataset.platform;
+      const ps = (appData.strategy.platform_strategy || {})[p];
+      if (!ps) return;
+      card.querySelectorAll('[data-edit-key]').forEach(el => {
+        if (!el.hasAttribute('contenteditable')) {
+          const key = el.dataset.editKey;
+          makeEditable(el, v => ps[key] = v);
+        }
+      });
+    });
+  }
 </script>
 </body>
 </html>

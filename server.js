@@ -143,6 +143,7 @@ Return a JSON object with this exact structure:
       "id": "unique_id",
       "name": "Pillar name",
       "description": "Why this pillar matters for their brand",
+      "audience_pain_point": "The specific frustration, fear, or gap this pillar directly addresses for their target audience — be concrete, not generic",
       "post_frequency": "e.g. 3x per week",
       "platform_fit": ["linkedin", "instagram"],
       "content_ideas": ["3 specific content ideas based on their actual experiences/expertise"]
@@ -674,6 +675,17 @@ app.get('/api/sessions/:id', requireAuth, async (req, res) => {
 app.delete('/api/sessions/:id', requireAuth, async (req, res) => {
   try {
     await sql`DELETE FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sessions/:id', requireAuth, async (req, res) => {
+  try {
+    const { strategy } = req.body;
+    if (!strategy) return res.status(400).json({ error: 'strategy required' });
+    await sql`UPDATE sessions SET strategy = ${JSON.stringify(strategy)} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
