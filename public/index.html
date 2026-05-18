@@ -1587,10 +1587,65 @@
 
     .save-indicator.visible { opacity: 1; }
 
+    /* ── Brand Type Toggle ──────────────────────────────────────────────── */
+    .brand-type-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+    .brand-type-card {
+      flex: 1;
+      max-width: 220px;
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      padding: 1.25rem 1.5rem;
+      cursor: pointer;
+      background: var(--bg2);
+      transition: border-color 0.2s, background 0.2s;
+      text-align: left;
+    }
+    .brand-type-card:hover { border-color: var(--gold); }
+    .brand-type-card.selected {
+      border-color: var(--gold);
+      background: rgba(201, 169, 110, 0.06);
+    }
+    .brand-type-card .bt-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .brand-type-card .bt-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text1);
+      margin-bottom: 0.25rem;
+    }
+    .brand-type-card .bt-desc {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+    }
+    .brand-badge {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
     @media (max-width: 700px) {
       .ob-platform-grid { grid-template-columns: 1fr; }
       .ob-pillars-row { grid-template-columns: 1fr; }
       .ob-stats { grid-template-columns: 1fr 1fr; }
+      .brand-type-row { flex-direction: column; align-items: center; }
     }
   </style>
 </head>
@@ -1645,10 +1700,23 @@
       <h1>Build your brand<br>from <em>who you are</em></h1>
       <p>Upload your Marketing Mindset personality map PDF and get a full social media strategy — plus AI-generated posts tailored to your voice, values, and expertise.</p>
 
+      <div class="brand-type-row">
+        <div class="brand-type-card selected" id="bt-personal" onclick="selectBrandType('personal')">
+          <div class="bt-icon">👤</div>
+          <div class="bt-title">Personal Brand</div>
+          <div class="bt-desc">Coach · Consultant · Executive · Creator</div>
+        </div>
+        <div class="brand-type-card" id="bt-business" onclick="selectBrandType('business')">
+          <div class="bt-icon">🏢</div>
+          <div class="bt-title">Business Brand</div>
+          <div class="bt-desc">Company · Agency · Startup · Studio</div>
+        </div>
+      </div>
+
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="file-input" accept=".pdf" onchange="handleFileUpload(this.files[0])">
         <div class="upload-icon">↑</div>
-        <h3>Drop your personality map PDF</h3>
+        <h3 id="upload-zone-title">Drop your personality map PDF</h3>
         <p>PDF · up to 10MB</p>
       </div>
 
@@ -1665,7 +1733,7 @@
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-section">
-        <div class="sidebar-label">Your brand</div>
+        <div class="sidebar-label">Your brand <span class="brand-badge" id="sidebar-brand-badge" style="display:none"></span></div>
         <div class="brand-statement" id="sidebar-brand-statement">Loading...</div>
       </div>
       <div class="sidebar-section">
@@ -2022,7 +2090,7 @@
     currentUserEmail = null;
     localStorage.removeItem('token');
     localStorage.removeItem('userEmail');
-    appData = { sessionId: null, personalityMap: null, strategy: null };
+    appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal' };
     analyticsData = { linkedin: [], instagram: [] };
     showAuthScreen();
   }
@@ -2033,7 +2101,8 @@
   }
 
   // ─── App state ───────────────────────────────────────────────────────────────
-  let appData = { sessionId: null, personalityMap: null, strategy: null };
+  let appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal' };
+  let selectedBrandType = 'personal';
   let selectedPillar = null;
   let selectedTone = 'authentic';
   let selectedIgFormat = 'post';
@@ -2151,7 +2220,7 @@
       const res = await authFetch(`/api/sessions/${id}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      appData = { sessionId: id, personalityMap: data.personalityMap, strategy: data.strategy };
+      appData = { sessionId: id, personalityMap: data.personalityMap, strategy: data.strategy, brandType: data.brandType || 'personal' };
       populateApp(data.strategy, data.personalityMap);
       showApp();
       loadAnalyticsForSession(id);
@@ -2188,16 +2257,31 @@
     if (file && file.type === 'application/pdf') handleFileUpload(file);
   });
 
+  function selectBrandType(type) {
+    selectedBrandType = type;
+    document.getElementById('bt-personal').classList.toggle('selected', type === 'personal');
+    document.getElementById('bt-business').classList.toggle('selected', type === 'business');
+    const titleEl = document.getElementById('upload-zone-title');
+    if (titleEl) titleEl.textContent = type === 'business'
+      ? 'Drop your brand brief PDF'
+      : 'Drop your personality map PDF';
+  }
+
   async function handleFileUpload(file) {
     if (!file) return;
-    showLoading('Extracting your personality map...');
+    showLoading(selectedBrandType === 'business' ? 'Extracting your brand brief...' : 'Extracting your personality map...');
 
     const formData = new FormData();
     formData.append('pdf', file);
+    formData.append('brand_type', selectedBrandType);
 
     try {
-      setTimeout(() => setLoadingText('Analyzing your values, achievements & expertise...'), 1500);
-      setTimeout(() => setLoadingText('Building your personal brand strategy...'), 4000);
+      setTimeout(() => setLoadingText(selectedBrandType === 'business'
+        ? 'Analyzing your company, audience & positioning...'
+        : 'Analyzing your values, achievements & expertise...'), 1500);
+      setTimeout(() => setLoadingText(selectedBrandType === 'business'
+        ? 'Building your business brand strategy...'
+        : 'Building your personal brand strategy...'), 4000);
       setTimeout(() => setLoadingText('Identifying your content pillars...'), 7000);
 
       const res = await authFetch('/api/upload', { method: 'POST', body: formData });
@@ -2205,7 +2289,7 @@
 
       if (!data.success) throw new Error(data.error);
 
-      appData = { sessionId: data.id, personalityMap: data.personalityMap, strategy: data.strategy };
+      appData = { sessionId: data.id, personalityMap: data.personalityMap, strategy: data.strategy, brandType: data.brandType || selectedBrandType };
       showOnboarding(data.strategy, data.personalityMap);
     } catch (err) {
       hideLoading();
@@ -2214,6 +2298,13 @@
   }
 
   function populateApp(strategy, map) {
+    // Brand type badge
+    const badge = document.getElementById('sidebar-brand-badge');
+    if (badge) {
+      badge.textContent = appData.brandType === 'business' ? 'Business' : 'Personal';
+      badge.style.display = 'inline-block';
+    }
+
     // Brand statement
     document.getElementById('brand-statement').textContent = strategy.brand_statement;
     document.getElementById('sidebar-brand-statement').textContent = strategy.brand_statement;
@@ -2427,6 +2518,7 @@
             instagramOptions: p === 'instagram' ? getIgOptions() : null,
             sessionId: appData.sessionId,
             useAnalytics: document.getElementById('use-analytics-toggle')?.checked ?? false,
+            brandType: appData.brandType || 'personal',
           })
         });
         const data = await res.json();
@@ -2461,6 +2553,7 @@
           instagramOptions: platform === 'instagram' ? getIgOptions() : null,
           sessionId: appData.sessionId,
           useAnalytics: document.getElementById('use-analytics-toggle')?.checked ?? false,
+          brandType: appData.brandType || 'personal',
         })
       });
       const data = await res.json();
@@ -2533,7 +2626,9 @@
   }
 
   function resetToUpload() {
-    appData = { sessionId: null, personalityMap: null, strategy: null };
+    appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal' };
+    selectedBrandType = 'personal';
+    selectBrandType('personal');
     analyticsData = { linkedin: [], instagram: [] };
     document.getElementById('app-screen').classList.remove('active');
     document.getElementById('onboarding-screen').classList.remove('active');

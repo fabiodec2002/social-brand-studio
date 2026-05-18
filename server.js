@@ -66,6 +66,7 @@ async function initDb() {
   `;
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS user_id TEXT`;
   await sql`ALTER TABLE post_analytics ADD COLUMN IF NOT EXISTS user_id TEXT`;
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS brand_type TEXT DEFAULT 'personal'`;
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
@@ -117,13 +118,51 @@ ${text}`
   return JSON.parse(response.choices[0].message.content);
 }
 
-// Generate social strategy from personality map
-async function generateStrategy(personalityMap) {
+// Parse brand brief from business PDF
+async function parseBrandBrief(text) {
   const response = await openai.chat.completions.create({
     model: MODEL,
     messages: [{
       role: 'user',
-      content: `You are an expert personal branding strategist. Based on this personality map, create a comprehensive social media strategy.
+      content: `Extract brand and company data from this document and return it as a JSON object with these exact keys:
+{
+  "name": "company or brand name if found, otherwise null",
+  "values": ["company core values"],
+  "achievements": ["key results, case studies, client wins, milestones"],
+  "qualities": ["brand attributes and personality traits"],
+  "tangible_assets": ["products, services, tools, packages offered"],
+  "intangible_assets": ["brand reputation, IP, methodology, community, partnerships"],
+  "skills": ["core competencies and areas of expertise"],
+  "moments_of_happiness": ["proudest client outcomes, company wins, team moments"],
+  "interesting_facts": ["unique or surprising facts about the company"],
+  "professional_experience": {
+    "better_than_others": "what this company does better than competitors",
+    "learned_over_years": "key lessons and knowledge built over time",
+    "enjoyed_learning": "areas the team is passionate about developing",
+    "do_easily": "things that come naturally to this company",
+    "eager_to_hear": "questions clients and prospects frequently ask",
+    "areas_of_expertise": ["main expertise areas"]
+  },
+  "dream_100": ["industry influencers, thought leaders, or dream collaborators to follow"],
+  "personality_notes": "brand voice, communication style, how the company comes across to clients"
+}
+
+Return ONLY valid JSON, no markdown, no explanation.
+
+Document text:
+${text}`
+    }],
+    response_format: { type: 'json_object' },
+  });
+
+  return JSON.parse(response.choices[0].message.content);
+}
+
+// Generate social strategy from personality/brand map
+async function generateStrategy(personalityMap, brandType = 'personal') {
+  const isPersonal = brandType !== 'business';
+
+  const personalPrompt = `You are an expert personal branding strategist. Based on this personality map, create a comprehensive social media strategy.
 
 PERSONALITY MAP:
 ${JSON.stringify(personalityMap, null, 2)}
@@ -167,8 +206,59 @@ Return a JSON object with this exact structure:
   "growth_tactics": ["3 specific growth tactics tailored to their background and skills"]
 }
 
-Return ONLY valid JSON, no markdown, no explanation. Make it deeply specific to their personality map data.`
-    }],
+Return ONLY valid JSON, no markdown, no explanation. Make it deeply specific to their personality map data.`;
+
+  const businessPrompt = `You are an expert brand strategist for companies and organizations. Based on this brand brief, create a comprehensive social media strategy.
+
+BRAND BRIEF:
+${JSON.stringify(personalityMap, null, 2)}
+
+Return a JSON object with this exact structure:
+{
+  "brand_statement": "One powerful positioning sentence that defines what this company stands for and who it serves",
+  "target_audience": "Detailed ideal customer profile — industry, role, company size, key pain points",
+  "unique_value_proposition": "What makes this company the only logical choice for their ideal client",
+  "brand_voice": {
+    "adjectives": ["3-4 words describing the company's communication style"],
+    "do": ["3 things to always do in company posts — use we/our voice"],
+    "dont": ["3 things to never do in company posts"]
+  },
+  "content_pillars": [
+    {
+      "id": "unique_id",
+      "name": "Pillar name",
+      "description": "Why this pillar builds authority and trust for this company",
+      "audience_pain_point": "The specific customer frustration, fear, or gap this pillar directly addresses — be concrete",
+      "post_frequency": "e.g. 3x per week",
+      "platform_fit": ["linkedin", "instagram"],
+      "content_ideas": ["3 specific content ideas rooted in this company's actual work, results, and expertise"]
+    }
+  ],
+  "platform_strategy": {
+    "linkedin": {
+      "focus": "Company page strategy — thought leadership, industry insights, team stories, client results, hiring",
+      "posting_frequency": "e.g. 4x per week",
+      "content_types": ["Industry insight posts", "Client result case studies", "Behind-the-scenes team posts", "Product/service spotlights"],
+      "tone": "Professional but human — written as 'we', showing the team behind the brand"
+    },
+    "instagram": {
+      "focus": "Brand lifestyle and visual identity — choose the right mix: Stories (daily culture/product/behind-scenes), Carousels (educational, proof, frameworks), Reels (brand values, tips, team). Recommend the right mix for this company.",
+      "posting_frequency": "Recommended mix across formats",
+      "content_types": ["Stories — Company culture", "Stories — Product/service spotlight", "Carousels — Educational / Industry tips", "Reels — Brand values or quick tips"],
+      "tone": "Warmer and more visual than LinkedIn — still professional but shows the human side of the brand",
+      "highlights_to_set_up": ["About Us / Start Here", "Results / Case Studies", "Products / Services", "Team / Culture"]
+    }
+  },
+  "growth_tactics": ["3 specific growth tactics tailored to this company's market, strengths, and ideal client"]
+}
+
+Build 4–5 content pillars. Suggested mix for most companies: 1) Industry Education, 2) Social Proof / Results, 3) Product or Service Spotlight, 4) Company Culture / Team, 5) Thought Leadership.
+
+Return ONLY valid JSON, no markdown, no explanation. Make it deeply specific to this company's actual data.`;
+
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    messages: [{ role: 'user', content: isPersonal ? personalPrompt : businessPrompt }],
     response_format: { type: 'json_object' },
   });
 
@@ -328,7 +418,7 @@ Return ONLY the revised post. If all 6 rules pass, return the original unchanged
 }
 
 // Generate a social post
-async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = []) {
+async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal') {
   const pillarData = customTopic
     ? { name: 'Custom Topic', description: customTopic }
     : (strategy.content_pillars.find(p => p.id === pillar) || strategy.content_pillars[0]);
@@ -336,8 +426,9 @@ async function generatePost(personalityMap, strategy, platform, pillar, tone, cu
   const igFormat = (instagramOptions || {}).format || 'post';
   const igSubType = (instagramOptions || {}).subType || '';
 
-  const platformInstructions = {
-    linkedin: `Write a LinkedIn post (150-250 words).
+  const isPersonal = brandType !== 'business';
+
+  const linkedinPersonal = `Write a LinkedIn post (150-250 words).
 
 STRUCTURE:
 - Hook (1-2 lines): Drop the reader mid-scene or mid-thought. No windup. No "Today I want to talk about..."
@@ -394,7 +485,41 @@ WHAT AUTHENTIC POSTS DO:
 - Name something slightly embarrassing or unresolved — not wrapped up
 - Repeat a key word deliberately rather than rotating synonyms for it
 
-FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless natural to their voice. Line break between each paragraph.`,
+FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless natural to their voice. Line break between each paragraph.`;
+
+  const linkedinBusiness = `Write a LinkedIn post (150-250 words) for a company brand page.
+
+VOICE: First person plural — "we", "our", "us". Written as the company, not an individual. Natural and human, not corporate-speak.
+
+STRUCTURE:
+- Hook (1-2 lines): Drop the reader into a real situation the company faced or a sharp industry observation. No "We're excited to announce..."
+- Body (3-5 short paragraphs, 1-3 lines each): Show the company's thinking, a client result, a lesson learned, or a contrarian take. One idea per block.
+- Ending: A genuine question for their audience OR a quiet, specific observation. NOT a lesson summary.
+
+SPECIFICITY RULE:
+Every claim needs a concrete anchor: a client result with real numbers, a specific project, a named situation. "We helped a client grow" is nothing. "One client went from 12 to 47 qualified leads in 6 weeks" is a post.
+Numbers must NOT be round.
+
+GROUNDING: Include one temporal or physical anchor — "last quarter", "during a client call last Thursday", "on the way to a pitch in Amsterdam".
+
+NON-RESOLUTION: Do NOT summarize the lesson. End at the last real moment or genuine open question.
+
+BANNED OPENERS — first word must NOT be:
+"Today" / "In" / "As" / "The" / "We're excited"
+
+BANNED PHRASES:
+"We're thrilled/excited/honored to announce" / "game-changer" / "synergy" / "leverage" (as verb) / "At the end of the day" / "In today's fast-paced world" / "delve" / "Moreover" / "Furthermore" / "That being said" / "serves as" / "fostering" / "pivotal" / "cornerstone" / "showcase"
+
+WHAT STRONG COMPANY POSTS DO:
+- Show real client or team situations, not abstract principles
+- Let results and specifics do the talking
+- Have a distinct company point of view, not generic industry wisdom
+- Sound like a smart team talking openly, not a PR department
+
+FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless aligned with brand voice. Line break between each paragraph.`;
+
+  const platformInstructions = {
+    linkedin: isPersonal ? linkedinPersonal : linkedinBusiness,
     instagram: buildInstagramInstructions(igFormat, igSubType),
   };
 
@@ -407,17 +532,53 @@ FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless natural 
     contrarian: `Behavioral requirements: The first sentence must name the specific advice, belief, or claim being challenged — not "conventional wisdom" but the actual thing ("Everyone says you need to post daily to grow. I don't buy it."). Use one concrete example from their actual work or background to show where the conventional belief breaks down. Do not hedge after making the claim. Do not add a "but of course it depends" balance at the end. State your actual position and stop. The post is stronger if the skeptics are not satisfied.`
   };
 
+  const systemPrompt = isPersonal
+    ? `You are ghostwriting a social media post for a specific person. You will write in their voice, in first person, as if they typed it themselves.`
+    : `You are ghostwriting a social media post for a company brand. Write in first person plural (we/our/us) from the company's perspective, as if a senior team member typed it. The voice should reflect the company's character, not any single individual.`;
+
+  const brandContext = isPersonal
+    ? `THEIR PERSONALITY MAP:\n${JSON.stringify(personalityMap, null, 2)}\n\nTHEIR BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}`
+    : `COMPANY BRIEF:\n${JSON.stringify(personalityMap, null, 2)}\n\nCOMPANY BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}`;
+
+  const realityAnchors = isPersonal
+    ? `WHAT MAKES IT FEEL REAL:
+- One specific, surprising detail that only they would know (a real number, a name, a specific place or date from their map)
+- At least one sentence fragment used deliberately for emphasis
+- The vocabulary and references fit their background and geography — not generic Western corporate English
+- Something slightly unresolved at the end — a question they're still holding, not one they've answered`
+    : `WHAT MAKES IT FEEL REAL:
+- Anchor in a real client situation, team decision, or project moment — not abstract company values
+- Include at least one concrete result or number tied to a specific client or timeframe
+- Show the company's actual thinking process or internal debate, not just the outcome
+- Vocabulary fits the industry and company culture — not generic corporate speak
+- Something slightly open at the end — a genuine question or an honest tension the company is still navigating`;
+
+  const aiFails = isPersonal
+    ? `HOW AI-WRITTEN POSTS FAIL — avoid every one of these patterns:
+- Explaining the lesson instead of showing it ("This taught me that persistence pays off" → just show the persistence, let the reader conclude)
+- Vague time references ("Recently", "A few years ago", "Early in my career") → use specific timeframes from their actual history
+- Starting 3 or more sentences in the post with "I"
+- Transition words that signal AI: "Moreover", "Furthermore", "In essence", "Ultimately", "Importantly", "Notably"
+- Perfect grammar and symmetrical structure throughout — human writing has natural rough edges
+- Generic emotional language ("I felt so overwhelmed") → use a specific situation or detail instead
+- Building to a neat, resolved conclusion — real stories often just stop
+- Any sentence that reads like a motivational poster`
+    : `HOW AI-WRITTEN POSTS FAIL — avoid every one of these patterns:
+- Corporate announcement voice ("We're thrilled to share...", "We're proud to announce...")
+- Starting 3 or more sentences with "We"
+- Vague impact claims ("We helped a client succeed") → replace with concrete specifics ("One client reduced churn by 23% in 8 weeks")
+- Transition words that signal AI: "Moreover", "Furthermore", "In essence", "Ultimately", "Importantly", "Notably"
+- Generic values statements ("We believe in transparency and innovation") — show it, don't state it
+- Building to a neat marketing conclusion — real company stories have messiness and trade-offs
+- Any sentence that would look good on a company careers page poster`;
+
   const response = await openai.chat.completions.create({
     model: MODEL,
     messages: [{
       role: 'user',
-      content: `You are ghostwriting a social media post for a specific person. You will write in their voice, in first person, as if they typed it themselves.
+      content: `${systemPrompt}
 
-THEIR PERSONALITY MAP:
-${JSON.stringify(personalityMap, null, 2)}
-
-THEIR BRAND VOICE:
-${JSON.stringify(strategy.brand_voice, null, 2)}
+${brandContext}
 
 CONTENT PILLAR: ${pillarData.name} — ${pillarData.description}
 
@@ -426,23 +587,11 @@ ${platformInstructions[platform]}
 
 TONE DIRECTION: ${toneInstructions[tone]}
 
-HOW AI-WRITTEN POSTS FAIL — avoid every one of these patterns:
-- Explaining the lesson instead of showing it ("This taught me that persistence pays off" → just show the persistence, let the reader conclude)
-- Vague time references ("Recently", "A few years ago", "Early in my career") → use specific timeframes from their actual history
-- Starting 3 or more sentences in the post with "I"
-- Transition words that signal AI: "Moreover", "Furthermore", "In essence", "Ultimately", "Importantly", "Notably"
-- Perfect grammar and symmetrical structure throughout — human writing has natural rough edges
-- Generic emotional language ("I felt so overwhelmed") → use a specific situation or detail instead
-- Building to a neat, resolved conclusion — real stories often just stop
-- Any sentence that reads like a motivational poster
+${aiFails}
 
-WHAT MAKES IT FEEL REAL:
-- One specific, surprising detail that only they would know (a real number, a name, a specific place or date from their map)
-- At least one sentence fragment used deliberately for emphasis
-- The vocabulary and references fit their background and geography — not generic Western corporate English
-- Something slightly unresolved at the end — a question they're still holding, not one they've answered
+${realityAnchors}
 ${topPosts.length > 0 ? `
-THEIR TOP PERFORMING POSTS — these have gotten the highest engagement from their real audience. Study the emotional tone, level of specificity, and structural approach that made each one work. Do not copy them — extract the pattern and apply it:
+TOP PERFORMING POSTS — study the emotional tone, level of specificity, and structural approach that made each one work. Do not copy them — extract the pattern and apply it:
 ${topPosts.slice(0, 3).map((p, i) => `[Top post ${i + 1} — ${p.likes} likes${p.saves ? `, ${p.saves} saves` : ''}${p.comments ? `, ${p.comments} comments` : ''}]
 "${p.text.slice(0, 350)}"`).join('\n\n')}
 ` : ''}
@@ -633,16 +782,19 @@ app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
     const text = await extractPdfText(req.file.path);
     fs.unlinkSync(req.file.path);
 
-    const personalityMap = await parsePersonalityMap(text);
-    const strategy = await generateStrategy(personalityMap);
+    const brandType = req.body.brand_type === 'business' ? 'business' : 'personal';
+    const personalityMap = brandType === 'business'
+      ? await parseBrandBrief(text)
+      : await parsePersonalityMap(text);
+    const strategy = await generateStrategy(personalityMap, brandType);
 
     const id = Date.now().toString();
     await sql`
-      INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, user_id)
-      VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)}, ${req.user.id})
+      INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, brand_type, user_id)
+      VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)}, ${brandType}, ${req.user.id})
     `;
 
-    res.json({ success: true, id, personalityMap, strategy });
+    res.json({ success: true, id, personalityMap, strategy, brandType });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -664,9 +816,9 @@ app.get('/api/sessions', requireAuth, async (req, res) => {
 
 app.get('/api/sessions/:id', requireAuth, async (req, res) => {
   try {
-    const rows = await sql`SELECT personality_map, strategy FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    const rows = await sql`SELECT personality_map, strategy, brand_type FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     if (!rows.length) return res.status(404).json({ error: 'Session not found' });
-    res.json({ success: true, personalityMap: rows[0].personality_map, strategy: rows[0].strategy });
+    res.json({ success: true, personalityMap: rows[0].personality_map, strategy: rows[0].strategy, brandType: rows[0].brand_type || 'personal' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -694,7 +846,7 @@ app.put('/api/sessions/:id', requireAuth, async (req, res) => {
 
 app.post('/api/generate-post', requireAuth, async (req, res) => {
   try {
-    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics } = req.body;
+    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType } = req.body;
 
     let topPosts = [];
     if (sessionId && useAnalytics && ['linkedin', 'instagram'].includes(platform)) {
@@ -704,7 +856,7 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
       }
     }
 
-    const post = await generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, topPosts);
+    const post = await generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, topPosts, brandType || 'personal');
     res.json({ success: true, post });
   } catch (err) {
     console.error(err);
