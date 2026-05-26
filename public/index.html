@@ -550,6 +550,8 @@
 
     .post-action-btn:hover { border-color: var(--border2); color: var(--text); }
     .post-action-btn.copied { border-color: rgba(100, 200, 130, 0.3); color: #7dba90; }
+    .post-action-btn.carousel-inject-btn { border-color: rgba(201,169,110,0.25); color: var(--gold); margin-left: auto; }
+    .post-action-btn.carousel-inject-btn:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
 
     /* Refine row */
     .refine-row {
@@ -3012,6 +3014,7 @@
       <div class="post-card-footer">
         <button class="post-action-btn" id="copy-btn-${p}" onclick="copyPost('${p}')">Copy</button>
         <button class="post-action-btn" onclick="regenerate('${p}')">Regenerate</button>
+        <button class="post-action-btn carousel-inject-btn" id="carousel-btn-${p}" onclick="sendToCarousel('${p}')">→ Carousel</button>
       </div>
       <div class="refine-row">
         <input class="refine-input" id="refine-input-${p}" placeholder="Edit instruction — e.g. make it shorter, change the hook, add more personality...">
@@ -3147,6 +3150,38 @@
       btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
     });
+  }
+
+  async function sendToCarousel(platform) {
+    const bodyEl = document.getElementById(`post-body-${platform}`);
+    const postText = bodyEl?.textContent?.trim();
+    if (!postText || bodyEl.classList.contains('generating')) return;
+
+    const btn = document.getElementById(`carousel-btn-${platform}`);
+    if (btn) { btn.textContent = 'Parsing…'; btn.disabled = true; }
+
+    try {
+      const res = await authFetch('/api/parse-carousel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postText }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+
+      carouselState.slides = data.slides;
+      carouselState.currentSlide = 0;
+
+      showTab('carousel');
+      carouselUpdatePreview();
+      carouselRenderEditor();
+      carouselSwitchTab('preview');
+    } catch (err) {
+      console.error(err);
+      alert('Could not parse post into carousel slides. Try again.');
+    } finally {
+      if (btn) { btn.textContent = '→ Carousel'; btn.disabled = false; }
+    }
   }
 
   function showTab(tabName) {

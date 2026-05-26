@@ -67,9 +67,30 @@ async function initDb() {
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS user_id TEXT`;
   await sql`ALTER TABLE post_analytics ADD COLUMN IF NOT EXISTS user_id TEXT`;
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS brand_type TEXT DEFAULT 'personal'`;
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS website_url TEXT`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url TEXT`;
+  await sql`UPDATE users SET website_url = 'https://claritycraft.org' WHERE email = 'fabio.vitto@claritycraft.org' AND (website_url IS NULL OR website_url = '')`;
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
+
+// Fetch website and strip to plain text (best-effort)
+async function fetchWebsiteText(url) {
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) });
+    const html = await res.text();
+    // Strip tags, collapse whitespace, cap at 6000 chars
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 6000);
+  } catch {
+    return null;
+  }
+}
 
 // Extract text from PDF using pdf-parse
 async function extractPdfText(filePath) {
@@ -79,7 +100,10 @@ async function extractPdfText(filePath) {
 }
 
 // Parse personality map from text
-async function parsePersonalityMap(text) {
+async function parsePersonalityMap(text, websiteText = null) {
+  const websiteSection = websiteText
+    ? `\n\nADDITIONAL CONTEXT — COMPANY WEBSITE:\nUse this to enrich the personality map with real offers, services, pricing, and messaging found on the website. Do NOT invent anything not present in either source.\n${websiteText}`
+    : '';
   const response = await openai.chat.completions.create({
     model: MODEL,
     messages: [{
@@ -110,7 +134,7 @@ async function parsePersonalityMap(text) {
 Return ONLY valid JSON, no markdown, no explanation.
 
 Document text:
-${text}`
+${text}${websiteSection}`
     }],
     response_format: { type: 'json_object' },
   });
@@ -119,7 +143,10 @@ ${text}`
 }
 
 // Parse brand brief from business PDF
-async function parseBrandBrief(text) {
+async function parseBrandBrief(text, websiteText = null) {
+  const websiteSection = websiteText
+    ? `\n\nADDITIONAL CONTEXT — COMPANY WEBSITE:\nUse this to enrich the brand brief with real offers, services, pricing, and messaging found on the website. Do NOT invent anything not present in either source.\n${websiteText}`
+    : '';
   const response = await openai.chat.completions.create({
     model: MODEL,
     messages: [{
@@ -150,7 +177,7 @@ async function parseBrandBrief(text) {
 Return ONLY valid JSON, no markdown, no explanation.
 
 Document text:
-${text}`
+${text}${websiteSection}`
     }],
     response_format: { type: 'json_object' },
   });
@@ -398,7 +425,7 @@ ${post}
 
 RULES — check every one, fix any that fail:
 
-1. SPECIFICITY: The first 3 sentences must contain at least one concrete detail: a number, a name, a date, a place, a specific dollar amount, or a measurable outcome. If absent, add one that fits the story naturally.
+1. SPECIFICITY: Check whether the first 3 sentences contain at least one concrete detail: a number, a name, a date, a place, or a measurable outcome. If a specific detail is already present, good. If absent, do NOT invent one — instead, sharpen the existing language to be more precise and direct without fabricating facts.
 
 2. RHYTHM VARIETY: The post must contain (a) at least one sentence of 5 words or fewer used for emphasis, and (b) at least one sentence of 25+ words. If either is missing, adjust a sentence to create it. No two consecutive paragraphs may be the same length — if they are, break one with a standalone short sentence.
 
@@ -409,12 +436,69 @@ RULES — check every one, fix any that fail:
 
 5. NO METRONOMIC RHYTHM: If more than 2 consecutive sentences are the same approximate length, break the pattern. Add a fragment. Or let one sentence run long.
 
-6. TEMPORAL OR SENSORY GROUNDING: The post must include at least one grounding detail — a specific time ("last Tuesday at 7am"), a place ("on the train back from Milan"), or a physical sensation ("my hands were shaking when"). If one is missing, weave one in naturally that fits the context.
+6. TEMPORAL OR SENSORY GROUNDING: Check whether the post contains at least one grounding detail — a specific time, place, or physical sensation. If one is present, good. If absent, do NOT fabricate one — instead, check whether there is a vague reference ("recently", "one morning") that can be made more concrete based on what is already in the post. Never invent a location, date, or detail not implied by the existing text.
 
 Return ONLY the revised post. If all 6 rules pass, return the original unchanged.`,
     }],
   });
   return response.choices[0].message.content.trim();
+}
+
+async function verifyAndFixFabrications(post, personalityMap) {
+  const auditResponse = await openai.chat.completions.create({
+    model: MODEL,
+    response_format: { type: 'json_object' },
+    messages: [{
+      role: 'user',
+      content: `You are a fact-checker. Identify every specific claim in this social media post and verify each one against the source data.
+
+SOURCE DATA (the ONLY facts this post is allowed to reference):
+${JSON.stringify(personalityMap, null, 2)}
+
+POST TO CHECK:
+${post}
+
+A "specific claim" is: any number, statistic, date, timeframe, person's name, place name, client result, dollar amount, percentage, or measurable outcome mentioned in the post.
+
+For each specific claim, determine:
+- SUPPORTED: the value appears in the source data (exact or reasonable paraphrase of something there)
+- UNSUPPORTED: the value does not appear anywhere in the source data — it was invented
+
+Return ONLY valid JSON:
+{"claims":[{"claim":"exact text of the claim","supported":true,"source_field":"field name or null"}],"has_fabrications":false}`,
+    }],
+  });
+
+  const audit = JSON.parse(auditResponse.choices[0].message.content);
+  const fabricated = (audit.claims || []).filter(c => !c.supported);
+  if (!fabricated.length) return post;
+
+  const fixResponse = await openai.chat.completions.create({
+    model: MODEL,
+    messages: [{
+      role: 'user',
+      content: `This social media post contains fabricated claims — specific details invented by AI that don't exist in the source data. Revise the post to remove or generalize every fabricated claim listed below.
+
+FABRICATED CLAIMS TO FIX:
+${fabricated.map(c => `- "${c.claim}"`).join('\n')}
+
+Rules for each fabrication:
+- Specific number or statistic not in source: remove the number, rewrite the sentence without it. Use a general qualifier only if the underlying point is still supported.
+- Name or place not in source: remove it, rewrite without the specific reference.
+- Entire sentence depends on the fabrication with no source grounding: cut it.
+- Do NOT replace one invented detail with another — remove or generalize only.
+
+SOURCE DATA (the only facts allowed):
+${JSON.stringify(personalityMap, null, 2)}
+
+ORIGINAL POST:
+${post}
+
+Return ONLY the revised post text. No explanation, no preamble.`,
+    }],
+  });
+
+  return fixResponse.choices[0].message.content.trim();
 }
 
 // Generate a social post
@@ -443,11 +527,10 @@ The post MUST contain:
 - No two consecutive sentences beginning with the same word class (noun → verb → clause → fragment — mix it)
 
 SPECIFICITY RULE:
-Every abstract claim needs one concrete anchor: a number, a name, a date, a place, a specific conversation. "We lost the client" is nothing. "We lost the €40k client two days before payroll" is a post.
-Numbers must NOT be round: "17 months" beats "a year and a half". "€2,340" beats "over two thousand".
+Every abstract claim should be grounded in a real detail from their personality map — a number, a name, a date, a place, or a specific situation. Only use details that actually appear in their data. Do not invent specifics. If no matching detail exists, state the claim generally or cut it.
 
 GROUNDING REQUIREMENT:
-Include at least one temporal or physical anchor — a specific time ("last Tuesday at 6am"), a specific place ("in the elevator after the call"), or a physical detail ("I read it three times before it registered"). This is what separates lived experience from summary.
+If their personality map contains a specific time, place, or physical detail, use it to ground the post. If not, do not invent one — write without it rather than fabricating.
 
 NON-RESOLUTION — mandatory:
 Do NOT summarize the lesson at the end. Do NOT tell the reader what to take away or conclude. End before the moral — stop at the last real moment, the genuine question still open, or the quiet observation. The reader should feel like they caught you mid-thought, not received a packaged insight.
@@ -497,10 +580,9 @@ STRUCTURE:
 - Ending: A genuine question for their audience OR a quiet, specific observation. NOT a lesson summary.
 
 SPECIFICITY RULE:
-Every claim needs a concrete anchor: a client result with real numbers, a specific project, a named situation. "We helped a client grow" is nothing. "One client went from 12 to 47 qualified leads in 6 weeks" is a post.
-Numbers must NOT be round.
+Every claim must be grounded in real data from the brand brief — actual client results, specific projects, named outcomes. Only use details that appear in their data. Do not fabricate case study numbers or invent client scenarios. If no specific result exists for a claim, describe the work generally rather than inventing metrics.
 
-GROUNDING: Include one temporal or physical anchor — "last quarter", "during a client call last Thursday", "on the way to a pitch in Amsterdam".
+GROUNDING: If the brand brief contains a specific timeframe, location, or project context, use it. If not, do not invent one.
 
 NON-RESOLUTION: Do NOT summarize the lesson. End at the last real moment or genuine open question.
 
@@ -533,8 +615,12 @@ FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless aligned 
   };
 
   const systemPrompt = isPersonal
-    ? `You are ghostwriting a social media post for a specific person. You will write in their voice, in first person, as if they typed it themselves.`
-    : `You are ghostwriting a social media post for a company brand. Write in first person plural (we/our/us) from the company's perspective, as if a senior team member typed it. The voice should reflect the company's character, not any single individual.`;
+    ? `You are ghostwriting a social media post for a specific person. You will write in their voice, in first person, as if they typed it themselves.
+
+CRITICAL — NO FABRICATION: You may ONLY reference details that appear in the personality map data provided. Do not invent names, dates, numbers, client results, places, or specific situations that are not in the data. If a detail is not in the map, describe the experience generally or leave it out. Fake specificity is worse than honest vagueness.`
+    : `You are ghostwriting a social media post for a company brand. Write in first person plural (we/our/us) from the company's perspective, as if a senior team member typed it. The voice should reflect the company's character, not any single individual.
+
+CRITICAL — NO FABRICATION: You may ONLY reference details, results, and situations that appear in the brand brief provided. Do not invent client names, revenue figures, timelines, case study outcomes, or specific scenarios not in the data. If a detail is not in the brief, describe it generally or omit it. Made-up specifics destroy trust when readers notice them.`;
 
   const brandContext = isPersonal
     ? `THEIR PERSONALITY MAP:\n${JSON.stringify(personalityMap, null, 2)}\n\nTHEIR BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}`
@@ -542,16 +628,17 @@ FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless aligned 
 
   const realityAnchors = isPersonal
     ? `WHAT MAKES IT FEEL REAL:
-- One specific, surprising detail that only they would know (a real number, a name, a specific place or date from their map)
-- At least one sentence fragment used deliberately for emphasis
+- Draw on specific details from their personality map — real experiences, achievements, skills, or values they listed
+- Use sentence fragments deliberately for emphasis
 - The vocabulary and references fit their background and geography — not generic Western corporate English
-- Something slightly unresolved at the end — a question they're still holding, not one they've answered`
+- Something slightly unresolved at the end — a question they're still holding, not one they've answered
+- Do NOT invent details not in their map — write around gaps honestly rather than filling them with fiction`
     : `WHAT MAKES IT FEEL REAL:
-- Anchor in a real client situation, team decision, or project moment — not abstract company values
-- Include at least one concrete result or number tied to a specific client or timeframe
-- Show the company's actual thinking process or internal debate, not just the outcome
-- Vocabulary fits the industry and company culture — not generic corporate speak
-- Something slightly open at the end — a genuine question or an honest tension the company is still navigating`;
+- Draw on real data from the brand brief — actual services, achievements, client outcomes, or team moments listed there
+- Show the company's thinking or perspective on their actual work — not invented scenarios
+- Vocabulary fits their industry and culture — not generic corporate speak
+- Something slightly open at the end — a genuine question or honest tension the company navigates
+- Do NOT invent client results, case study numbers, or scenarios not in the brand brief`;
 
   const aiFails = isPersonal
     ? `HOW AI-WRITTEN POSTS FAIL — avoid every one of these patterns:
@@ -574,6 +661,7 @@ FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless aligned 
 
   const response = await openai.chat.completions.create({
     model: MODEL,
+    temperature: 0.4,
     messages: [{
       role: 'user',
       content: `${systemPrompt}
@@ -600,7 +688,8 @@ Write ONLY the post text. Nothing else — no preamble, no "here's the post:", n
   });
 
   const firstDraft = response.choices[0].message.content.trim();
-  return selfCritiquePost(firstDraft, platform);
+  const styledDraft = await selfCritiquePost(firstDraft, platform);
+  return verifyAndFixFabrications(styledDraft, personalityMap);
 }
 
 // ─── Viral Intelligence ──────────────────────────────────────────────────────
@@ -763,12 +852,32 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-    const rows = await sql`SELECT id, email, password_hash FROM users WHERE email = ${email.toLowerCase()}`;
+    const rows = await sql`SELECT id, email, password_hash, website_url FROM users WHERE email = ${email.toLowerCase()}`;
     if (!rows.length) return res.status(401).json({ error: 'Invalid email or password' });
     const valid = await bcrypt.compare(password, rows[0].password_hash);
     if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
     const token = jwt.sign({ id: rows[0].id, email: rows[0].email }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ success: true, token, email: rows[0].email });
+    res.json({ success: true, token, email: rows[0].email, websiteUrl: rows[0].website_url || '' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/auth/profile', requireAuth, async (req, res) => {
+  try {
+    const rows = await sql`SELECT email, website_url FROM users WHERE id = ${req.user.id}`;
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({ success: true, email: rows[0].email, websiteUrl: rows[0].website_url || '' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/auth/profile', requireAuth, async (req, res) => {
+  try {
+    const { websiteUrl } = req.body;
+    await sql`UPDATE users SET website_url = ${websiteUrl || null} WHERE id = ${req.user.id}`;
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -783,16 +892,24 @@ app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
     fs.unlinkSync(req.file.path);
 
     const brandType = req.body.brand_type === 'business' ? 'business' : 'personal';
+    const websiteUrl = (req.body.website_url || '').trim();
+    const websiteText = websiteUrl ? await fetchWebsiteText(websiteUrl) : null;
+
     const personalityMap = brandType === 'business'
-      ? await parseBrandBrief(text)
-      : await parsePersonalityMap(text);
+      ? await parseBrandBrief(text, websiteText)
+      : await parsePersonalityMap(text, websiteText);
     const strategy = await generateStrategy(personalityMap, brandType);
 
     const id = Date.now().toString();
-    await sql`
-      INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, brand_type, user_id)
-      VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)}, ${brandType}, ${req.user.id})
-    `;
+    await Promise.all([
+      sql`
+        INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, brand_type, user_id, website_url)
+        VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)}, ${brandType}, ${req.user.id}, ${websiteUrl || null})
+      `,
+      websiteUrl
+        ? sql`UPDATE users SET website_url = ${websiteUrl} WHERE id = ${req.user.id}`
+        : Promise.resolve(),
+    ]);
 
     res.json({ success: true, id, personalityMap, strategy, brandType });
   } catch (err) {
@@ -1052,6 +1169,63 @@ app.get('/api/analytics/:sessionId/:platform', requireAuth, async (req, res) => 
     `;
     if (!rows.length) return res.json({ success: true, posts: [], importedAt: null });
     res.json({ success: true, posts: rows[0].posts, importedAt: rows[0].imported_at });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/parse-carousel', requireAuth, async (req, res) => {
+  try {
+    const { postText } = req.body;
+    if (!postText) return res.status(400).json({ error: 'postText required' });
+
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      response_format: { type: 'json_object' },
+      messages: [{
+        role: 'user',
+        content: `Convert this Instagram carousel post into structured slide data for a visual carousel builder. Return ONLY valid JSON.
+
+POST TEXT:
+${postText}
+
+Return this exact JSON structure:
+{
+  "slides": [
+    {
+      "type": "title",
+      "heading": "main hook (max 8 words, no punctuation at end)",
+      "subheading": "supporting line (max 8 words)",
+      "tag": "TOPIC LABEL",
+      "username": "@yourhandle"
+    },
+    {
+      "type": "content",
+      "number": "01",
+      "heading": "slide point heading (max 6 words)",
+      "description": "1–2 sentence explanation of this point",
+      "highlight": "single most memorable phrase from this slide",
+      "image": null
+    }
+  ]
+}
+
+Rules:
+- First slide MUST be type "title" — use the opening hook or [Slide 1] content
+- Each subsequent slide (body slides + CTA) becomes a "content" slide
+- Number content slides sequentially: "01", "02", "03", etc.
+- The "tag" for the title slide: 1–2 word ALL CAPS topic category derived from content
+- The "highlight" per content slide: the single sentence worth calling out visually
+- Omit hashtags, captions, and any text that appears after the last slide
+- Maximum 8 slides total
+- Keep text concise — these appear on small visual cards`,
+      }],
+    });
+
+    const result = JSON.parse(response.choices[0].message.content);
+    if (!result.slides || !Array.isArray(result.slides)) throw new Error('Invalid response structure');
+    res.json({ success: true, slides: result.slides });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
