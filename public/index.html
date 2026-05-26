@@ -2010,6 +2010,8 @@
       border: 1px solid var(--border);
     }
 
+    .carousel-style-btn.active { border-color: var(--gold) !important; color: var(--gold) !important; background: rgba(201,169,110,0.06) !important; }
+
     /* Off-screen render target */
     #carousel-render-target {
       position: fixed;
@@ -2347,7 +2349,38 @@
         <div id="cpanel-settings" style="display:none">
           <div class="carousel-settings-grid">
             <div class="carousel-settings-section">
+
               <div>
+                <div class="carousel-field-label">Slide style</div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.25rem;">
+                  <button class="carousel-style-btn active" data-style="dark" onclick="carouselSetStyle('dark')"
+                    style="padding:0.4rem 1rem;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;transition:all 0.2s;">
+                    Dark
+                  </button>
+                  <button class="carousel-style-btn" data-style="light" onclick="carouselSetStyle('light')"
+                    style="padding:0.4rem 1rem;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;transition:all 0.2s;">
+                    Light / Brand Card
+                  </button>
+                </div>
+              </div>
+
+              <div style="margin-top:1rem;">
+                <div class="carousel-field-label">Logo / brand mark text</div>
+                <input type="text" id="carousel-logo-text" value="BRAND."
+                  placeholder="e.g. VITTO."
+                  oninput="carouselSetLogoText(this.value)"
+                  style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:0.5rem 0.75rem;font-family:'DM Mono',monospace;font-size:0.8rem;margin-top:0.35rem;">
+              </div>
+
+              <div style="margin-top:0.875rem;">
+                <div class="carousel-field-label">Website URL (shown at bottom)</div>
+                <input type="text" id="carousel-website-url" value=""
+                  placeholder="e.g. www.claritycraft.org"
+                  oninput="carouselSetWebsiteUrl(this.value)"
+                  style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:0.5rem 0.75rem;font-family:'DM Mono',monospace;font-size:0.8rem;margin-top:0.35rem;">
+              </div>
+
+              <div style="margin-top:1.25rem;">
                 <div class="carousel-field-label">Accent color</div>
                 <div class="carousel-color-presets" id="carousel-accent-presets"></div>
                 <div class="carousel-color-picker-row">
@@ -2355,14 +2388,16 @@
                   <span class="carousel-hex-display" id="carousel-accent-hex">#39FF14</span>
                 </div>
               </div>
-              <div style="margin-top:1.25rem">
-                <div class="carousel-field-label">Background color</div>
+
+              <div id="carousel-bg-section" style="margin-top:1.25rem;">
+                <div class="carousel-field-label">Background color (dark style only)</div>
                 <div class="carousel-color-presets" id="carousel-bg-presets"></div>
                 <div class="carousel-color-picker-row">
                   <input type="color" id="carousel-bg-picker" value="#0a0a0a" oninput="carouselSetBg(this.value,false)">
                   <span class="carousel-hex-display" id="carousel-bg-hex">#0a0a0a</span>
                 </div>
               </div>
+
             </div>
             <div>
               <div class="carousel-field-label">Live preview</div>

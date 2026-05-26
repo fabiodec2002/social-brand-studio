@@ -1,6 +1,6 @@
 // ─── Instagram Carousel Builder ──────────────────────────────────────────────
 
-const CAROUSEL_ACCENT_PRESETS = ['#39FF14','#ffffff','#c9a96e','#c13584','#0077b5','#ff6b35','#a855f7','#ef4444'];
+const CAROUSEL_ACCENT_PRESETS = ['#39FF14','#ffffff','#c9a96e','#c13584','#0d3b8c','#ff6b35','#a855f7','#ef4444'];
 const CAROUSEL_BG_PRESETS = ['#0a0a0a','#141413','#0f0f0f','#1a1a1a','#0d0d14','#14140a','#0a0d14','#140a0a'];
 
 let carouselState = {
@@ -13,6 +13,9 @@ let carouselState = {
   avatarImage: null,
   accentColor: '#39FF14',
   bgColor: '#0a0a0a',
+  slideStyle: 'dark',   // 'dark' | 'light'
+  logoText: 'BRAND.',
+  websiteUrl: '',
   initialized: false,
 };
 
@@ -81,8 +84,115 @@ function _esc(str) {
 }
 
 function _carouselBuildSlideHTML(slide, idx) {
+  const total = carouselState.slides.length;
+  if (carouselState.slideStyle === 'light') {
+    return slide.type === 'title'
+      ? _carouselBuildLightTitleHTML(slide)
+      : _carouselBuildLightContentHTML(slide, idx, total);
+  }
   if (slide.type === 'title') return _carouselBuildTitleHTML(slide);
-  return _carouselBuildContentHTML(slide, idx, carouselState.slides.length);
+  return _carouselBuildContentHTML(slide, idx, total);
+}
+
+// ─── Light / Brand Card style ─────────────────────────────────────────────────
+
+function _carouselBuildLightTitleHTML(slide) {
+  const { accentColor, logoText, websiteUrl, avatarImage } = carouselState;
+  const logo = logoText || 'BRAND.';
+  const site = websiteUrl || '';
+
+  const avatarHtml = avatarImage
+    ? `<img src="${avatarImage}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid ${accentColor};flex-shrink:0;" crossorigin="anonymous">`
+    : `<div style="width:38px;height:38px;border-radius:50%;background:#e8e8e8;border:2px solid ${accentColor};flex-shrink:0;"></div>`;
+
+  const username = slide.username ? slide.username.replace(/^@/, '') : 'Your Name';
+
+  // Split heading: first line normal black, subheading in highlight box
+  const headingHtml = slide.heading
+    ? `<div style="font-size:46px;font-weight:300;color:#000;line-height:1.1;letter-spacing:-1px;margin-bottom:8px;">${_esc(slide.heading)}</div>`
+    : '';
+  const subHtml = slide.subheading
+    ? `<div style="display:inline-block;background:${accentColor};color:#fff;font-size:42px;font-weight:700;padding:4px 10px;border-radius:6px;line-height:1.2;letter-spacing:-0.5px;">${_esc(slide.subheading)}</div>`
+    : '';
+
+  const siteHtml = site
+    ? `<div style="position:absolute;bottom:68px;left:28px;font-size:13px;color:#555;font-style:italic;letter-spacing:0.02em;">${_esc(site)}</div>`
+    : '';
+
+  return `<div style="width:360px;height:640px;background:#fff;position:relative;overflow:hidden;font-family:Arial,'Helvetica Neue',sans-serif;">
+  <!-- Logo -->
+  <div style="position:absolute;top:20px;right:20px;font-size:22px;font-weight:900;color:${accentColor};letter-spacing:-0.5px;">${_esc(logo)}</div>
+  <!-- Divider -->
+  <div style="position:absolute;top:60px;left:0;right:0;height:2.5px;background:${accentColor};"></div>
+  <div style="position:absolute;top:54px;left:16px;width:4px;height:14px;background:${accentColor};"></div>
+  <!-- Heading block -->
+  <div style="position:absolute;left:28px;right:28px;top:110px;">
+    ${headingHtml}
+    ${subHtml}
+  </div>
+  <!-- Author pill -->
+  <div style="position:absolute;left:28px;bottom:110px;display:flex;align-items:center;gap:10px;right:28px;">
+    ${avatarHtml}
+    <div style="background:#f0f0f0;padding:6px 14px;border-radius:20px;font-size:13px;color:#222;white-space:nowrap;">${_esc(username)}</div>
+    <div style="flex:1;height:2.5px;background:${accentColor};margin-left:4px;"></div>
+  </div>
+  ${siteHtml}
+</div>`;
+}
+
+function _carouselBuildLightContentHTML(slide, idx, total) {
+  const { accentColor, logoText, websiteUrl } = carouselState;
+  const logo = logoText || 'BRAND.';
+  const site = websiteUrl || '';
+  const counter = String(idx + 1).padStart(2, '0');
+
+  // Progress bar segments at bottom
+  const segW = Math.floor(340 / total);
+  const progressHtml = Array.from({ length: total }, (_, i) => {
+    const filled = i < idx + 1;
+    const bg = filled ? accentColor : `${accentColor}33`;
+    return `<div style="width:${segW}px;height:100%;background:${bg};"></div>`;
+  }).join('');
+
+  const headingHtml = slide.heading
+    ? `<div style="font-size:28px;font-weight:400;color:#111;line-height:1.3;margin-bottom:12px;">${_esc(slide.heading)}</div>`
+    : '';
+
+  const highlightHtml = slide.highlight
+    ? `<div style="background:${accentColor};color:#fff;font-size:24px;font-weight:600;line-height:1.35;padding:10px 14px;border-radius:6px;margin-bottom:12px;">${_esc(slide.highlight)}</div>`
+    : '';
+
+  const descHtml = slide.description
+    ? `<div style="font-size:22px;font-weight:400;color:#111;line-height:1.4;">${_esc(slide.description)}</div>`
+    : '';
+
+  const siteHtml = site
+    ? `<div style="position:absolute;bottom:26px;left:40px;font-size:12px;color:#555;font-style:italic;">${_esc(site)}</div>`
+    : '';
+
+  return `<div style="width:360px;height:640px;background:#fff;position:relative;overflow:hidden;font-family:Arial,'Helvetica Neue',sans-serif;">
+  <!-- Logo -->
+  <div style="position:absolute;top:18px;right:20px;font-size:20px;font-weight:900;color:${accentColor};letter-spacing:-0.5px;">${_esc(logo)}</div>
+  <!-- Divider + counter -->
+  <div style="position:absolute;top:56px;left:0;right:0;height:2.5px;background:${accentColor};"></div>
+  <div style="position:absolute;top:48px;right:16px;font-size:12px;font-weight:700;color:${accentColor};letter-spacing:0.12em;">─ ${counter} ─</div>
+  <!-- Progress arrow -->
+  <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;padding:0 6px;">
+    <div style="width:2px;height:40px;background:${accentColor};border-radius:1px;"></div>
+    <div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid ${accentColor};margin-top:0;"></div>
+  </div>
+  <!-- Content -->
+  <div style="position:absolute;left:36px;right:20px;top:85px;bottom:56px;display:flex;flex-direction:column;justify-content:center;">
+    ${headingHtml}
+    ${highlightHtml}
+    ${descHtml}
+  </div>
+  ${siteHtml}
+  <!-- Footer bar -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:14px;display:flex;overflow:hidden;">
+    ${progressHtml}
+  </div>
+</div>`;
 }
 
 function _carouselBuildTitleHTML(slide) {
@@ -477,6 +587,28 @@ function carouselAddSlide() {
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
+function carouselSetStyle(style) {
+  carouselState.slideStyle = style;
+  document.querySelectorAll('.carousel-style-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.style === style);
+  });
+  // Show/hide bg presets (only relevant for dark style)
+  const bgSection = document.getElementById('carousel-bg-section');
+  if (bgSection) bgSection.style.display = style === 'dark' ? 'block' : 'none';
+  carouselUpdatePreview();
+  _carouselUpdateSettingsPreview();
+}
+
+function carouselSetLogoText(val) {
+  carouselState.logoText = val;
+  carouselUpdatePreview();
+}
+
+function carouselSetWebsiteUrl(val) {
+  carouselState.websiteUrl = val;
+  carouselUpdatePreview();
+}
+
 function _carouselBuildColorPresets() {
   const accentContainer = document.getElementById('carousel-accent-presets');
   const bgContainer = document.getElementById('carousel-bg-presets');
@@ -527,6 +659,9 @@ function carouselExportTemplate() {
     version: 1,
     accentColor: carouselState.accentColor,
     bgColor: carouselState.bgColor,
+    slideStyle: carouselState.slideStyle,
+    logoText: carouselState.logoText,
+    websiteUrl: carouselState.websiteUrl,
     slides: carouselState.slides.map(s => {
       const copy = { ...s };
       copy.image = null; // strip binary image data from export
@@ -558,6 +693,17 @@ function carouselHandleTemplateUpload(input) {
       carouselState.currentSlide = 0;
       if (template.accentColor) carouselSetAccent(template.accentColor, false);
       if (template.bgColor) carouselSetBg(template.bgColor, false);
+      if (template.slideStyle) carouselSetStyle(template.slideStyle);
+      if (template.logoText !== undefined) {
+        carouselState.logoText = template.logoText;
+        const logoInput = document.getElementById('carousel-logo-text');
+        if (logoInput) logoInput.value = template.logoText;
+      }
+      if (template.websiteUrl !== undefined) {
+        carouselState.websiteUrl = template.websiteUrl;
+        const siteInput = document.getElementById('carousel-website-url');
+        if (siteInput) siteInput.value = template.websiteUrl;
+      }
       carouselUpdatePreview();
       carouselRenderEditor();
       carouselSwitchTab('preview');
@@ -577,6 +723,14 @@ function carouselReset() {
   carouselState.avatarImage = null;
   carouselState.accentColor = '#39FF14';
   carouselState.bgColor = '#0a0a0a';
+  carouselState.slideStyle = 'dark';
+  carouselState.logoText = 'BRAND.';
+  carouselState.websiteUrl = '';
+  const logoInput = document.getElementById('carousel-logo-text');
+  if (logoInput) logoInput.value = 'BRAND.';
+  const siteInput = document.getElementById('carousel-website-url');
+  if (siteInput) siteInput.value = '';
+  carouselSetStyle('dark');
   carouselUpdatePreview();
   carouselRenderEditor();
   _carouselBuildColorPresets();
