@@ -1641,11 +1641,384 @@
       vertical-align: middle;
     }
 
+    /* ── Website URL input ──────────────────────────────────────────────── */
+    .website-input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      padding: 0.75rem 1rem;
+      transition: border-color 0.2s;
+    }
+    .website-input-row:focus-within { border-color: var(--gold); }
+    .website-input-icon { font-size: 1rem; flex-shrink: 0; }
+    .website-url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.03em;
+    }
+    .website-url-input::placeholder { color: var(--text3); }
+
     @media (max-width: 700px) {
       .ob-platform-grid { grid-template-columns: 1fr; }
       .ob-pillars-row { grid-template-columns: 1fr; }
       .ob-stats { grid-template-columns: 1fr 1fr; }
       .brand-type-row { flex-direction: column; align-items: center; }
+    }
+
+    /* ─── Carousel Builder ──────────────────────────────────────────────────── */
+    .carousel-tabs {
+      display: flex;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .carousel-tab {
+      padding-bottom: 0.75rem;
+      color: var(--text3);
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+    }
+    .carousel-tab:hover { color: var(--text2); }
+    .carousel-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    .carousel-template-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 0.875rem 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .carousel-template-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-right: 0.25rem;
+    }
+    .carousel-template-btn {
+      padding: 0.4rem 0.875rem;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .carousel-template-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    .carousel-preview-area {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .carousel-controls-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+      min-width: 190px;
+    }
+    .carousel-upload-btn {
+      display: block;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .carousel-upload-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    .crop-controls {
+      display: none;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+    }
+    .crop-controls.visible { display: flex; }
+    .crop-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+      display: block;
+    }
+    .crop-slider { width: 100%; accent-color: var(--gold); }
+    .crop-reset-btn {
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .crop-reset-btn:hover { color: var(--text2); border-color: var(--border2); }
+
+    .carousel-slide-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .carousel-slide-wrapper {
+      width: 360px;
+      height: 640px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .carousel-slide-display { width: 360px; height: 640px; }
+
+    .carousel-dots { display: flex; gap: 6px; justify-content: center; }
+    .carousel-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      cursor: pointer;
+      border: none;
+      padding: 0;
+      transition: all 0.2s;
+    }
+    .carousel-dot.active { background: var(--gold); width: 20px; border-radius: 3px; }
+
+    .carousel-nav { display: flex; gap: 0.75rem; align-items: center; }
+    .carousel-nav-btn {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border2);
+      background: var(--bg2);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      transition: all 0.2s;
+    }
+    .carousel-nav-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+    .carousel-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .carousel-save-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--gold);
+      color: var(--bg);
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.2s;
+      width: 100%;
+      max-width: 360px;
+    }
+    .carousel-save-btn:hover { background: var(--gold2); }
+
+    .carousel-save-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .carousel-save-modal.active { display: flex; }
+    .carousel-save-modal img { max-width: 90vw; max-height: 70vh; object-fit: contain; border: 1px solid var(--border2); }
+    .carousel-modal-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text3);
+      letter-spacing: 0.06em;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .carousel-modal-close {
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      transition: all 0.2s;
+    }
+    .carousel-modal-close:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Editor */
+    .carousel-slides-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .carousel-slide-item { border: 1px solid var(--border); background: var(--bg2); }
+    .carousel-slide-item-header {
+      padding: 0.875rem 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .carousel-slide-item-header:hover { background: rgba(255,255,255,0.02); }
+    .carousel-slide-item-title { font-size: 0.875rem; color: var(--text); display: flex; align-items: center; gap: 0.75rem; }
+    .carousel-slide-num { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--text3); min-width: 20px; }
+    .carousel-slide-item-chevron { color: var(--text3); font-size: 0.72rem; transition: transform 0.2s; }
+    .carousel-slide-item.open .carousel-slide-item-chevron { transform: rotate(180deg); }
+    .carousel-slide-item-body {
+      display: none;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border);
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+    .carousel-slide-item.open .carousel-slide-item-body { display: flex; }
+
+    .carousel-field-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    .carousel-field input,
+    .carousel-field textarea {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.55rem 0.75rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      resize: vertical;
+    }
+    .carousel-field textarea { min-height: 72px; }
+    .carousel-field input:focus,
+    .carousel-field textarea:focus { outline: none; border-color: var(--gold); }
+
+    .carousel-img-preview {
+      width: 100%; height: 120px; object-fit: cover;
+      border: 1px solid var(--border);
+      display: none; margin-top: 0.5rem;
+    }
+    .carousel-img-preview.visible { display: block; }
+    .carousel-img-btns { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .carousel-img-btn {
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      transition: all 0.2s;
+    }
+    .carousel-img-btn:hover { color: var(--text2); }
+    .carousel-img-btn.danger:hover { color: #c47070; border-color: rgba(200,80,80,0.3); }
+
+    .carousel-delete-slide-btn {
+      padding: 0.4rem 0.75rem;
+      border: 1px solid rgba(200,80,80,0.3);
+      background: transparent;
+      color: #c47070;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      align-self: flex-start;
+      transition: all 0.2s;
+    }
+    .carousel-delete-slide-btn:hover { background: rgba(200,80,80,0.05); }
+
+    .carousel-add-slide-btn {
+      padding: 0.875rem;
+      border: 1px dashed var(--border2);
+      background: transparent;
+      color: var(--text3);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-align: center;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .carousel-add-slide-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Settings */
+    .carousel-settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    .carousel-settings-section { display: flex; flex-direction: column; gap: 0.75rem; }
+    .carousel-color-presets { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .carousel-color-swatch {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .carousel-color-swatch.active { border-color: var(--text); transform: scale(1.12); }
+    .carousel-color-picker-row { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem; }
+    .carousel-color-picker-row input[type="color"] {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border2);
+      border-radius: 50%;
+      cursor: pointer;
+      background: none;
+      padding: 0;
+    }
+    .carousel-hex-display { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text2); }
+    .carousel-settings-preview {
+      width: 180px;
+      height: 320px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    /* Off-screen render target */
+    #carousel-render-target {
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      width: 360px;
+      height: 640px;
+      overflow: hidden;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -1713,6 +2086,16 @@
         </div>
       </div>
 
+      <div class="website-input-row">
+        <div class="website-input-icon">🌐</div>
+        <input
+          type="url"
+          id="website-url-input"
+          class="website-url-input"
+          placeholder="Your website URL (optional) — e.g. https://yoursite.com"
+        />
+      </div>
+
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="file-input" accept=".pdf" onchange="handleFileUpload(this.files[0])">
         <div class="upload-icon">↑</div>
@@ -1755,6 +2138,9 @@
         </div>
         <div class="nav-item" onclick="showTab('analytics')" id="nav-analytics">
           <div class="nav-dot"></div>Analytics
+        </div>
+        <div class="nav-item" onclick="showTab('carousel')" id="nav-carousel">
+          <div class="nav-dot"></div>Carousel builder
         </div>
       </div>
       <div class="sidebar-section" id="sidebar-expertise">
@@ -1887,6 +2273,105 @@
         </div>
       </div>
 
+      <!-- Carousel Builder Tab -->
+      <div id="tab-carousel" class="tab-content" style="display:none">
+        <div class="section-title">Carousel builder</div>
+        <div class="section-subtitle">Build Instagram carousel slides and save each one as an image</div>
+
+        <!-- Template row -->
+        <div class="carousel-template-row">
+          <span class="carousel-template-label">Template:</span>
+          <button class="carousel-template-btn" onclick="carouselImportTemplate()">Upload template</button>
+          <input type="file" id="carousel-template-input" accept=".json" style="display:none" onchange="carouselHandleTemplateUpload(this)">
+          <button class="carousel-template-btn" onclick="carouselExportTemplate()">Download template</button>
+          <button class="carousel-template-btn" onclick="carouselReset()">Reset</button>
+        </div>
+
+        <!-- Inner tabs -->
+        <div class="carousel-tabs">
+          <div class="carousel-tab active" id="ctab-preview" onclick="carouselSwitchTab('preview')">Preview</div>
+          <div class="carousel-tab" id="ctab-editor" onclick="carouselSwitchTab('editor')">Editor</div>
+          <div class="carousel-tab" id="ctab-settings" onclick="carouselSwitchTab('settings')">Settings</div>
+        </div>
+
+        <!-- Preview panel -->
+        <div id="cpanel-preview">
+          <div class="carousel-preview-area">
+            <div class="carousel-controls-panel">
+              <label class="carousel-upload-btn" for="carousel-cover-input">
+                📷 Upload cover photo
+                <input type="file" id="carousel-cover-input" accept="image/*" style="display:none" onchange="carouselHandleCover(this)">
+              </label>
+              <label class="carousel-upload-btn" for="carousel-avatar-input">
+                👤 Upload avatar
+                <input type="file" id="carousel-avatar-input" accept="image/*" style="display:none" onchange="carouselHandleAvatar(this)">
+              </label>
+              <div class="crop-controls" id="carousel-crop-controls">
+                <div>
+                  <span class="crop-label">Scale</span>
+                  <input type="range" class="crop-slider" id="carousel-cover-scale" min="100" max="250" value="130" oninput="carouselUpdateCrop()">
+                </div>
+                <div>
+                  <span class="crop-label">Horizontal</span>
+                  <input type="range" class="crop-slider" id="carousel-cover-x" min="-150" max="150" value="0" oninput="carouselUpdateCrop()">
+                </div>
+                <div>
+                  <span class="crop-label">Vertical</span>
+                  <input type="range" class="crop-slider" id="carousel-cover-y" min="-150" max="150" value="0" oninput="carouselUpdateCrop()">
+                </div>
+                <button class="crop-reset-btn" onclick="carouselResetCrop()">Reset crop</button>
+              </div>
+            </div>
+
+            <div class="carousel-slide-container">
+              <div class="carousel-slide-wrapper">
+                <div class="carousel-slide-display" id="carousel-preview-display"></div>
+              </div>
+              <div class="carousel-dots" id="carousel-dots"></div>
+              <div class="carousel-nav">
+                <button class="carousel-nav-btn" id="carousel-prev-btn" onclick="carouselPrev()">← Back</button>
+                <button class="carousel-nav-btn" id="carousel-next-btn" onclick="carouselNext()">Next →</button>
+              </div>
+              <button class="carousel-save-btn" onclick="carouselSaveSlide()">Save slide <span id="carousel-save-num">1</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor panel -->
+        <div id="cpanel-editor" style="display:none">
+          <div class="carousel-slides-list" id="carousel-slides-list"></div>
+          <button class="carousel-add-slide-btn" onclick="carouselAddSlide()">+ Add slide</button>
+        </div>
+
+        <!-- Settings panel -->
+        <div id="cpanel-settings" style="display:none">
+          <div class="carousel-settings-grid">
+            <div class="carousel-settings-section">
+              <div>
+                <div class="carousel-field-label">Accent color</div>
+                <div class="carousel-color-presets" id="carousel-accent-presets"></div>
+                <div class="carousel-color-picker-row">
+                  <input type="color" id="carousel-accent-picker" value="#39FF14" oninput="carouselSetAccent(this.value,false)">
+                  <span class="carousel-hex-display" id="carousel-accent-hex">#39FF14</span>
+                </div>
+              </div>
+              <div style="margin-top:1.25rem">
+                <div class="carousel-field-label">Background color</div>
+                <div class="carousel-color-presets" id="carousel-bg-presets"></div>
+                <div class="carousel-color-picker-row">
+                  <input type="color" id="carousel-bg-picker" value="#0a0a0a" oninput="carouselSetBg(this.value,false)">
+                  <span class="carousel-hex-display" id="carousel-bg-hex">#0a0a0a</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="carousel-field-label">Live preview</div>
+              <div class="carousel-settings-preview" id="carousel-settings-preview"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Generator Tab -->
       <div id="tab-generator" class="tab-content" style="display:none">
         <div class="section-title">Post generator</div>
@@ -1999,6 +2484,16 @@
   <!-- Save indicator -->
   <div class="save-indicator" id="save-indicator">Saved</div>
 
+  <!-- Carousel save modal -->
+  <div class="carousel-save-modal" id="carousel-save-modal">
+    <img id="carousel-save-img" src="" alt="Saved slide">
+    <div class="carousel-modal-hint">On phone: long-press → Save image · On desktop: right-click → Save image as</div>
+    <button class="carousel-modal-close" onclick="document.getElementById('carousel-save-modal').classList.remove('active')">Close</button>
+  </div>
+
+  <!-- Off-screen carousel render target -->
+  <div id="carousel-render-target"></div>
+
 </div>
 
 <script>
@@ -2050,6 +2545,7 @@
       currentUserEmail = data.email;
       localStorage.setItem('token', data.token);
       localStorage.setItem('userEmail', data.email);
+      if (data.websiteUrl) document.getElementById('website-url-input').value = data.websiteUrl;
       showUploadScreen();
       loadSessions();
     } catch (err) {
@@ -2096,8 +2592,15 @@
   }
 
   function initApp() {
-    if (authToken) { showUploadScreen(); loadSessions(); }
-    else showAuthScreen();
+    if (authToken) {
+      showUploadScreen();
+      loadSessions();
+      authFetch('/api/auth/profile').then(r => r.json()).then(d => {
+        if (d.websiteUrl) document.getElementById('website-url-input').value = d.websiteUrl;
+      }).catch(() => {});
+    } else {
+      showAuthScreen();
+    }
   }
 
   // ─── App state ───────────────────────────────────────────────────────────────
@@ -2274,6 +2777,8 @@
     const formData = new FormData();
     formData.append('pdf', file);
     formData.append('brand_type', selectedBrandType);
+    const websiteUrl = document.getElementById('website-url-input').value.trim();
+    if (websiteUrl) formData.append('website_url', websiteUrl);
 
     try {
       setTimeout(() => setLoadingText(selectedBrandType === 'business'
@@ -2614,6 +3119,7 @@
     document.getElementById(`tab-${tabName}`).style.display = 'block';
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(`nav-${tabName}`).classList.add('active');
+    if (tabName === 'carousel' && typeof carouselInit === 'function') carouselInit();
   }
 
   function showApp() {
@@ -3573,5 +4079,6 @@
     });
   }
 </script>
+<script src="carousel.js"></script>
 </body>
 </html>
