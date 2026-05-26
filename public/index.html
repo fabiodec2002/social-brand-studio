@@ -3368,15 +3368,25 @@
       const remadeId = `remade-body-${cardId}`;
       wrap.innerHTML = `
         <div class="remade-post-wrap">
-          <div class="remade-label">Your version — remade from @${post.author}</div>
-          <div class="remade-body" id="${remadeId}">${data.post}</div>
+          <div class="remade-label" id="remade-label-${cardId}"></div>
+          <div class="remade-body" id="${remadeId}"></div>
           <div class="remade-actions">
             <button class="post-action-btn" onclick="copyRemade('${remadeId}', this)">Copy</button>
             <button class="post-action-btn" onclick="sendToGenerator('${remadeId}')">Edit in generator</button>
           </div>
         </div>`;
+      document.getElementById(`remade-label-${cardId}`).textContent = `Your version — remade from @${post.author}`;
+      document.getElementById(remadeId).textContent = data.post;
     } catch (err) {
-      wrap.innerHTML = `<div class="remade-post-wrap"><div class="remade-body" style="color:#c47070;">Error: ${err.message}</div></div>`;
+      const errWrap = document.createElement('div');
+      errWrap.className = 'remade-post-wrap';
+      const errBody = document.createElement('div');
+      errBody.className = 'remade-body';
+      errBody.style.color = '#c47070';
+      errBody.textContent = `Error: ${err.message}`;
+      errWrap.appendChild(errBody);
+      wrap.innerHTML = '';
+      wrap.appendChild(errWrap);
     }
 
     btn.disabled = false;

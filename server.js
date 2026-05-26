@@ -4,13 +4,20 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 const OpenAI = require('openai');
 const pdfParse = require('pdf-parse/lib/pdf-parse.js');
 const { neon } = require('@neondatabase/serverless');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme-please-set-JWT_SECRET-in-env';
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set. Set it in .env or Vercel dashboard.');
+  process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const app = express();
 const UPLOADS_DIR = path.join(os.tmpdir(), 'uploads');
@@ -18,8 +25,45 @@ const upload = multer({ dest: UPLOADS_DIR, limits: { fileSize: 10 * 1024 * 1024 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const sql = neon(process.env.DATABASE_URL);
 const MODEL = 'gpt-4o-mini';
+const IS_PROD = process.env.NODE_ENV === 'production';
+const serverErr = (res, err) => {
+  console.error(err);
+  res.status(500).json({ error: IS_PROD ? 'Internal server error' : err.message });
+};
 
-app.use(express.json());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'cdnjs.cloudflare.com', 'fonts.googleapis.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
+      fontSrc: ["'self'", 'fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Try again in 15 minutes.' },
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Rate limit exceeded. Slow down.' },
+});
+
+app.use('/api/auth/', authLimiter);
+app.use('/api/', apiLimiter);
+
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -74,8 +118,23 @@ async function initDb() {
 
 initDb().catch(err => console.error('DB init failed:', err));
 
+const PRIVATE_IP_RE = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1$|fc00:|fd)/i;
+
+function isSafeUrl(rawUrl) {
+  try {
+    const u = new URL(rawUrl);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+    const host = u.hostname;
+    if (host === 'localhost' || PRIVATE_IP_RE.test(host)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Fetch website and strip to plain text (best-effort)
 async function fetchWebsiteText(url) {
+  if (!isSafeUrl(url)) return null;
   try {
     const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) });
     const html = await res.text();
@@ -837,14 +896,14 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-    const hash = await bcrypt.hash(password, 10);
-    const id = Date.now().toString();
+    const hash = await bcrypt.hash(password, 12);
+    const id = crypto.randomUUID();
     await sql`INSERT INTO users (id, email, password_hash) VALUES (${id}, ${email.toLowerCase()}, ${hash})`;
     const token = jwt.sign({ id, email: email.toLowerCase() }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, token, email: email.toLowerCase() });
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Email already registered' });
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -859,7 +918,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign({ id: rows[0].id, email: rows[0].email }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, token, email: rows[0].email, websiteUrl: rows[0].website_url || '' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -869,7 +928,7 @@ app.get('/api/auth/profile', requireAuth, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'User not found' });
     res.json({ success: true, email: rows[0].email, websiteUrl: rows[0].website_url || '' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -879,7 +938,7 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
     await sql`UPDATE users SET website_url = ${websiteUrl || null} WHERE id = ${req.user.id}`;
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -900,7 +959,7 @@ app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
       : await parsePersonalityMap(text, websiteText);
     const strategy = await generateStrategy(personalityMap, brandType);
 
-    const id = Date.now().toString();
+    const id = crypto.randomUUID();
     await Promise.all([
       sql`
         INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, brand_type, user_id, website_url)
@@ -913,8 +972,7 @@ app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
 
     res.json({ success: true, id, personalityMap, strategy, brandType });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -927,7 +985,7 @@ app.get('/api/sessions', requireAuth, async (req, res) => {
     const rows = await sql`SELECT id, name, pdf_name, created_at FROM sessions WHERE user_id = ${req.user.id} ORDER BY created_at DESC`;
     res.json(rows.map(r => ({ id: r.id, name: r.name, pdfName: r.pdf_name, createdAt: r.created_at })));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -937,7 +995,7 @@ app.get('/api/sessions/:id', requireAuth, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Session not found' });
     res.json({ success: true, personalityMap: rows[0].personality_map, strategy: rows[0].strategy, brandType: rows[0].brand_type || 'personal' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -946,7 +1004,7 @@ app.delete('/api/sessions/:id', requireAuth, async (req, res) => {
     await sql`DELETE FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -957,7 +1015,7 @@ app.put('/api/sessions/:id', requireAuth, async (req, res) => {
     await sql`UPDATE sessions SET strategy = ${JSON.stringify(strategy)} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -976,8 +1034,7 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
     const post = await generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, topPosts, brandType || 'personal');
     res.json({ success: true, post });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -1003,8 +1060,7 @@ Return ONLY the updated post text, nothing else.`
     });
     res.json({ success: true, post: response.choices[0].message.content.trim() });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -1084,8 +1140,7 @@ app.get('/api/viral-trends', requireAuth, async (req, res) => {
     return res.json({ success: true, status: 'processing' });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -1133,8 +1188,7 @@ Write ONLY the post. First person. Ground the pivot in their real experiences fr
 
     res.json({ success: true, post: response.choices[0].message.content.trim() });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -1156,8 +1210,7 @@ app.post('/api/analytics/import', requireAuth, async (req, res) => {
     `;
     res.json({ success: true, count: posts.length });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -1170,8 +1223,7 @@ app.get('/api/analytics/:sessionId/:platform', requireAuth, async (req, res) => 
     if (!rows.length) return res.json({ success: true, posts: [], importedAt: null });
     res.json({ success: true, posts: rows[0].posts, importedAt: rows[0].imported_at });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
@@ -1227,8 +1279,7 @@ Rules:
     if (!result.slides || !Array.isArray(result.slides)) throw new Error('Invalid response structure');
     res.json({ success: true, slides: result.slides });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    return serverErr(res, err);
   }
 });
 
