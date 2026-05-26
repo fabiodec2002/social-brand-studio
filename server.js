@@ -113,7 +113,9 @@ async function initDb() {
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS brand_type TEXT DEFAULT 'personal'`;
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS website_url TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url TEXT`;
-  await sql`UPDATE users SET website_url = 'https://claritycraft.org' WHERE email = 'fabio.vitto@claritycraft.org' AND (website_url IS NULL OR website_url = '')`;
+  if (process.env.SEED_USER_EMAIL && process.env.SEED_USER_WEBSITE) {
+    await sql`UPDATE users SET website_url = ${process.env.SEED_USER_WEBSITE} WHERE email = ${process.env.SEED_USER_EMAIL} AND (website_url IS NULL OR website_url = '')`;
+  }
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
@@ -153,7 +155,7 @@ async function fetchWebsiteText(url) {
 
 // Extract text from PDF using pdf-parse
 async function extractPdfText(filePath) {
-  const dataBuffer = fs.readFileSync(filePath);
+  const dataBuffer = await fs.promises.readFile(filePath);
   const data = await pdfParse(dataBuffer);
   return data.text;
 }
@@ -1019,13 +1021,22 @@ app.put('/api/sessions/:id', requireAuth, async (req, res) => {
   }
 });
 
+const VALID_PLATFORMS = ['linkedin', 'instagram'];
+const VALID_TONES = ['professional', 'conversational', 'bold', 'educational', 'inspirational', 'storytelling'];
+const VALID_IG_FORMATS = ['post', 'normal', 'story', 'reel'];
+
 app.post('/api/generate-post', requireAuth, async (req, res) => {
   try {
     const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType } = req.body;
 
+    if (!VALID_PLATFORMS.includes(platform)) return res.status(400).json({ error: 'Invalid platform' });
+    if (tone && !VALID_TONES.includes(tone)) return res.status(400).json({ error: 'Invalid tone' });
+    if (instagramOptions?.format && !VALID_IG_FORMATS.includes(instagramOptions.format)) return res.status(400).json({ error: 'Invalid Instagram format' });
+    if (!personalityMap || !strategy) return res.status(400).json({ error: 'personalityMap and strategy are required' });
+
     let topPosts = [];
     if (sessionId && useAnalytics && ['linkedin', 'instagram'].includes(platform)) {
-      const rows = await sql`SELECT posts FROM post_analytics WHERE session_id = ${sessionId} AND platform = ${platform}`;
+      const rows = await sql`SELECT posts FROM post_analytics WHERE session_id = ${sessionId} AND platform = ${platform} AND user_id = ${req.user.id}`;
       if (rows.length && Array.isArray(rows[0].posts)) {
         topPosts = rows[0].posts.slice(0, 3);
       }
