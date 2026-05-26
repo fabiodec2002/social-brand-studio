@@ -3171,6 +3171,7 @@
 
       carouselState.slides = data.slides;
       carouselState.currentSlide = 0;
+      if (typeof carouselLoadTemplate === 'function') carouselLoadTemplate();
 
       showTab('carousel');
       carouselUpdatePreview();

@@ -2,6 +2,7 @@
 
 const CAROUSEL_ACCENT_PRESETS = ['#39FF14','#ffffff','#c9a96e','#c13584','#0d3b8c','#ff6b35','#a855f7','#ef4444'];
 const CAROUSEL_BG_PRESETS = ['#0a0a0a','#141413','#0f0f0f','#1a1a1a','#0d0d14','#14140a','#0a0d14','#140a0a'];
+const CAROUSEL_TEMPLATE_KEY = 'carousel_template_v1';
 
 let carouselState = {
   slides: getDefaultCarouselSlides(),
@@ -61,6 +62,7 @@ function carouselInit() {
   if (carouselState.initialized) return;
   carouselState.initialized = true;
   _carouselLoadHtml2Canvas();
+  carouselLoadTemplate();
   _carouselBuildColorPresets();
   carouselUpdatePreview();
   carouselRenderEditor();
@@ -373,6 +375,7 @@ function carouselHandleAvatar(input) {
   _carouselReadFile(file, dataUrl => {
     carouselState.avatarImage = dataUrl;
     carouselUpdatePreview();
+    carouselSaveTemplate();
   });
 }
 
@@ -550,6 +553,7 @@ function carouselUpdateField(i, key, value) {
   if (!carouselState.slides[i]) return;
   carouselState.slides[i][key] = value;
   carouselUpdatePreview();
+  if (i === 0 && key === 'username') carouselSaveTemplate();
 }
 
 function carouselRemoveSlideImage(i) {
@@ -585,6 +589,67 @@ function carouselAddSlide() {
   setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
 }
 
+// ─── Template persistence ─────────────────────────────────────────────────────
+
+function carouselSaveTemplate() {
+  try {
+    const username = (carouselState.slides[0] && carouselState.slides[0].username) || '@yourhandle';
+    localStorage.setItem(CAROUSEL_TEMPLATE_KEY, JSON.stringify({
+      accentColor: carouselState.accentColor,
+      bgColor: carouselState.bgColor,
+      slideStyle: carouselState.slideStyle,
+      logoText: carouselState.logoText,
+      websiteUrl: carouselState.websiteUrl,
+      avatarImage: carouselState.avatarImage,
+      username,
+    }));
+  } catch (e) {}
+}
+
+function carouselLoadTemplate() {
+  try {
+    const raw = localStorage.getItem(CAROUSEL_TEMPLATE_KEY);
+    if (!raw) return;
+    const t = JSON.parse(raw);
+    if (t.accentColor) {
+      carouselState.accentColor = t.accentColor;
+      const picker = document.getElementById('carousel-accent-picker');
+      const hex = document.getElementById('carousel-accent-hex');
+      if (picker) picker.value = t.accentColor;
+      if (hex) hex.textContent = t.accentColor;
+    }
+    if (t.bgColor) {
+      carouselState.bgColor = t.bgColor;
+      const picker = document.getElementById('carousel-bg-picker');
+      const hex = document.getElementById('carousel-bg-hex');
+      if (picker) picker.value = t.bgColor;
+      if (hex) hex.textContent = t.bgColor;
+    }
+    if (t.slideStyle) {
+      carouselState.slideStyle = t.slideStyle;
+      document.querySelectorAll('.carousel-style-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.style === t.slideStyle);
+      });
+      const bgSection = document.getElementById('carousel-bg-section');
+      if (bgSection) bgSection.style.display = t.slideStyle === 'dark' ? 'block' : 'none';
+    }
+    if (t.logoText !== undefined) {
+      carouselState.logoText = t.logoText;
+      const el = document.getElementById('carousel-logo-text');
+      if (el) el.value = t.logoText;
+    }
+    if (t.websiteUrl !== undefined) {
+      carouselState.websiteUrl = t.websiteUrl;
+      const el = document.getElementById('carousel-website-url');
+      if (el) el.value = t.websiteUrl;
+    }
+    if (t.avatarImage) carouselState.avatarImage = t.avatarImage;
+    if (t.username && carouselState.slides[0]) {
+      carouselState.slides[0].username = t.username;
+    }
+  } catch (e) {}
+}
+
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 function carouselSetStyle(style) {
@@ -597,16 +662,19 @@ function carouselSetStyle(style) {
   if (bgSection) bgSection.style.display = style === 'dark' ? 'block' : 'none';
   carouselUpdatePreview();
   _carouselUpdateSettingsPreview();
+  carouselSaveTemplate();
 }
 
 function carouselSetLogoText(val) {
   carouselState.logoText = val;
   carouselUpdatePreview();
+  carouselSaveTemplate();
 }
 
 function carouselSetWebsiteUrl(val) {
   carouselState.websiteUrl = val;
   carouselUpdatePreview();
+  carouselSaveTemplate();
 }
 
 function _carouselBuildColorPresets() {
@@ -640,6 +708,7 @@ function carouselSetAccent(color, fromPreset) {
   if (hex) hex.textContent = color;
   if (fromPreset) _carouselBuildColorPresets();
   carouselUpdatePreview();
+  carouselSaveTemplate();
 }
 
 function carouselSetBg(color, fromPreset) {
@@ -650,6 +719,7 @@ function carouselSetBg(color, fromPreset) {
   if (hex) hex.textContent = color;
   if (fromPreset) _carouselBuildColorPresets();
   carouselUpdatePreview();
+  carouselSaveTemplate();
 }
 
 // ─── Template import / export ─────────────────────────────────────────────────
@@ -707,6 +777,7 @@ function carouselHandleTemplateUpload(input) {
       carouselUpdatePreview();
       carouselRenderEditor();
       carouselSwitchTab('preview');
+      carouselSaveTemplate();
     } catch (err) {
       alert('Invalid template: ' + err.message);
     }
@@ -716,7 +787,8 @@ function carouselHandleTemplateUpload(input) {
 }
 
 function carouselReset() {
-  if (!confirm('Reset to default content? This will clear all slides and images.')) return;
+  if (!confirm('Reset to default content? This will clear all slides, images, and saved brand settings.')) return;
+  localStorage.removeItem(CAROUSEL_TEMPLATE_KEY);
   carouselState.slides = getDefaultCarouselSlides();
   carouselState.currentSlide = 0;
   carouselState.coverImage = null;
