@@ -1,8 +1,14 @@
 // ─── Instagram Carousel Builder ──────────────────────────────────────────────
+// Canvas: 540×675px preview (4:5 ratio) → html2canvas scale:2 → 1080×1350px export
+// Safe zone: 40px left/right, 40px top, 100px bottom (= 80/80/200px at export)
+// Fonts: Poppins (headlines 700/800) + Open Sans (body 400) → 28px+ body at export
 
 const CAROUSEL_ACCENT_PRESETS = ['#39FF14','#ffffff','#c9a96e','#c13584','#0d3b8c','#ff6b35','#a855f7','#ef4444'];
 const CAROUSEL_BG_PRESETS = ['#0a0a0a','#141413','#0f0f0f','#1a1a1a','#0d0d14','#14140a','#0a0d14','#140a0a'];
 const CAROUSEL_TEMPLATE_KEY = 'carousel_template_v1';
+const SLIDE_W = 540;
+const SLIDE_H = 675;
+const SLIDE_FONT = "'Poppins','Open Sans',sans-serif";
 
 let carouselState = {
   slides: getDefaultCarouselSlides(),
@@ -24,34 +30,40 @@ function getDefaultCarouselSlides() {
   return [
     {
       type: 'title',
-      heading: 'Your carousel topic here',
-      subheading: 'A short line about what this is',
-      tag: 'TOPIC',
+      heading: 'Stop doing this.',
+      subheading: "It's killing your reach.",
+      tag: 'CONTENT',
       username: '@yourhandle',
     },
     {
       type: 'content',
       number: '01',
-      heading: 'First point',
-      description: 'Explain this point briefly. One or two clear, specific sentences.',
-      highlight: 'The key takeaway in one line.',
+      heading: 'The mistake most creators make',
+      description: 'Posting without a strategy. One great post per week beats seven generic ones.',
+      highlight: 'Consistency matters more than frequency.',
       image: null,
     },
     {
       type: 'content',
       number: '02',
-      heading: 'Second point',
-      description: 'Keep each slide to one idea. Short, specific, actionable.',
-      highlight: 'What to remember from this.',
+      heading: 'What actually works',
+      description: 'Lead with a hook, deliver one clear insight per slide, and save the CTA for the end.',
+      highlight: 'One idea per slide. No exceptions.',
       image: null,
     },
     {
       type: 'content',
       number: '03',
-      heading: 'Third point',
-      description: 'End with a concrete step or insight. Make it screenshot-worthy.',
-      highlight: 'Save this for when you need it.',
+      heading: 'The fastest way to grow',
+      description: 'Create content worth saving. Saves tell the algorithm your content has long-term value.',
+      highlight: 'Design for the save, not the like.',
       image: null,
+    },
+    {
+      type: 'cta',
+      heading: 'Save this for later.',
+      subtext: 'Send it to someone who needs it.',
+      action: 'Follow @yourhandle for more daily insights.',
     },
   ];
 }
@@ -88,11 +100,12 @@ function _esc(str) {
 function _carouselBuildSlideHTML(slide, idx) {
   const total = carouselState.slides.length;
   if (carouselState.slideStyle === 'light') {
-    return slide.type === 'title'
-      ? _carouselBuildLightTitleHTML(slide)
-      : _carouselBuildLightContentHTML(slide, idx, total);
+    if (slide.type === 'title') return _carouselBuildLightTitleHTML(slide);
+    if (slide.type === 'cta')   return _carouselBuildLightCtaHTML(slide);
+    return _carouselBuildLightContentHTML(slide, idx, total);
   }
   if (slide.type === 'title') return _carouselBuildTitleHTML(slide);
+  if (slide.type === 'cta')   return _carouselBuildDarkCtaHTML(slide);
   return _carouselBuildContentHTML(slide, idx, total);
 }
 
@@ -109,34 +122,29 @@ function _carouselBuildLightTitleHTML(slide) {
 
   const username = slide.username ? slide.username.replace(/^@/, '') : 'Your Name';
 
-  // Split heading: first line normal black, subheading in highlight box
   const headingHtml = slide.heading
-    ? `<div style="font-size:46px;font-weight:300;color:#000;line-height:1.1;letter-spacing:-1px;margin-bottom:8px;">${_esc(slide.heading)}</div>`
+    ? `<div style="font-size:32px;font-weight:300;color:#000;line-height:1.15;letter-spacing:-0.5px;margin-bottom:10px;">${_esc(slide.heading)}</div>`
     : '';
   const subHtml = slide.subheading
-    ? `<div style="display:inline-block;background:${accentColor};color:#fff;font-size:42px;font-weight:700;padding:4px 10px;border-radius:6px;line-height:1.2;letter-spacing:-0.5px;">${_esc(slide.subheading)}</div>`
+    ? `<div style="display:inline-block;background:${accentColor};color:#fff;font-size:26px;font-weight:700;padding:5px 12px;border-radius:4px;line-height:1.2;letter-spacing:-0.3px;">${_esc(slide.subheading)}</div>`
     : '';
 
   const siteHtml = site
-    ? `<div style="position:absolute;bottom:68px;left:28px;font-size:13px;color:#555;font-style:italic;letter-spacing:0.02em;">${_esc(site)}</div>`
+    ? `<div style="position:absolute;bottom:80px;left:40px;font-size:12px;color:#555;font-style:italic;letter-spacing:0.02em;">${_esc(site)}</div>`
     : '';
 
-  return `<div style="width:360px;height:640px;background:#fff;position:relative;overflow:hidden;font-family:Arial,'Helvetica Neue',sans-serif;">
-  <!-- Logo -->
-  <div style="position:absolute;top:20px;right:20px;font-size:22px;font-weight:900;color:${accentColor};letter-spacing:-0.5px;">${_esc(logo)}</div>
-  <!-- Divider -->
-  <div style="position:absolute;top:60px;left:0;right:0;height:2.5px;background:${accentColor};"></div>
-  <div style="position:absolute;top:54px;left:16px;width:4px;height:14px;background:${accentColor};"></div>
-  <!-- Heading block -->
-  <div style="position:absolute;left:28px;right:28px;top:110px;">
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:#fff;position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
+  <div style="position:absolute;top:24px;right:28px;font-size:18px;font-weight:900;color:${accentColor};letter-spacing:-0.5px;">${_esc(logo)}</div>
+  <div style="position:absolute;top:68px;left:0;right:0;height:3px;background:${accentColor};"></div>
+  <div style="position:absolute;top:62px;left:20px;width:5px;height:16px;background:${accentColor};"></div>
+  <div style="position:absolute;left:40px;right:40px;top:130px;">
     ${headingHtml}
     ${subHtml}
   </div>
-  <!-- Author pill -->
-  <div style="position:absolute;left:28px;bottom:110px;display:flex;align-items:center;gap:10px;right:28px;">
+  <div style="position:absolute;left:40px;bottom:120px;display:flex;align-items:center;gap:10px;right:40px;">
     ${avatarHtml}
     <div style="background:#f0f0f0;padding:6px 14px;border-radius:20px;font-size:13px;color:#222;white-space:nowrap;">${_esc(username)}</div>
-    <div style="flex:1;height:2.5px;background:${accentColor};margin-left:4px;"></div>
+    <div style="flex:1;height:3px;background:${accentColor};margin-left:4px;"></div>
   </div>
   ${siteHtml}
 </div>`;
@@ -148,8 +156,7 @@ function _carouselBuildLightContentHTML(slide, idx, total) {
   const site = websiteUrl || '';
   const counter = String(idx + 1).padStart(2, '0');
 
-  // Progress bar segments at bottom
-  const segW = Math.floor(340 / total);
+  const segW = Math.floor(SLIDE_W / total);
   const progressHtml = Array.from({ length: total }, (_, i) => {
     const filled = i < idx + 1;
     const bg = filled ? accentColor : `${accentColor}33`;
@@ -157,45 +164,69 @@ function _carouselBuildLightContentHTML(slide, idx, total) {
   }).join('');
 
   const headingHtml = slide.heading
-    ? `<div style="font-size:28px;font-weight:400;color:#111;line-height:1.3;margin-bottom:12px;">${_esc(slide.heading)}</div>`
+    ? `<div style="font-size:20px;font-weight:600;color:#111;line-height:1.3;margin-bottom:14px;">${_esc(slide.heading)}</div>`
     : '';
 
   const highlightHtml = slide.highlight
-    ? `<div style="background:${accentColor};color:#fff;font-size:24px;font-weight:600;line-height:1.35;padding:10px 14px;border-radius:6px;margin-bottom:12px;">${_esc(slide.highlight)}</div>`
+    ? `<div style="background:${accentColor};color:#fff;font-size:17px;font-weight:700;line-height:1.35;padding:10px 14px;border-radius:4px;margin-bottom:14px;">${_esc(slide.highlight)}</div>`
     : '';
 
   const descHtml = slide.description
-    ? `<div style="font-size:22px;font-weight:400;color:#111;line-height:1.4;">${_esc(slide.description)}</div>`
+    ? `<div style="font-size:14px;font-weight:400;color:#333;line-height:1.6;">${_esc(slide.description)}</div>`
     : '';
 
   const siteHtml = site
-    ? `<div style="position:absolute;bottom:26px;left:40px;font-size:12px;color:#555;font-style:italic;">${_esc(site)}</div>`
+    ? `<div style="position:absolute;bottom:28px;left:50px;font-size:12px;color:#777;font-style:italic;">${_esc(site)}</div>`
     : '';
 
-  return `<div style="width:360px;height:640px;background:#fff;position:relative;overflow:hidden;font-family:Arial,'Helvetica Neue',sans-serif;">
-  <!-- Logo -->
-  <div style="position:absolute;top:18px;right:20px;font-size:20px;font-weight:900;color:${accentColor};letter-spacing:-0.5px;">${_esc(logo)}</div>
-  <!-- Divider + counter -->
-  <div style="position:absolute;top:56px;left:0;right:0;height:2.5px;background:${accentColor};"></div>
-  <div style="position:absolute;top:48px;right:16px;font-size:12px;font-weight:700;color:${accentColor};letter-spacing:0.12em;">─ ${counter} ─</div>
-  <!-- Progress arrow -->
-  <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;padding:0 6px;">
-    <div style="width:2px;height:40px;background:${accentColor};border-radius:1px;"></div>
-    <div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid ${accentColor};margin-top:0;"></div>
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:#fff;position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
+  <div style="position:absolute;top:22px;right:28px;font-size:16px;font-weight:900;color:${accentColor};letter-spacing:-0.5px;">${_esc(logo)}</div>
+  <div style="position:absolute;top:63px;left:0;right:0;height:3px;background:${accentColor};"></div>
+  <div style="position:absolute;top:54px;right:24px;font-size:12px;font-weight:700;color:${accentColor};letter-spacing:0.12em;">─ ${counter} ─</div>
+  <div style="position:absolute;left:0;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;padding:0 7px;">
+    <div style="width:2px;height:48px;background:${accentColor};border-radius:1px;"></div>
+    <div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid ${accentColor};"></div>
   </div>
-  <!-- Content -->
-  <div style="position:absolute;left:36px;right:20px;top:85px;bottom:56px;display:flex;flex-direction:column;justify-content:center;">
+  <div style="position:absolute;left:50px;right:28px;top:95px;bottom:60px;display:flex;flex-direction:column;justify-content:center;">
     ${headingHtml}
     ${highlightHtml}
     ${descHtml}
   </div>
   ${siteHtml}
-  <!-- Footer bar -->
-  <div style="position:absolute;bottom:0;left:0;right:0;height:14px;display:flex;overflow:hidden;">
+  <div style="position:absolute;bottom:0;left:0;right:0;height:10px;display:flex;overflow:hidden;">
     ${progressHtml}
   </div>
 </div>`;
 }
+
+function _carouselBuildLightCtaHTML(slide) {
+  const { accentColor, logoText, avatarImage } = carouselState;
+  const logo = logoText || 'BRAND.';
+  const slides = carouselState.slides;
+  const username = (slides[0] && slides[0].username) || '@yourhandle';
+
+  const avatarHtml = avatarImage
+    ? `<img src="${avatarImage}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid ${accentColor};flex-shrink:0;" crossorigin="anonymous">`
+    : `<div style="width:38px;height:38px;border-radius:50%;background:#e8e8e8;border:2px solid ${accentColor};flex-shrink:0;"></div>`;
+
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:#fff;position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
+  <div style="position:absolute;top:24px;right:28px;font-size:18px;font-weight:900;color:${accentColor};">${_esc(logo)}</div>
+  <div style="position:absolute;top:68px;left:0;right:0;height:3px;background:${accentColor};"></div>
+  <div style="position:absolute;left:50px;right:50px;top:50%;transform:translateY(-60%);text-align:center;">
+    <div style="width:40px;height:4px;background:${accentColor};margin:0 auto 28px;"></div>
+    <div style="font-size:28px;font-weight:700;color:#111;line-height:1.25;margin-bottom:18px;letter-spacing:-0.3px;">${_esc(slide.heading || 'Save this for later.')}</div>
+    <div style="font-size:14px;color:#555;line-height:1.6;margin-bottom:28px;">${_esc(slide.subtext || 'Send it to someone who needs it.')}</div>
+    <div style="display:inline-block;background:${accentColor};color:#fff;font-size:14px;font-weight:600;padding:13px 28px;border-radius:4px;letter-spacing:0.02em;">${_esc(slide.action || 'Follow for more')}</div>
+  </div>
+  <div style="position:absolute;left:40px;bottom:100px;display:flex;align-items:center;gap:10px;right:40px;">
+    ${avatarHtml}
+    <div style="background:#f0f0f0;padding:6px 14px;border-radius:20px;font-size:13px;color:#222;white-space:nowrap;">${_esc(username.replace(/^@/, ''))}</div>
+    <div style="flex:1;height:3px;background:${accentColor};margin-left:4px;"></div>
+  </div>
+</div>`;
+}
+
+// ─── Dark / Magazine style ────────────────────────────────────────────────────
 
 function _carouselBuildTitleHTML(slide) {
   const { accentColor, bgColor, coverImage, coverScale, coverX, coverY } = carouselState;
@@ -206,10 +237,10 @@ function _carouselBuildTitleHTML(slide) {
        </div>`
     : `<div style="position:absolute;inset:0;background:${bgColor};"></div>`;
 
-  const gradient = `<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.35) 55%,transparent 100%);"></div>`;
+  const gradient = `<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.92) 0%,rgba(0,0,0,0.3) 60%,transparent 100%);"></div>`;
 
   const tagHtml = slide.tag
-    ? `<div style="display:inline-block;background:${accentColor};color:#000;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:4px 10px;margin-bottom:14px;border-radius:1px;">${_esc(slide.tag)}</div><br>`
+    ? `<div style="display:inline-block;background:${accentColor};color:#000;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;padding:5px 12px;margin-bottom:16px;border-radius:2px;">${_esc(slide.tag)}</div><br>`
     : '';
 
   const words = (slide.heading || '').trim().split(/\s+/);
@@ -222,14 +253,14 @@ function _carouselBuildTitleHTML(slide) {
   const avatarHtml = _carouselAvatarHTML(34);
   const username = slide.username || '@yourhandle';
 
-  return `<div style="width:360px;height:640px;position:relative;overflow:hidden;font-family:Arial,'Helvetica Neue',sans-serif;background:${bgColor};">
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;position:relative;overflow:hidden;font-family:${SLIDE_FONT};background:${bgColor};">
   ${coverLayer}
   ${gradient}
-  <div style="position:absolute;left:28px;right:28px;bottom:70px;display:flex;flex-direction:column;">
+  <div style="position:absolute;left:40px;right:40px;bottom:90px;display:flex;flex-direction:column;">
     ${tagHtml}
-    <h1 style="font-size:30px;font-weight:800;color:#fff;line-height:1.2;margin:0 0 10px;letter-spacing:-0.5px;">${headingHtml}</h1>
-    <p style="font-size:15px;color:rgba(255,255,255,0.72);margin:0 0 8px;line-height:1.4;">${_esc(slide.subheading || '')}</p>
-    <p style="font-size:11px;color:rgba(255,255,255,0.38);margin:0 0 18px;font-style:italic;">(save it so you don't lose it)</p>
+    <h1 style="font-size:34px;font-weight:800;color:#fff;line-height:1.2;margin:0 0 12px;letter-spacing:-0.5px;">${headingHtml}</h1>
+    <p style="font-size:16px;color:rgba(255,255,255,0.7);margin:0 0 8px;line-height:1.45;">${_esc(slide.subheading || '')}</p>
+    <p style="font-size:11px;color:rgba(255,255,255,0.35);margin:0 0 20px;font-style:italic;">(save it so you don't lose it)</p>
     <div style="display:flex;align-items:center;gap:8px;">${avatarHtml}<span style="font-size:13px;color:rgba(255,255,255,0.82);">${_esc(username)}</span><span style="color:#1d9bf0;font-size:15px;font-weight:bold;">✓</span></div>
   </div>
 </div>`;
@@ -241,26 +272,43 @@ function _carouselBuildContentHTML(slide, idx, total) {
   const counter = `${idx + 1}/${total}`;
 
   const imgHtml = slide.image
-    ? `<img src="${slide.image}" style="width:100%;height:130px;object-fit:cover;margin-bottom:14px;border-radius:2px;" crossorigin="anonymous">`
+    ? `<img src="${slide.image}" style="width:100%;height:150px;object-fit:cover;margin-bottom:16px;border-radius:2px;" crossorigin="anonymous">`
     : '';
 
   const highlightHtml = slide.highlight
-    ? `<div style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;">
+    ? `<div style="display:flex;gap:12px;align-items:flex-start;margin-top:16px;">
          <div style="width:3px;min-width:3px;background:${accentColor};align-self:stretch;border-radius:2px;"></div>
-         <p style="font-size:13px;color:${accentColor};line-height:1.5;font-style:italic;margin:0;">${_esc(slide.highlight)}</p>
+         <p style="font-size:13px;color:${accentColor};line-height:1.55;font-style:italic;margin:0;">${_esc(slide.highlight)}</p>
        </div>`
     : '';
 
-  return `<div style="width:360px;height:640px;position:relative;overflow:hidden;font-family:Arial,'Helvetica Neue',sans-serif;background:${bgColor};">
-  <div style="position:absolute;top:18px;right:20px;font-size:11px;color:rgba(255,255,255,0.18);letter-spacing:0.08em;font-family:'Courier New',monospace;">${counter}</div>
-  <div style="position:absolute;left:28px;right:28px;top:64px;bottom:90px;display:flex;flex-direction:column;">
-    <div style="font-size:11px;font-weight:700;color:${accentColor};letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px;">${_esc(slide.number || '')}</div>
-    <h2 style="font-size:26px;font-weight:800;color:#fff;line-height:1.25;margin:0 0 14px;letter-spacing:-0.3px;">${_esc(slide.heading || '')}</h2>
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;position:relative;overflow:hidden;font-family:${SLIDE_FONT};background:${bgColor};">
+  <div style="position:absolute;top:22px;right:28px;font-size:11px;color:rgba(255,255,255,0.18);letter-spacing:0.08em;">${counter}</div>
+  <div style="position:absolute;left:40px;right:40px;top:72px;bottom:100px;display:flex;flex-direction:column;">
+    <div style="font-size:12px;font-weight:700;color:${accentColor};letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">${_esc(slide.number || '')}</div>
+    <h2 style="font-size:28px;font-weight:800;color:#fff;line-height:1.25;margin:0 0 16px;letter-spacing:-0.3px;">${_esc(slide.heading || '')}</h2>
     ${imgHtml}
-    <p style="font-size:14px;color:rgba(255,255,255,0.58);line-height:1.65;margin:0;">${_esc(slide.description || '')}</p>
+    <p style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.65;margin:0;">${_esc(slide.description || '')}</p>
     ${highlightHtml}
   </div>
-  <div style="position:absolute;bottom:24px;left:28px;right:28px;display:flex;align-items:center;gap:8px;">${_carouselAvatarHTML(30)}<span style="font-size:12px;color:rgba(255,255,255,0.7);">${_esc(username)}</span><span style="color:#1d9bf0;font-size:14px;font-weight:bold;">✓</span></div>
+  <div style="position:absolute;bottom:28px;left:40px;right:40px;display:flex;align-items:center;gap:8px;">${_carouselAvatarHTML(30)}<span style="font-size:12px;color:rgba(255,255,255,0.7);">${_esc(username)}</span><span style="color:#1d9bf0;font-size:14px;font-weight:bold;">✓</span></div>
+</div>`;
+}
+
+function _carouselBuildDarkCtaHTML(slide) {
+  const { accentColor, bgColor, slides } = carouselState;
+  const username = (slides[0] && slides[0].username) || '@yourhandle';
+
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;position:relative;overflow:hidden;font-family:${SLIDE_FONT};background:${bgColor};">
+  <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${accentColor};"></div>
+  <div style="position:absolute;left:40px;right:40px;top:50%;transform:translateY(-58%);text-align:center;">
+    <div style="width:40px;height:3px;background:${accentColor};margin:0 auto 28px;"></div>
+    <div style="font-size:34px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:20px;letter-spacing:-0.5px;">${_esc(slide.heading || 'Save this for later.')}</div>
+    <div style="width:40px;height:3px;background:${accentColor};margin:0 auto 20px;"></div>
+    <div style="font-size:16px;color:rgba(255,255,255,0.6);line-height:1.5;margin-bottom:32px;">${_esc(slide.subtext || 'Send it to someone who needs it.')}</div>
+    <div style="font-size:14px;font-weight:600;color:${accentColor};letter-spacing:0.04em;">${_esc(slide.action || 'Follow for more')}</div>
+  </div>
+  <div style="position:absolute;bottom:28px;left:40px;right:40px;display:flex;align-items:center;gap:8px;">${_carouselAvatarHTML(30)}<span style="font-size:13px;color:rgba(255,255,255,0.75);">${_esc(username)}</span><span style="color:#1d9bf0;font-size:15px;font-weight:bold;">✓</span></div>
 </div>`;
 }
 
@@ -318,7 +366,7 @@ function _carouselUpdateSettingsPreview() {
   const previewSlide = slides[Math.min(1, slides.length - 1)];
   if (!previewSlide) return;
   const previewIdx = Math.min(1, slides.length - 1);
-  el.innerHTML = `<div style="transform:scale(0.5);transform-origin:top left;width:360px;height:640px;pointer-events:none;">${_carouselBuildSlideHTML(previewSlide, previewIdx)}</div>`;
+  el.innerHTML = `<div style="transform:scale(0.5);transform-origin:top left;width:${SLIDE_W}px;height:${SLIDE_H}px;pointer-events:none;">${_carouselBuildSlideHTML(previewSlide, previewIdx)}</div>`;
 }
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
@@ -426,10 +474,13 @@ async function carouselSaveSlide() {
     if (!target) throw new Error('Render target missing');
     target.innerHTML = _carouselBuildSlideHTML(slide, currentSlide);
 
+    // Wait one frame so fonts are applied before capture
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
     const canvas = await window.html2canvas(target.firstElementChild, {
-      width: 360,
-      height: 640,
-      scale: 2,
+      width: SLIDE_W,
+      height: SLIDE_H,
+      scale: 2,           // 540×675 × scale:2 = 1080×1350px output
       useCORS: true,
       allowTaint: true,
       backgroundColor: bgColor,
@@ -455,7 +506,6 @@ function carouselRenderEditor() {
   if (!list) return;
   list.innerHTML = carouselState.slides.map((slide, i) => _carouselSlideItemHTML(slide, i)).join('');
 
-  // Bind image inputs (can't use inline onchange with dynamic file inputs reliably across browsers)
   carouselState.slides.forEach((slide, i) => {
     if (slide.type !== 'content') return;
     const inp = document.getElementById(`cslide-img-input-${i}`);
@@ -466,7 +516,6 @@ function carouselRenderEditor() {
           carouselState.slides[i].image = dataUrl;
           const preview = document.getElementById(`cslide-img-preview-${i}`);
           if (preview) { preview.src = dataUrl; preview.classList.add('visible'); }
-          // re-render editor to update Remove button
           carouselRenderEditor();
           carouselUpdatePreview();
         });
@@ -486,10 +535,14 @@ function _escContent(str) {
 function _carouselSlideItemHTML(slide, i) {
   const label = slide.type === 'title'
     ? `🖼 ${_esc(slide.heading || 'Title slide')}`
-    : `📋 ${_esc(slide.heading || `Slide ${i}`)}`;
+    : slide.type === 'cta'
+      ? `↗ ${_esc(slide.heading || 'CTA slide')}`
+      : `📋 ${_esc(slide.heading || `Slide ${i}`)}`;
 
-  const fields = slide.type === 'title'
-    ? `<div class="carousel-field">
+  let fields = '';
+
+  if (slide.type === 'title') {
+    fields = `<div class="carousel-field">
          <label class="carousel-field-label">Heading</label>
          <input type="text" value="${_escAttr(slide.heading)}" oninput="carouselUpdateField(${i},'heading',this.value)">
        </div>
@@ -504,8 +557,23 @@ function _carouselSlideItemHTML(slide, i) {
        <div class="carousel-field">
          <label class="carousel-field-label">Username</label>
          <input type="text" value="${_escAttr(slide.username || '')}" oninput="carouselUpdateField(${i},'username',this.value)">
-       </div>`
-    : `<div class="carousel-field">
+       </div>`;
+  } else if (slide.type === 'cta') {
+    fields = `<div class="carousel-field">
+         <label class="carousel-field-label">Save / CTA heading</label>
+         <input type="text" value="${_escAttr(slide.heading || '')}" oninput="carouselUpdateField(${i},'heading',this.value)">
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Share prompt</label>
+         <input type="text" value="${_escAttr(slide.subtext || '')}" oninput="carouselUpdateField(${i},'subtext',this.value)">
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Action line (follow / DM / comment)</label>
+         <input type="text" value="${_escAttr(slide.action || '')}" oninput="carouselUpdateField(${i},'action',this.value)">
+       </div>
+       <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
+  } else {
+    fields = `<div class="carousel-field">
          <label class="carousel-field-label">Slide number label</label>
          <input type="text" value="${_escAttr(slide.number || '')}" oninput="carouselUpdateField(${i},'number',this.value)">
        </div>
@@ -531,6 +599,7 @@ function _carouselSlideItemHTML(slide, i) {
          <img id="cslide-img-preview-${i}" class="carousel-img-preview${slide.image ? ' visible' : ''}" src="${slide.image || ''}" alt="">
        </div>
        <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
+  }
 
   return `<div class="carousel-slide-item" id="cslide-item-${i}">
   <div class="carousel-slide-item-header" onclick="carouselToggleSlideItem(${i})">
@@ -585,7 +654,19 @@ function carouselAddSlide() {
   });
   carouselRenderEditor();
   carouselUpdatePreview();
-  // open the new slide item
+  setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
+}
+
+function carouselAddCtaSlide() {
+  const username = (carouselState.slides[0] && carouselState.slides[0].username) || '@yourhandle';
+  carouselState.slides.push({
+    type: 'cta',
+    heading: 'Save this for later.',
+    subtext: 'Send it to someone who needs it.',
+    action: `Follow ${username} for more daily insights.`,
+  });
+  carouselRenderEditor();
+  carouselUpdatePreview();
   setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
 }
 
@@ -657,7 +738,6 @@ function carouselSetStyle(style) {
   document.querySelectorAll('.carousel-style-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.style === style);
   });
-  // Show/hide bg presets (only relevant for dark style)
   const bgSection = document.getElementById('carousel-bg-section');
   if (bgSection) bgSection.style.display = style === 'dark' ? 'block' : 'none';
   carouselUpdatePreview();
@@ -734,7 +814,7 @@ function carouselExportTemplate() {
     websiteUrl: carouselState.websiteUrl,
     slides: carouselState.slides.map(s => {
       const copy = { ...s };
-      copy.image = null; // strip binary image data from export
+      copy.image = null;
       return copy;
     }),
   };

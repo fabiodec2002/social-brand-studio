@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Social Brand Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Outfit:wght@300;400;500&family=Poppins:wght@300;400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #0c0c0b;
@@ -1798,13 +1798,13 @@
       gap: 1rem;
     }
     .carousel-slide-wrapper {
-      width: 360px;
-      height: 640px;
+      width: 540px;
+      height: 675px;
       overflow: hidden;
       border: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .carousel-slide-display { width: 360px; height: 640px; }
+    .carousel-slide-display { width: 540px; height: 675px; }
 
     .carousel-dots { display: flex; gap: 6px; justify-content: center; }
     .carousel-dot {
@@ -2006,8 +2006,8 @@
     }
     .carousel-hex-display { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--text2); }
     .carousel-settings-preview {
-      width: 180px;
-      height: 320px;
+      width: 270px;
+      height: 338px;
       overflow: hidden;
       border: 1px solid var(--border);
     }
@@ -2019,8 +2019,8 @@
       position: fixed;
       left: -9999px;
       top: 0;
-      width: 360px;
-      height: 640px;
+      width: 540px;
+      height: 675px;
       overflow: hidden;
       pointer-events: none;
     }
@@ -2344,7 +2344,10 @@
         <!-- Editor panel -->
         <div id="cpanel-editor" style="display:none">
           <div class="carousel-slides-list" id="carousel-slides-list"></div>
-          <button class="carousel-add-slide-btn" onclick="carouselAddSlide()">+ Add slide</button>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="carousel-add-slide-btn" onclick="carouselAddSlide()" style="flex:2;">+ Add content slide</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddCtaSlide()" style="flex:1;border-color:var(--gold);color:var(--gold);">+ Add CTA slide</button>
+          </div>
         </div>
 
         <!-- Settings panel -->
