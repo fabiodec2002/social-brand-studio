@@ -827,6 +827,118 @@ function carouselExportTemplate() {
   URL.revokeObjectURL(url);
 }
 
+async function carouselExportAllPNG() {
+  const { slides, bgColor } = carouselState;
+  if (!slides.length) return;
+
+  const btn = document.getElementById('carousel-export-png-btn');
+  if (btn) { btn.textContent = 'Rendering…'; btn.disabled = true; }
+
+  try {
+    if (!window.html2canvas) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    const target = document.getElementById('carousel-render-target');
+    if (!target) throw new Error('Render target missing');
+
+    for (let i = 0; i < slides.length; i++) {
+      if (btn) btn.textContent = `Rendering ${i + 1}/${slides.length}…`;
+      target.innerHTML = _carouselBuildSlideHTML(slides[i], i);
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+      const canvas = await window.html2canvas(target.firstElementChild, {
+        width: SLIDE_W, height: SLIDE_H, scale: 2,
+        useCORS: true, allowTaint: true, backgroundColor: bgColor, logging: false,
+      });
+
+      await new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+          if (!blob) { reject(new Error('Canvas toBlob returned null — canvas may be tainted')); return; }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `slide-${i + 1}.png`;
+          a.click();
+          setTimeout(() => { URL.revokeObjectURL(url); resolve(); }, 100);
+        }, 'image/png');
+      });
+
+      // Small delay to prevent browser download throttling
+      if (i < slides.length - 1) await new Promise(r => setTimeout(r, 150));
+    }
+  } catch (err) {
+    console.error('PNG export error:', err);
+    alert('PNG export failed — see console for details.');
+  } finally {
+    if (btn) { btn.textContent = '↓ Download PNG'; btn.disabled = false; }
+  }
+}
+
+async function carouselExportPDF() {
+  const { slides, bgColor } = carouselState;
+  if (!slides.length) return;
+
+  const btn = document.getElementById('carousel-export-pdf-btn');
+  if (btn) { btn.textContent = 'Rendering…'; btn.disabled = true; }
+
+  try {
+    if (!window.html2canvas) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    if (!window.jspdf) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    const target = document.getElementById('carousel-render-target');
+    if (!target) throw new Error('Render target missing');
+
+    const doc = new window.jspdf.jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: [1080, 1350],
+    });
+
+    for (let i = 0; i < slides.length; i++) {
+      if (btn) btn.textContent = `Rendering ${i + 1}/${slides.length}…`;
+      target.innerHTML = _carouselBuildSlideHTML(slides[i], i);
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+      const canvas = await window.html2canvas(target.firstElementChild, {
+        width: SLIDE_W, height: SLIDE_H, scale: 2,
+        useCORS: true, allowTaint: true, backgroundColor: bgColor, logging: false,
+      });
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      if (i > 0) doc.addPage([1080, 1350], 'portrait');
+      doc.addImage(dataUrl, 'JPEG', 0, 0, 1080, 1350);
+    }
+
+    doc.save('carousel.pdf');
+  } catch (err) {
+    console.error('PDF export error:', err);
+    alert('PDF export failed — see console for details.');
+  } finally {
+    if (btn) { btn.textContent = '↓ Download PDF'; btn.disabled = false; }
+  }
+}
+
 function carouselImportTemplate() {
   document.getElementById('carousel-template-input').click();
 }

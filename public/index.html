@@ -163,6 +163,88 @@
       text-transform: uppercase;
     }
 
+    /* Upload confirmation panel */
+    .upload-confirm {
+      display: none;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      padding: 1.75rem 2rem;
+      text-align: left;
+      animation: fadeIn 0.25s ease;
+    }
+    .upload-confirm.visible { display: block; }
+    .confirm-file-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .confirm-file-icon {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .confirm-file-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      color: var(--text);
+      word-break: break-all;
+    }
+    .confirm-file-size {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text3);
+      margin-top: 0.2rem;
+      letter-spacing: 0.05em;
+    }
+    .confirm-website-preview {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text3);
+      margin-bottom: 1.25rem;
+      letter-spacing: 0.03em;
+      display: none;
+    }
+    .confirm-website-preview.visible { display: block; }
+    .confirm-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .confirm-analyse-btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--gold);
+      color: #0c0c0b;
+      border: none;
+      border-radius: 2px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .confirm-analyse-btn:hover { opacity: 0.88; }
+    .confirm-back-link {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text3);
+      letter-spacing: 0.06em;
+      text-align: center;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .confirm-back-link:hover { color: var(--text2); }
+
     /* Loading */
     .loading-overlay {
       position: fixed;
@@ -618,6 +700,85 @@
     .custom-topic-input::placeholder { color: var(--text3); }
     .custom-topic-input:focus { border-color: var(--border2); }
     .pillar-select-item.custom { border-style: dashed; }
+
+    /* Extra context / reference materials collapsible sections */
+    .context-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      transition: color 0.2s;
+      user-select: none;
+    }
+    .context-toggle:hover { color: var(--gold); }
+    .context-toggle.open { color: var(--text2); }
+    .context-toggle-hint {
+      font-size: 0.62rem;
+      letter-spacing: 0.04em;
+      color: var(--text3);
+      text-transform: lowercase;
+      font-style: italic;
+    }
+    .context-body { margin-top: 0.75rem; }
+    .context-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+    .ref-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.7rem;
+      border-radius: 2px;
+      margin-bottom: 0.4rem;
+    }
+    .ref-item-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+    .ref-item-remove {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0 0.25rem;
+      margin-left: 0.5rem;
+      flex-shrink: 0;
+    }
+    .ref-item-remove:hover { color: #c47070; }
+    .ref-upload-label {
+      display: block;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      border: 1px dashed var(--border2);
+      border-radius: 2px;
+      padding: 0.6rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .ref-upload-label:hover { border-color: var(--gold); color: var(--gold); }
 
     /* Platform strategy */
     .platform-strategy-grid {
@@ -2024,6 +2185,172 @@
       overflow: hidden;
       pointer-events: none;
     }
+
+    /* Voice score badge */
+    .voice-score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+    .voice-score-badge.green { background: rgba(100,200,130,0.08); border-color: rgba(100,200,130,0.3); color: #7dba90; }
+    .voice-score-badge.yellow { background: rgba(220,180,60,0.08); border-color: rgba(220,180,60,0.3); color: #c9a96e; }
+    .voice-score-badge.red { background: rgba(180,60,60,0.08); border-color: rgba(180,60,60,0.3); color: #c97a7a; }
+    .voice-note { font-size: 0.75rem; color: var(--text3); padding: 0.4rem 1.5rem 0; font-style: italic; }
+
+    /* Platform badges for new platforms */
+    .platform-badge.twitter { background: rgba(29,161,242,0.12); color: #5aaedb; }
+    .platform-badge.tiktok { background: rgba(105,201,208,0.12); color: #69c9d0; }
+    .platform-badge.email { background: rgba(201,169,110,0.12); color: var(--gold); }
+
+    /* Variations panel */
+    .variations-panel { border-top: 1px solid var(--border); padding: 1rem 1.5rem; display: none; }
+    .variations-panel.open { display: block; }
+    .variations-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.75rem; }
+    .variation-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 0.9rem 1rem;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      color: var(--text2);
+      white-space: pre-wrap;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .variation-item:hover { border-color: var(--gold); color: var(--text); }
+    .variation-item-footer { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.4rem; }
+
+    /* Resize buttons */
+    .post-action-btn.shorter::before { content: '↑ '; }
+    .post-action-btn.longer::before { content: '↓ '; }
+
+    /* Posts Library tab */
+    .library-filters { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .lib-filter-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.9rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text3);
+      cursor: pointer;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    .lib-filter-btn:hover, .lib-filter-btn.active { border-color: var(--gold); color: var(--gold); }
+    .library-grid { display: flex; flex-direction: column; gap: 1rem; }
+    .lib-post-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1rem 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .lib-post-card:hover { border-color: var(--border2); }
+    .lib-post-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+    .lib-post-preview { font-size: 0.88rem; line-height: 1.6; color: var(--text2); white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .lib-post-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+    .lib-status-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+    .lib-status-badge.draft { border-color: var(--border2); color: var(--text3); }
+    .lib-status-badge.approved { background: rgba(100,200,130,0.08); border-color: rgba(100,200,130,0.3); color: #7dba90; }
+    .lib-status-badge.published { background: rgba(29,161,242,0.08); border-color: rgba(29,161,242,0.3); color: #5aaedb; }
+    .lib-empty { color: var(--text3); font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; padding: 3rem 0; }
+
+    /* Hook generator */
+    .hook-gen-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .hook-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+    .hook-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 0.75rem 1rem;
+      font-size: 0.88rem;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .hook-item:hover { border-color: var(--gold); color: var(--text); }
+    .hook-num { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--text3); margin-top: 2px; white-space: nowrap; }
+
+    /* Idea generator */
+    .ideas-grid { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+    .idea-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .idea-card:hover { border-color: var(--gold); }
+    .idea-hook { font-size: 0.9rem; color: var(--text); margin-bottom: 0.3rem; }
+    .idea-meta { font-size: 0.75rem; color: var(--text3); font-family: 'DM Mono', monospace; }
+    .idea-angle { font-size: 0.8rem; color: var(--text2); margin-top: 0.4rem; }
+
+    /* Style cloning */
+    .style-clone-panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .style-clone-title { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.5rem; }
+    .style-clone-posts { display: flex; flex-direction: column; gap: 0.5rem; margin: 0.75rem 0; }
+    .style-clone-post-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 300;
+      padding: 0.6rem 0.75rem;
+      outline: none;
+      resize: vertical;
+      min-height: 60px;
+      transition: border-color 0.2s;
+    }
+    .style-clone-post-input:focus { border-color: var(--border2); }
+    .style-fingerprint-display {
+      background: var(--bg3);
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 2px;
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text2);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      margin-top: 0.75rem;
+    }
   </style>
 </head>
 <body>
@@ -2101,10 +2428,25 @@
       </div>
 
       <div class="upload-zone" id="upload-zone">
-        <input type="file" id="file-input" accept=".pdf" onchange="handleFileUpload(this.files[0])">
+        <input type="file" id="file-input" accept=".pdf" onchange="showFileConfirmation(this.files[0])">
         <div class="upload-icon">↑</div>
         <h3 id="upload-zone-title">Drop your personality map PDF</h3>
         <p>PDF · up to 10MB</p>
+      </div>
+
+      <div class="upload-confirm" id="upload-confirm">
+        <div class="confirm-file-row">
+          <div class="confirm-file-icon">⬛</div>
+          <div>
+            <div class="confirm-file-name" id="confirm-filename"></div>
+            <div class="confirm-file-size" id="confirm-filesize"></div>
+          </div>
+        </div>
+        <div class="confirm-website-preview" id="confirm-website-preview"></div>
+        <div class="confirm-actions">
+          <button class="confirm-analyse-btn" onclick="confirmAndAnalyse()">Analyse my brand</button>
+          <div class="confirm-back-link" onclick="resetFileSelection()">← Choose a different file</div>
+        </div>
       </div>
 
       <div class="sessions-section" id="sessions-section" style="display:none">
@@ -2145,6 +2487,15 @@
         </div>
         <div class="nav-item" onclick="showTab('carousel')" id="nav-carousel">
           <div class="nav-dot"></div>Carousel builder
+        </div>
+        <div class="nav-item" onclick="showTab('library')" id="nav-library">
+          <div class="nav-dot"></div>Posts library
+        </div>
+        <div class="nav-item" onclick="showTab('hooks')" id="nav-hooks">
+          <div class="nav-dot"></div>Hook generator
+        </div>
+        <div class="nav-item" onclick="showTab('ideas')" id="nav-ideas">
+          <div class="nav-dot"></div>Idea bank
         </div>
       </div>
       <div class="sidebar-section" id="sidebar-expertise">
@@ -2189,6 +2540,25 @@
           <div class="strategy-card full-width">
             <h3>Growth tactics</h3>
             <div id="growth-tactics"></div>
+          </div>
+        </div>
+
+        <!-- Style Cloning Panel -->
+        <div class="style-clone-panel" id="style-clone-panel">
+          <div class="style-clone-title">Train your voice — style cloning</div>
+          <div style="font-size:0.82rem;color:var(--text3);margin-bottom:0.75rem;">Paste 2-5 of your best real posts below. The AI will extract your exact writing style and apply it to every future generation.</div>
+          <div class="style-clone-posts" id="style-clone-posts">
+            <textarea class="style-clone-post-input" placeholder="Paste one of your best posts here..."></textarea>
+            <textarea class="style-clone-post-input" placeholder="Paste another post..."></textarea>
+          </div>
+          <div style="display:flex;gap:0.75rem;align-items:center;margin-top:0.5rem">
+            <button class="post-action-btn" onclick="addStylePost()">+ Add post</button>
+            <button class="post-action-btn" id="train-voice-btn" onclick="trainVoice()" style="border-color:rgba(201,169,110,0.4);color:var(--gold)">Train my voice</button>
+          </div>
+          <div id="style-fingerprint-result" style="display:none">
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin:0.75rem 0 0.3rem">Style fingerprint active</div>
+            <div class="style-fingerprint-display" id="style-fingerprint-text"></div>
+            <button class="post-action-btn" onclick="clearStyleFingerprint()" style="margin-top:0.5rem;font-size:0.65rem">Clear fingerprint</button>
           </div>
         </div>
       </div>
@@ -2288,6 +2658,8 @@
           <button class="carousel-template-btn" onclick="carouselImportTemplate()">Upload template</button>
           <input type="file" id="carousel-template-input" accept=".json" style="display:none" onchange="carouselHandleTemplateUpload(this)">
           <button class="carousel-template-btn" onclick="carouselExportTemplate()">Download template</button>
+          <button class="carousel-template-btn" id="carousel-export-png-btn" onclick="carouselExportAllPNG()">↓ Download PNG</button>
+          <button class="carousel-template-btn" id="carousel-export-pdf-btn" onclick="carouselExportPDF()">↓ Download PDF</button>
           <button class="carousel-template-btn" onclick="carouselReset()">Reset</button>
         </div>
 
@@ -2425,7 +2797,10 @@
               <select id="gen-platform" onchange="onPlatformChange(this.value)">
                 <option value="linkedin">LinkedIn</option>
                 <option value="instagram">Instagram</option>
-                <option value="both">Both platforms</option>
+                <option value="twitter">Twitter / X</option>
+                <option value="tiktok">TikTok (script)</option>
+                <option value="email">Email newsletter</option>
+                <option value="both">LinkedIn + Instagram</option>
               </select>
             </div>
 
@@ -2442,6 +2817,23 @@
             <div class="control-group" id="ig-subtype-group" style="display:none">
               <label id="ig-subtype-label">Carousel category</label>
               <select id="ig-subtype-select" onchange="selectedIgSubType = this.value"></select>
+            </div>
+
+            <div class="control-group" id="twitter-format-group" style="display:none">
+              <label>Twitter / X format</label>
+              <div class="tone-grid" id="twitter-format-list">
+                <button class="tone-btn active" data-format="single" onclick="selectTwitterFormat(this)">Single tweet</button>
+                <button class="tone-btn" data-format="thread" onclick="selectTwitterFormat(this)">Thread</button>
+              </div>
+            </div>
+
+            <div class="control-group" id="email-subtype-group" style="display:none">
+              <label>Newsletter type</label>
+              <div class="tone-grid" id="email-subtype-list">
+                <button class="tone-btn active" data-subtype="value" onclick="selectEmailSubtype(this)">Value / Teaching</button>
+                <button class="tone-btn" data-subtype="story" onclick="selectEmailSubtype(this)">Personal story</button>
+                <button class="tone-btn" data-subtype="curation" onclick="selectEmailSubtype(this)">Curated roundup</button>
+              </div>
             </div>
 
             <div class="control-group">
@@ -2462,6 +2854,39 @@
               </div>
             </div>
 
+            <!-- Extra context -->
+            <div>
+              <div class="context-toggle" id="extra-context-toggle" onclick="toggleExtraContext()">
+                <span id="extra-context-toggle-label">+ Extra context</span>
+                <span class="context-toggle-hint">expertise, niche, references</span>
+              </div>
+              <div id="extra-context-body" style="display:none;" class="context-body">
+                <textarea
+                  class="custom-topic-input"
+                  id="extra-context-input"
+                  style="min-height:90px;display:block;"
+                  placeholder="e.g. 'I&#x27;m a licensed nutritionist with 12 years clinical experience. Reference: The Obesity Code by Jason Fung. Writing for the intermittent fasting niche.'"
+                ></textarea>
+                <div class="context-note">Added to every generation until cleared.</div>
+              </div>
+            </div>
+
+            <!-- Reference materials -->
+            <div>
+              <div class="context-toggle" id="ref-mat-toggle" onclick="toggleReferenceMaterials()">
+                <span id="ref-mat-toggle-label">+ Reference materials</span>
+                <span class="context-toggle-hint">books, articles, PDFs</span>
+              </div>
+              <div id="ref-mat-body" style="display:none;" class="context-body">
+                <div id="ref-mat-list"></div>
+                <label class="ref-upload-label" for="ref-pdf-input" id="ref-upload-label">
+                  + Upload PDF reference
+                  <input type="file" id="ref-pdf-input" accept=".pdf" style="display:none" onchange="handleReferenceUpload(this.files[0])">
+                </label>
+                <div class="context-note" id="ref-upload-status"></div>
+              </div>
+            </div>
+
             <button class="generate-btn" onclick="generatePost()" id="gen-btn">Generate post</button>
           </div>
 
@@ -2471,6 +2896,82 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Posts Library Tab -->
+      <div id="tab-library" class="tab-content" style="display:none">
+        <div class="section-title">Posts library</div>
+        <div class="section-subtitle">Every post you've generated — filter, copy, and manage status</div>
+
+        <div class="library-filters">
+          <button class="lib-filter-btn active" onclick="filterLibrary('all', this)">All</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('draft', this)">Draft</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('approved', this)">Approved</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('published', this)">Published</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('linkedin', this)">LinkedIn</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('instagram', this)">Instagram</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('twitter', this)">Twitter/X</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('tiktok', this)">TikTok</button>
+          <button class="lib-filter-btn" onclick="filterLibrary('email', this)">Email</button>
+        </div>
+
+        <div class="library-grid" id="library-grid">
+          <div class="lib-empty">Loading your posts...</div>
+        </div>
+      </div>
+
+      <!-- Hook Generator Tab -->
+      <div id="tab-hooks" class="tab-content" style="display:none">
+        <div class="section-title">Hook generator</div>
+        <div class="section-subtitle">Generate 10 scroll-stopping hooks for any topic — across all 10 proven frameworks</div>
+
+        <div style="display:flex;flex-direction:column;gap:1rem;max-width:720px">
+          <div class="control-group">
+            <label>Topic or angle</label>
+            <textarea class="custom-topic-input" id="hook-topic-input" placeholder="e.g. 'Why I stopped posting daily on LinkedIn' or 'The biggest mistake new coaches make'" style="min-height:70px"></textarea>
+          </div>
+          <div class="control-group">
+            <label>Platform</label>
+            <select id="hook-platform-select">
+              <option value="linkedin">LinkedIn</option>
+              <option value="instagram">Instagram</option>
+              <option value="twitter">Twitter / X</option>
+              <option value="tiktok">TikTok</option>
+              <option value="email">Email subject lines</option>
+            </select>
+          </div>
+          <button class="generate-btn" id="hooks-btn" onclick="runHookGenerator()" style="align-self:flex-start">Generate 10 hooks</button>
+        </div>
+
+        <div id="hook-results" style="margin-top:2rem"></div>
+      </div>
+
+      <!-- Idea Bank Tab -->
+      <div id="tab-ideas" class="tab-content" style="display:none">
+        <div class="section-title">Idea bank</div>
+        <div class="section-subtitle">18 specific post concepts built from your brand — click any to generate immediately</div>
+
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem">
+          <div class="control-group" style="margin:0;flex:1;min-width:200px">
+            <label>Platform</label>
+            <select id="ideas-platform-select">
+              <option value="linkedin">LinkedIn</option>
+              <option value="instagram">Instagram</option>
+              <option value="twitter">Twitter / X</option>
+              <option value="tiktok">TikTok</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+          <div class="control-group" style="margin:0;flex:1;min-width:200px">
+            <label>Pillar focus (optional)</label>
+            <select id="ideas-pillar-select">
+              <option value="">All pillars</option>
+            </select>
+          </div>
+          <button class="generate-btn" id="ideas-btn" onclick="runIdeaGenerator()" style="align-self:flex-end;margin-bottom:0">Generate ideas</button>
+        </div>
+
+        <div id="ideas-results"></div>
       </div>
 
     </div>
@@ -2646,10 +3147,14 @@
   // ─── App state ───────────────────────────────────────────────────────────────
   let appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal' };
   let selectedBrandType = 'personal';
+  let pendingFile = null;
+  let referenceSummaries = [];
   let selectedPillar = null;
   let selectedTone = 'authentic';
   let selectedIgFormat = 'post';
   let selectedIgSubType = 'educational';
+  let selectedTwitterFormat = 'single';
+  let selectedEmailSubtype = 'value';
 
   const IG_SUBTYPES = {
     post: {
@@ -2690,10 +3195,14 @@
   };
 
   function onPlatformChange(value) {
-    const show = value === 'instagram' || value === 'both';
-    document.getElementById('ig-format-group').style.display = show ? 'block' : 'none';
-    document.getElementById('ig-subtype-group').style.display = show ? 'block' : 'none';
-    if (show) populateIgSubTypes(selectedIgFormat);
+    const isIg = value === 'instagram' || value === 'both';
+    const isTw = value === 'twitter';
+    const isEmail = value === 'email';
+    document.getElementById('ig-format-group').style.display = isIg ? 'block' : 'none';
+    document.getElementById('ig-subtype-group').style.display = isIg ? 'block' : 'none';
+    document.getElementById('twitter-format-group').style.display = isTw ? 'block' : 'none';
+    document.getElementById('email-subtype-group').style.display = isEmail ? 'block' : 'none';
+    if (isIg) populateIgSubTypes(selectedIgFormat);
   }
 
   function populateIgSubTypes(format) {
@@ -2712,10 +3221,91 @@
     populateIgSubTypes(selectedIgFormat);
   }
 
+  function selectTwitterFormat(btn) {
+    selectedTwitterFormat = btn.dataset.format;
+    document.querySelectorAll('#twitter-format-list .tone-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function selectEmailSubtype(btn) {
+    selectedEmailSubtype = btn.dataset.subtype;
+    document.querySelectorAll('#email-subtype-list .tone-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
   function getIgOptions() {
     const platform = document.getElementById('gen-platform').value;
     if (platform === 'linkedin') return null;
     return { format: selectedIgFormat, subType: selectedIgSubType };
+  }
+
+  // ─── Voice score renderer ─────────────────────────────────────────────────
+  function renderVoiceScore(platform, score, note) {
+    const scoreEl = document.getElementById(`voice-score-${platform}`);
+    const noteEl = document.getElementById(`voice-note-${platform}`);
+    if (!scoreEl || score == null) return;
+    const tier = score >= 8 ? 'green' : score >= 5 ? 'yellow' : 'red';
+    const dot = score >= 8 ? '●' : score >= 5 ? '◐' : '○';
+    scoreEl.innerHTML = `<span class="voice-score-badge ${tier}">${dot} Voice ${score}/10</span>`;
+    if (note && noteEl) { noteEl.textContent = note; noteEl.style.display = 'block'; }
+  }
+
+  // ─── Post resize ──────────────────────────────────────────────────────────
+  async function resizePost(platform, direction) {
+    const bodyEl = document.getElementById(`post-body-${platform}`);
+    const currentPost = bodyEl.textContent.trim();
+    if (!currentPost || bodyEl.classList.contains('generating')) return;
+    bodyEl.classList.add('generating');
+    try {
+      const res = await authFetch('/api/resize-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post: currentPost, direction, platform, strategy: appData.strategy }),
+      });
+      const data = await res.json();
+      if (data.post) { bodyEl.textContent = data.post; }
+    } catch {}
+    bodyEl.classList.remove('generating');
+  }
+
+  // ─── Variations ───────────────────────────────────────────────────────────
+  function toggleVariations(platform) {
+    const panel = document.getElementById(`variations-panel-${platform}`);
+    if (!panel) return;
+    panel.classList.toggle('open');
+  }
+
+  async function generateVariations(platform) {
+    const bodyEl = document.getElementById(`post-body-${platform}`);
+    const listEl = document.getElementById(`variations-list-${platform}`);
+    const currentPost = bodyEl.textContent.trim();
+    if (!currentPost || bodyEl.classList.contains('generating')) return;
+    listEl.innerHTML = '<div style="color:var(--text3);font-size:0.8rem;font-style:italic;">Generating variations...</div>';
+    try {
+      const res = await authFetch('/api/generate-variations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          post: currentPost, platform, strategy: appData.strategy,
+          personalityMap: appData.personalityMap, tone: selectedTone, brandType: appData.brandType,
+        }),
+      });
+      const data = await res.json();
+      if (!data.variations?.length) { listEl.innerHTML = '<div style="color:var(--text3);font-size:0.8rem;">No variations returned. Try again.</div>'; return; }
+      listEl.innerHTML = data.variations.map((v, i) => `
+        <div class="variation-item" onclick="useVariation('${platform}', this)">
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);margin-bottom:0.4rem;">Variation ${i + 1}</div>
+          ${_escHtml(v)}
+        </div>`).join('');
+    } catch {
+      listEl.innerHTML = '<div style="color:var(--text3);font-size:0.8rem;">Error. Try again.</div>';
+    }
+  }
+
+  function useVariation(platform, el) {
+    const text = el.innerText.replace(/^Variation \d+\n/, '').trim();
+    document.getElementById(`post-body-${platform}`).textContent = text;
+    document.getElementById(`variations-panel-${platform}`).classList.remove('open');
   }
 
   // Load previous sessions on page load
@@ -2797,7 +3387,7 @@
     e.preventDefault();
     uploadZone.classList.remove('drag-over');
     const file = e.dataTransfer.files[0];
-    if (file && file.type === 'application/pdf') handleFileUpload(file);
+    if (file && file.type === 'application/pdf') showFileConfirmation(file);
   });
 
   function selectBrandType(type) {
@@ -2808,6 +3398,39 @@
     if (titleEl) titleEl.textContent = type === 'business'
       ? 'Drop your brand brief PDF'
       : 'Drop your personality map PDF';
+  }
+
+  function showFileConfirmation(file) {
+    if (!file) return;
+    pendingFile = file;
+    document.getElementById('confirm-filename').textContent = file.name;
+    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    document.getElementById('confirm-filesize').textContent = sizeMB + ' MB';
+    const websiteUrl = document.getElementById('website-url-input').value.trim();
+    const websitePreview = document.getElementById('confirm-website-preview');
+    if (websiteUrl) {
+      websitePreview.textContent = '🌐 ' + websiteUrl;
+      websitePreview.classList.add('visible');
+    } else {
+      websitePreview.classList.remove('visible');
+    }
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('upload-confirm').classList.add('visible');
+  }
+
+  function confirmAndAnalyse() {
+    if (!pendingFile) return;
+    document.getElementById('upload-confirm').classList.remove('visible');
+    handleFileUpload(pendingFile);
+  }
+
+  function resetFileSelection() {
+    pendingFile = null;
+    document.getElementById('upload-confirm').classList.remove('visible');
+    const zone = document.getElementById('upload-zone');
+    zone.style.display = '';
+    zone.classList.remove('drag-over');
+    document.getElementById('file-input').value = '';
   }
 
   async function handleFileUpload(file) {
@@ -3002,26 +3625,113 @@
     return selectedPillar === 'custom' ? document.getElementById('custom-topic-input').value.trim() : null;
   }
 
+  function toggleExtraContext() {
+    const body = document.getElementById('extra-context-body');
+    const toggle = document.getElementById('extra-context-toggle');
+    const label = document.getElementById('extra-context-toggle-label');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    toggle.classList.toggle('open', !isOpen);
+    label.textContent = isOpen ? '+ Extra context' : '− Extra context';
+  }
+
+  function toggleReferenceMaterials() {
+    const body = document.getElementById('ref-mat-body');
+    const toggle = document.getElementById('ref-mat-toggle');
+    const label = document.getElementById('ref-mat-toggle-label');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    toggle.classList.toggle('open', !isOpen);
+    label.textContent = isOpen ? '+ Reference materials' : '− Reference materials';
+  }
+
+  async function handleReferenceUpload(file) {
+    if (!file) return;
+    const uploadLabel = document.getElementById('ref-upload-label');
+    const status = document.getElementById('ref-upload-status');
+    uploadLabel.style.opacity = '0.4';
+    uploadLabel.style.pointerEvents = 'none';
+    status.textContent = 'Extracting insights...';
+
+    try {
+      const formData = new FormData();
+      formData.append('pdf', file);
+      const res = await authFetch('/api/upload-reference', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Upload failed');
+      referenceSummaries.push({ title: data.title, summary: data.summary });
+      renderReferenceMaterials();
+      status.textContent = '';
+    } catch (err) {
+      status.textContent = 'Error: ' + err.message;
+    } finally {
+      uploadLabel.style.opacity = '';
+      uploadLabel.style.pointerEvents = '';
+      document.getElementById('ref-pdf-input').value = '';
+    }
+  }
+
+  function removeReference(index) {
+    referenceSummaries.splice(index, 1);
+    renderReferenceMaterials();
+  }
+
+  function _escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderReferenceMaterials() {
+    const list = document.getElementById('ref-mat-list');
+    if (!list) return;
+    list.innerHTML = referenceSummaries.map((r, i) => `
+      <div class="ref-item">
+        <span class="ref-item-title" title="${_escHtml(r.title)}">${_escHtml(r.title)}</span>
+        <button class="ref-item-remove" onclick="removeReference(${i})">&#x2715;</button>
+      </div>
+    `).join('');
+  }
+
+  const PLATFORM_LABELS = { linkedin: 'LinkedIn', instagram: 'Instagram', twitter: 'Twitter/X', tiktok: 'TikTok', email: 'Email' };
+
   function buildPostCard(p, pillarLabel) {
     const igFormatLabel = p === 'instagram'
-      ? { post: 'Carousel', normal: 'Single Post', story: 'Story', reel: 'Reel' }[selectedIgFormat] + ' · '
-      : '';
+      ? ({ post: 'Carousel', normal: 'Single Post', story: 'Story', reel: 'Reel' }[selectedIgFormat] || '') + ' · '
+      : p === 'twitter'
+        ? (selectedTwitterFormat === 'thread' ? 'Thread · ' : 'Tweet · ')
+        : p === 'email'
+          ? (selectedEmailSubtype === 'story' ? 'Story · ' : selectedEmailSubtype === 'curation' ? 'Curation · ' : 'Value · ')
+          : '';
+    const platformLabel = PLATFORM_LABELS[p] || p;
+    const showCarouselBtn = ['instagram', 'linkedin'].includes(p);
     const card = document.createElement('div');
+    card.id = `post-card-${p}`;
     card.className = 'post-card';
     card.innerHTML = `
       <div class="post-card-header">
-        <span class="platform-badge ${p}">${p === 'linkedin' ? 'LinkedIn' : 'Instagram'}</span>
-        <span class="post-meta">${igFormatLabel}${pillarLabel} · ${selectedTone}</span>
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+          <span class="platform-badge ${p}">${platformLabel}</span>
+          <span class="post-meta">${igFormatLabel}${pillarLabel} · ${selectedTone}</span>
+        </div>
+        <div id="voice-score-${p}"></div>
       </div>
       <div class="post-body generating" id="post-body-${p}">Generating your post...</div>
+      <div id="voice-note-${p}" class="voice-note" style="display:none"></div>
       <div class="post-card-footer">
         <button class="post-action-btn" id="copy-btn-${p}" onclick="copyPost('${p}')">Copy</button>
         <button class="post-action-btn" onclick="regenerate('${p}')">Regenerate</button>
-        <button class="post-action-btn carousel-inject-btn" id="carousel-btn-${p}" onclick="sendToCarousel('${p}')">→ Carousel</button>
+        <button class="post-action-btn shorter" onclick="resizePost('${p}','shorter')" title="Make shorter">Shorter</button>
+        <button class="post-action-btn longer" onclick="resizePost('${p}','longer')" title="Make longer">Longer</button>
+        <button class="post-action-btn" onclick="toggleVariations('${p}')">Variations</button>
+        ${showCarouselBtn ? `<button class="post-action-btn carousel-inject-btn" id="carousel-btn-${p}" onclick="sendToCarousel('${p}')">→ Carousel</button>` : ''}
       </div>
       <div class="refine-row">
         <input class="refine-input" id="refine-input-${p}" placeholder="Edit instruction — e.g. make it shorter, change the hook, add more personality...">
         <button class="refine-btn" id="refine-btn-${p}" onclick="refinePost('${p}')">Refine</button>
+      </div>
+      <div class="variations-panel" id="variations-panel-${p}">
+        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.25rem;">Variations — click to use</div>
+        <div class="variations-list" id="variations-list-${p}"><div style="color:var(--text3);font-size:0.8rem;font-style:italic;">Click to generate 4 variations of this post...</div></div>
+        <button class="post-action-btn" style="margin-top:0.75rem" onclick="generateVariations('${p}')">Generate variations</button>
       </div>
     `;
     return card;
@@ -3051,6 +3761,11 @@
       outputEl.appendChild(card);
 
       try {
+        const igOpts = p === 'instagram' ? getIgOptions()
+          : p === 'twitter' ? { format: selectedTwitterFormat }
+          : p === 'email' ? { subType: selectedEmailSubtype }
+          : null;
+
         const res = await authFetch('/api/generate-post', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3061,16 +3776,19 @@
             pillar: selectedPillar,
             tone: selectedTone,
             customTopic,
-            instagramOptions: p === 'instagram' ? getIgOptions() : null,
+            instagramOptions: igOpts,
             sessionId: appData.sessionId,
             useAnalytics: document.getElementById('use-analytics-toggle')?.checked ?? false,
             brandType: appData.brandType || 'personal',
+            extraContext: document.getElementById('extra-context-input')?.value.trim() || null,
+            referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
           })
         });
         const data = await res.json();
         const bodyEl = document.getElementById(`post-body-${p}`);
         bodyEl.textContent = data.post;
         bodyEl.classList.remove('generating');
+        renderVoiceScore(p, data.voiceScore, data.voiceNote);
       } catch (err) {
         document.getElementById(`post-body-${p}`).textContent = 'Error generating post. Try again.';
       }
@@ -3084,8 +3802,15 @@
     const bodyEl = document.getElementById(`post-body-${platform}`);
     bodyEl.textContent = 'Regenerating...';
     bodyEl.classList.add('generating');
+    document.getElementById(`voice-score-${platform}`).innerHTML = '';
+    document.getElementById(`voice-note-${platform}`).style.display = 'none';
 
     try {
+      const igOpts = platform === 'instagram' ? getIgOptions()
+        : platform === 'twitter' ? { format: selectedTwitterFormat }
+        : platform === 'email' ? { subType: selectedEmailSubtype }
+        : null;
+
       const res = await authFetch('/api/generate-post', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -3096,15 +3821,18 @@
           pillar: selectedPillar,
           tone: selectedTone,
           customTopic: getCustomTopic(),
-          instagramOptions: platform === 'instagram' ? getIgOptions() : null,
+          instagramOptions: igOpts,
           sessionId: appData.sessionId,
           useAnalytics: document.getElementById('use-analytics-toggle')?.checked ?? false,
           brandType: appData.brandType || 'personal',
+          extraContext: document.getElementById('extra-context-input')?.value.trim() || null,
+          referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
         })
       });
       const data = await res.json();
       bodyEl.textContent = data.post;
       bodyEl.classList.remove('generating');
+      renderVoiceScore(platform, data.voiceScore, data.voiceNote);
     } catch (err) {
       bodyEl.textContent = 'Error. Try again.';
     }
@@ -3194,6 +3922,8 @@
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById(`nav-${tabName}`).classList.add('active');
     if (tabName === 'carousel' && typeof carouselInit === 'function') carouselInit();
+    if (tabName === 'library') loadLibrary();
+    if (tabName === 'ideas') populateIdeasPillarSelect();
   }
 
   function showApp() {
@@ -4162,6 +4892,238 @@
       });
     });
   }
+
+  // ─── Posts Library ────────────────────────────────────────────────────────
+  let libraryPosts = [];
+  let libraryFilter = 'all';
+
+  async function loadLibrary() {
+    const grid = document.getElementById('library-grid');
+    grid.innerHTML = '<div class="lib-empty">Loading...</div>';
+    try {
+      const url = appData.sessionId ? `/api/posts?sessionId=${appData.sessionId}` : '/api/posts';
+      const res = await authFetch(url);
+      const data = await res.json();
+      libraryPosts = data.posts || [];
+      renderLibrary();
+    } catch {
+      grid.innerHTML = '<div class="lib-empty">Could not load posts.</div>';
+    }
+  }
+
+  function filterLibrary(filter, btn) {
+    libraryFilter = filter;
+    document.querySelectorAll('.lib-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderLibrary();
+  }
+
+  function renderLibrary() {
+    const grid = document.getElementById('library-grid');
+    const validPlatforms = ['linkedin', 'instagram', 'twitter', 'tiktok', 'email'];
+    const validStatuses = ['draft', 'approved', 'published'];
+    let posts = libraryPosts;
+    if (validStatuses.includes(libraryFilter)) posts = posts.filter(p => p.status === libraryFilter);
+    else if (validPlatforms.includes(libraryFilter)) posts = posts.filter(p => p.platform === libraryFilter);
+
+    if (!posts.length) {
+      grid.innerHTML = '<div class="lib-empty">No posts here yet — generate some from the Post generator.</div>';
+      return;
+    }
+
+    const platformLabels = { linkedin: 'LinkedIn', instagram: 'Instagram', twitter: 'Twitter/X', tiktok: 'TikTok', email: 'Email' };
+    grid.innerHTML = posts.map(p => {
+      const date = new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const voiceBadge = p.voice_score != null
+        ? `<span class="voice-score-badge ${p.voice_score >= 8 ? 'green' : p.voice_score >= 5 ? 'yellow' : 'red'}" style="font-size:0.6rem">Voice ${p.voice_score}/10</span>`
+        : '';
+      return `
+        <div class="lib-post-card" id="lib-card-${p.id}">
+          <div class="lib-post-meta">
+            <span class="platform-badge ${p.platform}" style="font-size:0.62rem;padding:0.2rem 0.55rem">${platformLabels[p.platform] || p.platform}</span>
+            ${p.pillar_name ? `<span class="post-meta">${_escHtml(p.pillar_name)}</span>` : ''}
+            ${p.tone ? `<span class="post-meta">${_escHtml(p.tone)}</span>` : ''}
+            ${voiceBadge}
+            <span class="lib-status-badge ${p.status}">${p.status}</span>
+            <span class="post-meta" style="margin-left:auto">${date}</span>
+          </div>
+          <div class="lib-post-preview">${_escHtml(p.content)}</div>
+          <div class="lib-post-actions">
+            <button class="post-action-btn" onclick="libCopyPost('${p.id}', this)">Copy</button>
+            <button class="post-action-btn" onclick="libSetStatus('${p.id}', 'approved', this)" ${p.status === 'approved' ? 'style="color:var(--gold)"' : ''}>Approve</button>
+            <button class="post-action-btn" onclick="libSetStatus('${p.id}', 'published', this)" ${p.status === 'published' ? 'style="color:#5aaedb"' : ''}>Mark published</button>
+            <button class="post-action-btn" onclick="libDeletePost('${p.id}')" style="margin-left:auto;color:var(--text3)">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function libCopyPost(id, btn) {
+    const post = libraryPosts.find(p => p.id === id);
+    if (!post) return;
+    navigator.clipboard.writeText(post.content).then(() => {
+      btn.textContent = 'Copied!'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  async function libSetStatus(id, status, btn) {
+    try {
+      await authFetch(`/api/posts/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+      const post = libraryPosts.find(p => p.id === id);
+      if (post) post.status = status;
+      renderLibrary();
+    } catch {}
+  }
+
+  async function libDeletePost(id) {
+    if (!confirm('Delete this post?')) return;
+    try {
+      await authFetch(`/api/posts/${id}`, { method: 'DELETE' });
+      libraryPosts = libraryPosts.filter(p => p.id !== id);
+      renderLibrary();
+    } catch {}
+  }
+
+  // ─── Hook Generator ───────────────────────────────────────────────────────
+  async function runHookGenerator() {
+    const topic = document.getElementById('hook-topic-input').value.trim();
+    if (!topic) { document.getElementById('hook-topic-input').focus(); return; }
+    const platform = document.getElementById('hook-platform-select').value;
+    const btn = document.getElementById('hooks-btn');
+    btn.disabled = true; btn.textContent = 'Generating...';
+    const resultsEl = document.getElementById('hook-results');
+    resultsEl.innerHTML = '<div style="color:var(--text3);font-style:italic;font-size:0.9rem">Generating 10 hooks...</div>';
+
+    try {
+      const res = await authFetch('/api/generate-hooks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, platform, strategy: appData.strategy, brandType: appData.brandType }),
+      });
+      const data = await res.json();
+      if (!data.hooks?.length) { resultsEl.innerHTML = '<div style="color:var(--text3)">No hooks returned. Try again.</div>'; return; }
+      resultsEl.innerHTML = `
+        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem">Click any hook to use it as your custom topic in the generator</div>
+        <div class="hook-list">
+          ${data.hooks.map((h, i) => `
+            <div class="hook-item" onclick="useHookAsCustomTopic(${JSON.stringify(_escHtml(h))})">
+              <span>${_escHtml(h)}</span>
+              <span class="hook-num">#${i + 1}</span>
+            </div>`).join('')}
+        </div>`;
+    } catch {
+      resultsEl.innerHTML = '<div style="color:var(--text3)">Error. Try again.</div>';
+    }
+    btn.disabled = false; btn.textContent = 'Generate 10 hooks';
+  }
+
+  function useHookAsCustomTopic(hook) {
+    showTab('generator');
+    const input = document.getElementById('custom-topic-input');
+    if (input) {
+      input.value = hook;
+      // select custom pillar
+      document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
+      const customItem = document.querySelector('.pillar-select-item.custom');
+      if (customItem) customItem.classList.add('active');
+      selectedPillar = 'custom';
+      input.style.display = 'block';
+    }
+  }
+
+  // ─── Idea Generator ───────────────────────────────────────────────────────
+  function populateIdeasPillarSelect() {
+    const sel = document.getElementById('ideas-pillar-select');
+    if (!sel || !appData.strategy?.content_pillars) return;
+    sel.innerHTML = '<option value="">All pillars</option>' +
+      appData.strategy.content_pillars.map(p => `<option value="${p.id}">${_escHtml(p.name)}</option>`).join('');
+  }
+
+  async function runIdeaGenerator() {
+    if (!appData.personalityMap) return;
+    const platform = document.getElementById('ideas-platform-select').value;
+    const pillarId = document.getElementById('ideas-pillar-select').value || null;
+    const btn = document.getElementById('ideas-btn');
+    const resultsEl = document.getElementById('ideas-results');
+    btn.disabled = true; btn.textContent = 'Generating...';
+    resultsEl.innerHTML = '<div style="color:var(--text3);font-style:italic;font-size:0.9rem">Generating 18 ideas...</div>';
+
+    try {
+      const res = await authFetch('/api/generate-ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personalityMap: appData.personalityMap, strategy: appData.strategy, platform, pillarId }),
+      });
+      const data = await res.json();
+      if (!data.ideas?.length) { resultsEl.innerHTML = '<div style="color:var(--text3)">No ideas returned. Try again.</div>'; return; }
+      resultsEl.innerHTML = `
+        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem">Click any idea to generate the full post immediately</div>
+        <div class="ideas-grid">
+          ${data.ideas.map((idea, i) => `
+            <div class="idea-card" onclick="generateFromIdea(${JSON.stringify(_escHtml(idea.hook + (idea.angle ? ' — ' + idea.angle : '')))}, '${_escHtml(platform)}')">
+              <div class="idea-meta">${_escHtml(idea.pillar || 'General')} · ${_escHtml(platform)}</div>
+              <div class="idea-hook">${_escHtml(idea.hook)}</div>
+              ${idea.angle ? `<div class="idea-angle">${_escHtml(idea.angle)}</div>` : ''}
+            </div>`).join('')}
+        </div>`;
+    } catch {
+      resultsEl.innerHTML = '<div style="color:var(--text3)">Error. Try again.</div>';
+    }
+    btn.disabled = false; btn.textContent = 'Generate ideas';
+  }
+
+  function generateFromIdea(conceptText, platform) {
+    showTab('generator');
+    const input = document.getElementById('custom-topic-input');
+    if (input) input.value = conceptText;
+    const platformSelect = document.getElementById('gen-platform');
+    if (platformSelect && platform) { platformSelect.value = platform; onPlatformChange(platform); }
+    document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
+    const customItem = document.querySelector('.pillar-select-item.custom');
+    if (customItem) { customItem.classList.add('active'); input.style.display = 'block'; }
+    selectedPillar = 'custom';
+  }
+
+  // ─── Style Cloning ────────────────────────────────────────────────────────
+  function addStylePost() {
+    const container = document.getElementById('style-clone-posts');
+    if (!container) return;
+    const ta = document.createElement('textarea');
+    ta.className = 'style-clone-post-input';
+    ta.placeholder = 'Paste another post...';
+    container.appendChild(ta);
+  }
+
+  async function trainVoice() {
+    const textareas = document.querySelectorAll('.style-clone-post-input');
+    const posts = Array.from(textareas).map(t => t.value.trim()).filter(Boolean);
+    if (posts.length < 2) { alert('Paste at least 2 of your posts to train your voice.'); return; }
+    const btn = document.getElementById('train-voice-btn');
+    btn.disabled = true; btn.textContent = 'Training...';
+    try {
+      const res = await authFetch('/api/extract-style', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posts, sessionId: appData.sessionId }),
+      });
+      const data = await res.json();
+      if (data.fingerprint) {
+        document.getElementById('style-fingerprint-text').textContent = data.fingerprint;
+        document.getElementById('style-fingerprint-result').style.display = 'block';
+      }
+    } catch { alert('Error training voice. Try again.'); }
+    btn.disabled = false; btn.textContent = 'Train my voice';
+  }
+
+  function clearStyleFingerprint() {
+    document.getElementById('style-fingerprint-result').style.display = 'none';
+    document.getElementById('style-fingerprint-text').textContent = '';
+    if (appData.sessionId) {
+      authFetch('/api/extract-style', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ posts: [], sessionId: appData.sessionId }) }).catch(() => {});
+    }
+  }
+
 </script>
 <script src="carousel.js"></script>
 </body>

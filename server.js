@@ -114,6 +114,26 @@ async function initDb() {
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS brand_type TEXT DEFAULT 'personal'`;
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS website_url TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url TEXT`;
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS style_fingerprint TEXT`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS generated_posts (
+      id TEXT PRIMARY KEY,
+      session_id TEXT,
+      user_id TEXT NOT NULL,
+      platform TEXT NOT NULL,
+      format TEXT,
+      subtype TEXT,
+      pillar_name TEXT,
+      tone TEXT,
+      content TEXT NOT NULL,
+      voice_score INTEGER,
+      voice_note TEXT,
+      status TEXT DEFAULT 'draft',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS generated_posts_user_idx ON generated_posts (user_id, created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS generated_posts_session_idx ON generated_posts (session_id, created_at DESC)`;
   if (process.env.SEED_USER_EMAIL && process.env.SEED_USER_WEBSITE) {
     await sql`UPDATE users SET website_url = ${process.env.SEED_USER_WEBSITE} WHERE email = ${process.env.SEED_USER_EMAIL} AND (website_url IS NULL OR website_url = '')`;
   }
@@ -475,6 +495,112 @@ HASHTAGS: 3–5 specific hashtags after two blank lines. Maximum 5 — hard plat
 BANNED in slides and caption: Moreover, Furthermore, That being said, tapestry, resonate, delve, pivotal, showcase, passive voice, "It goes without saying", "As you can see".`;
 }
 
+function buildTwitterInstructions(format) {
+  if (format === 'thread') {
+    return `Write a Twitter/X thread of 5-8 tweets.
+Label each tweet [1/N], [2/N] etc. at the end of the tweet text.
+
+- Tweet 1 (Hook): Bold declarative or surprising claim. Under 240 chars. Must make the reader want tweet 2.
+- Tweets 2-N-1 (Body): Each tweet = one idea. Short. Punchy. Can end mid-thought to pull forward.
+- Final tweet: The real point, or a CTA. One targeted hashtag max in the final tweet only.
+- No hashtags in body tweets.
+- Sentence rhythm: Mix fragments with full sentences. Never start 3 consecutive tweets with "I".
+- Between tweets: use "—" as separator (the caller will split on this).
+
+Return each tweet on its own line separated by ---`;
+  }
+  return `Write a single tweet (max 280 characters, no exceptions).
+
+- Lead with the most surprising or valuable word in the whole thought.
+- No windup, no setup. Direct value only.
+- Line breaks for visual emphasis where it helps.
+- Optional: one targeted hashtag at the end — only if it adds discovery value.
+- Never use "RT if you agree" or engagement bait.
+- Output ONLY the tweet text.`;
+}
+
+function buildTikTokInstructions() {
+  return `Write a TikTok video script (60-90 seconds when spoken at a conversational pace, ~150 words max).
+
+HOOK (first 2-3 seconds — 1-2 sentences):
+- Bold declarative or pattern interrupt. NOT a question.
+- Examples: "You're doing [X] completely backwards." / "I tried [X] for [Y] — here's what actually happened."
+- This determines whether someone swipes. Hard stop only.
+
+BODY (3-5 key points or one story arc):
+- Each point: 1-2 spoken sentences. Contractions throughout.
+- If story: specific moment → tension → resolution (no more than 3 sentences each)
+- One unexpected detail or turn that surprises the viewer
+- [TEXT: "..."] markers where bold on-screen text reinforces key points
+
+CLOSE (5-10 seconds):
+- One specific CTA: "Follow for [specific type of content]" OR "Comment [word] and I'll send you [specific thing]"
+- Never: "Like and subscribe" / "Let me know what you think"
+
+Write as if speaking, not reading. Short sentences. Sound human, not scripted.`;
+}
+
+function buildEmailInstructions(subType = 'value') {
+  const subTypes = {
+    value: 'STRUCTURE — Value / Teaching: One useful insight or framework. Hook → why it matters → the insight → how to apply it → closing thought. Each section 2-4 short paragraphs.',
+    story: 'STRUCTURE — Personal story: One specific experience → what happened → what changed → what it means for the reader. Feel like a personal letter, not a post.',
+    curation: 'STRUCTURE — Curated roundup: 3-5 hand-picked resources or ideas with a 2-3 sentence personal take on each. Why does THIS reader care about THIS thing? No filler intros.',
+  };
+  return `Write an email newsletter edition.
+
+SUBJECT LINES (write 3 options, label A / B / C):
+- A: Curiosity gap ("The [X] most people ignore")
+- B: Specific benefit ("How to [X] in [timeframe]")
+- C: Personal / story ("I almost [X]. Then this happened.")
+
+PREVIEW TEXT (1 line, max 90 chars): shown in inbox after subject — complete the intrigue, do not repeat it.
+
+---
+
+BODY (500-900 words):
+- Open with a personal hook or specific scene — NOT "Hey [name]" or "Welcome to issue #X"
+- ${subTypes[subType] || subTypes.value}
+- Short paragraphs, max 3 sentences. Frequent blank lines.
+- Write like a smart friend who researched this for you.
+- At least one bolded phrase per section as a visual anchor.
+- Avoid: passive voice, corporate formality, excessive exclamation marks.
+
+CLOSING CTA (1-2 lines):
+- One ask only: reply, click one link, or share with one specific person.
+
+SIGN-OFF: Natural and personal, not "Best regards."
+
+P.S. LINE: One punchy final thought, tease of next edition, or bonus resource.`;
+}
+
+async function scoreBrandVoice(post, strategy) {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    response_format: { type: 'json_object' },
+    messages: [{
+      role: 'user',
+      content: `Rate this social media post against the brand voice guidelines. Score 1-10.
+
+BRAND VOICE:
+Adjectives (this post should feel like): ${(strategy.brand_voice?.adjectives || []).join(', ')}
+Always do: ${(strategy.brand_voice?.do || []).join(' | ')}
+Never do: ${(strategy.brand_voice?.dont || []).join(' | ')}
+
+POST:
+${post}
+
+Scoring:
+- 8-10 (green): Clearly embodies the voice — adjectives present, do's followed, dont's avoided
+- 5-7 (yellow): Mostly aligned, minor drift or missed opportunity
+- 1-4 (red): Significant misalignment — multiple dont's or missing core approach
+
+Return ONLY valid JSON:
+{"score": 8, "note": "one sentence on key strength or main issue"}`,
+    }],
+  });
+  return JSON.parse(response.choices[0].message.content);
+}
+
 async function selfCritiquePost(post, platform) {
   const response = await openai.chat.completions.create({
     model: MODEL,
@@ -564,7 +690,7 @@ Return ONLY the revised post text. No explanation, no preamble.`,
 }
 
 // Generate a social post
-async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal') {
+async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal', extraContext = null, referenceSummaries = null, styleFingerprint = null) {
   const pillarData = customTopic
     ? { name: 'Custom Topic', description: customTopic }
     : (strategy.content_pillars.find(p => p.id === pillar) || strategy.content_pillars[0]);
@@ -662,9 +788,15 @@ WHAT STRONG COMPANY POSTS DO:
 
 FORMATTING: 3-5 hashtags on their own line at the end. No emojis unless aligned with brand voice. Line break between each paragraph.`;
 
+  const twitterFormat = (instagramOptions || {}).format || 'single';
+  const emailSubType = (instagramOptions || {}).subType || 'value';
+
   const platformInstructions = {
     linkedin: isPersonal ? linkedinPersonal : linkedinBusiness,
     instagram: buildInstagramInstructions(igFormat, igSubType),
+    twitter: buildTwitterInstructions(twitterFormat),
+    tiktok: buildTikTokInstructions(),
+    email: buildEmailInstructions(emailSubType),
   };
 
   const toneInstructions = {
@@ -745,13 +877,27 @@ TOP PERFORMING POSTS — study the emotional tone, level of specificity, and str
 ${topPosts.slice(0, 3).map((p, i) => `[Top post ${i + 1} — ${p.likes} likes${p.saves ? `, ${p.saves} saves` : ''}${p.comments ? `, ${p.comments} comments` : ''}]
 "${p.text.slice(0, 350)}"`).join('\n\n')}
 ` : ''}
-Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
+${extraContext ? `\nADDITIONAL CONTEXT FROM THE WRITER:\n${extraContext}\n\nUse this as background knowledge and voice calibration. Do not quote it directly — let it inform the specificity and perspective of what you write.\n` : ''}${referenceSummaries && referenceSummaries.length ? `\nREFERENCE MATERIALS — insights from books/articles the writer wants to draw from:\n${referenceSummaries.map(r => `[${r.title}]\n${r.summary}`).join('\n\n')}\n\nDraw on these frameworks and vocabulary where relevant. Don't cite them explicitly unless it fits naturally.\n` : ''}${styleFingerprint ? `\nSTYLE FINGERPRINT — learned from this writer's actual posts. Mirror these patterns:\n${styleFingerprint}\n` : ''}Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
     }],
   });
 
   const firstDraft = response.choices[0].message.content.trim();
-  const styledDraft = await selfCritiquePost(firstDraft, platform);
-  return verifyAndFixFabrications(styledDraft, personalityMap);
+
+  // Short-form platforms skip the LinkedIn/Instagram style critique
+  const skipCritique = ['twitter', 'tiktok'].includes(platform);
+  const styledDraft = skipCritique ? firstDraft : await selfCritiquePost(firstDraft, platform);
+  const finalPost = await verifyAndFixFabrications(styledDraft, personalityMap);
+
+  // 4th stage: brand voice score
+  let voiceScore = null;
+  let voiceNote = null;
+  try {
+    const scored = await scoreBrandVoice(finalPost, strategy);
+    voiceScore = scored.score;
+    voiceNote = scored.note;
+  } catch { /* non-fatal */ }
+
+  return { post: finalPost, voiceScore, voiceNote };
 }
 
 // ─── Viral Intelligence ──────────────────────────────────────────────────────
@@ -979,6 +1125,40 @@ app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
   }
 });
 
+app.post('/api/upload-reference', requireAuth, upload.single('pdf'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    if (!req.file.mimetype.includes('pdf') && !req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'Only PDF files are accepted' });
+    }
+    const text = await extractPdfText(req.file.path);
+    fs.unlinkSync(req.file.path);
+    const capped = text.slice(0, 12000);
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [{
+        role: 'user',
+        content: `Extract key insights from this document for a content creator who wants to reference it in social media posts.
+
+Summarize in flowing plain text (~400 words):
+1. Core frameworks or models described
+2. Key claims or arguments (3–5 points)
+3. Specific vocabulary and concepts the creator can use authentically
+4. Any statistics, studies, or data points that could ground posts in specificity
+
+Document:
+${capped}`,
+      }],
+    });
+    const summary = response.choices[0].message.content.trim();
+    const title = req.file.originalname.replace(/\.pdf$/i, '').slice(0, 60);
+    res.json({ success: true, title, summary });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -1022,18 +1202,36 @@ app.put('/api/sessions/:id', requireAuth, async (req, res) => {
   }
 });
 
-const VALID_PLATFORMS = ['linkedin', 'instagram'];
-const VALID_TONES = ['professional', 'conversational', 'bold', 'educational', 'inspirational', 'storytelling'];
+const VALID_PLATFORMS = ['linkedin', 'instagram', 'twitter', 'tiktok', 'email'];
+const VALID_TONES = ['authentic', 'educational', 'storytelling', 'motivational', 'casual', 'contrarian'];
 const VALID_IG_FORMATS = ['post', 'normal', 'story', 'reel'];
+const VALID_TWITTER_FORMATS = ['single', 'thread'];
+const VALID_EMAIL_SUBTYPES = ['value', 'story', 'curation'];
 
 app.post('/api/generate-post', requireAuth, async (req, res) => {
   try {
-    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType } = req.body;
+    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType, extraContext, referenceSummaries } = req.body;
 
     if (!VALID_PLATFORMS.includes(platform)) return res.status(400).json({ error: 'Invalid platform' });
     if (tone && !VALID_TONES.includes(tone)) return res.status(400).json({ error: 'Invalid tone' });
-    if (instagramOptions?.format && !VALID_IG_FORMATS.includes(instagramOptions.format)) return res.status(400).json({ error: 'Invalid Instagram format' });
+    if (platform === 'instagram' && instagramOptions?.format && !VALID_IG_FORMATS.includes(instagramOptions.format)) {
+      return res.status(400).json({ error: 'Invalid Instagram format' });
+    }
     if (!personalityMap || !strategy) return res.status(400).json({ error: 'personalityMap and strategy are required' });
+    if (referenceSummaries !== null && referenceSummaries !== undefined && !Array.isArray(referenceSummaries)) {
+      return res.status(400).json({ error: 'referenceSummaries must be an array' });
+    }
+
+    const safeContext = typeof extraContext === 'string'
+      ? extraContext.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 1000)
+      : null;
+
+    const safeRefs = Array.isArray(referenceSummaries)
+      ? referenceSummaries.map(r => ({
+          title: String(r.title || '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 100),
+          summary: String(r.summary || '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').slice(0, 500),
+        })).slice(0, 10)
+      : null;
 
     let topPosts = [];
     if (sessionId && useAnalytics && ['linkedin', 'instagram'].includes(platform)) {
@@ -1043,8 +1241,31 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
       }
     }
 
-    const post = await generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, topPosts, brandType || 'personal');
-    res.json({ success: true, post });
+    // Load style fingerprint for this session if available
+    let styleFingerprint = null;
+    if (sessionId) {
+      const sfRows = await sql`SELECT style_fingerprint FROM sessions WHERE id = ${sessionId} AND user_id = ${req.user.id}`;
+      styleFingerprint = sfRows[0]?.style_fingerprint || null;
+    }
+
+    const { post, voiceScore, voiceNote } = await generatePost(
+      personalityMap, strategy, platform, pillar, tone, customTopic,
+      instagramOptions, topPosts, brandType || 'personal', safeContext, safeRefs, styleFingerprint
+    );
+
+    // Save to generated_posts library
+    const postId = crypto.randomUUID();
+    const pillarName = customTopic
+      ? customTopic.slice(0, 80)
+      : (strategy.content_pillars?.find(p => p.id === pillar)?.name || pillar || null);
+    await sql`
+      INSERT INTO generated_posts (id, session_id, user_id, platform, format, subtype, pillar_name, tone, content, voice_score, voice_note, status)
+      VALUES (${postId}, ${sessionId || null}, ${req.user.id}, ${platform},
+              ${instagramOptions?.format || null}, ${instagramOptions?.subType || null},
+              ${pillarName}, ${tone || null}, ${post}, ${voiceScore}, ${voiceNote}, 'draft')
+    `;
+
+    res.json({ success: true, post, voiceScore, voiceNote, savedId: postId });
   } catch (err) {
     return serverErr(res, err);
   }
@@ -1290,6 +1511,261 @@ Rules:
     const result = JSON.parse(response.choices[0].message.content);
     if (!result.slides || !Array.isArray(result.slides)) throw new Error('Invalid response structure');
     res.json({ success: true, slides: result.slides });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Posts Library ────────────────────────────────────────────────────────────
+
+app.get('/api/posts', requireAuth, async (req, res) => {
+  try {
+    const { sessionId, platform, status } = req.query;
+    let rows;
+    if (sessionId) {
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} AND session_id = ${sessionId} ORDER BY created_at DESC LIMIT 200`;
+    } else {
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 200`;
+    }
+    if (platform) rows = rows.filter(r => r.platform === platform);
+    if (status) rows = rows.filter(r => r.status === status);
+    res.json({ success: true, posts: rows });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+app.patch('/api/posts/:id/status', requireAuth, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const validStatuses = ['draft', 'approved', 'published'];
+    if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+    await sql`UPDATE generated_posts SET status = ${status} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    res.json({ success: true });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+app.delete('/api/posts/:id', requireAuth, async (req, res) => {
+  try {
+    await sql`DELETE FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    res.json({ success: true });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Post Variations ──────────────────────────────────────────────────────────
+
+app.post('/api/generate-variations', requireAuth, async (req, res) => {
+  try {
+    const { post, platform, strategy, personalityMap, tone, brandType } = req.body;
+    if (!post || !platform || !strategy) return res.status(400).json({ error: 'post, platform, and strategy required' });
+
+    const isPersonal = (brandType || 'personal') !== 'business';
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      temperature: 0.7,
+      messages: [{
+        role: 'user',
+        content: `Generate 4 variations of this ${platform} post. Each variation must have a completely different hook and angle while keeping the same core message and brand voice.
+
+BRAND VOICE:
+${JSON.stringify(strategy.brand_voice, null, 2)}
+
+ORIGINAL POST:
+${post}
+
+Rules:
+- Variation 1: Different emotional hook (start from a different feeling or reaction)
+- Variation 2: Different structural approach (e.g. if original is story → try bold opinion, or vice versa)
+- Variation 3: Different opening word/phrase that isn't "I", "Today", "In", or "The"
+- Variation 4: Shorter, punchier version that keeps the single most powerful idea only
+
+${isPersonal ? 'Write in first person singular.' : 'Write in first person plural (we/our).'}
+Do NOT add any preamble or label. Separate each variation with exactly this delimiter on its own line:
+---VARIATION---`
+      }],
+    });
+
+    const raw = response.choices[0].message.content.trim();
+    const variations = raw.split('---VARIATION---').map(v => v.trim()).filter(Boolean);
+    res.json({ success: true, variations });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Hook Generator ───────────────────────────────────────────────────────────
+
+app.post('/api/generate-hooks', requireAuth, async (req, res) => {
+  try {
+    const { topic, platform, strategy, brandType } = req.body;
+    if (!topic || !platform) return res.status(400).json({ error: 'topic and platform required' });
+
+    const isPersonal = (brandType || 'personal') !== 'business';
+    const platformNote = {
+      linkedin: 'LinkedIn posts (first line only — no banner, no setup)',
+      instagram: 'Instagram captions (first ~20 words before the "more" cutoff)',
+      twitter: 'Tweets (entire tweet or thread opener)',
+      tiktok: 'TikTok video hooks (first 2-3 seconds of spoken script)',
+      email: 'Email subject lines (max 60 chars)',
+    }[platform] || 'social media posts';
+
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      temperature: 0.9,
+      messages: [{
+        role: 'user',
+        content: `Generate 10 scroll-stopping hooks for ${platformNote} on this topic.
+
+TOPIC: ${topic}
+
+BRAND VOICE ADJECTIVES: ${(strategy?.brand_voice?.adjectives || []).join(', ') || 'not specified'}
+
+Use all 10 of these proven hook frameworks — one each:
+1. Confession: "I almost [bad outcome]..."
+2. Contradiction: "[Common belief]. [Why that's wrong in one line]."
+3. Specific number: "[Number] [things/mistakes/lessons] about [topic]"
+4. Pattern interrupt: "[Unexpected thing] changed [expected thing]."
+5. Hard pill: "Hard pill:" or "Unpopular opinion:" + the claim
+6. Story drop: "[Specific timeframe or place]. [Single detail, no explanation.]"
+7. Revelation: "Nobody talks about [specific thing] enough."
+8. Proof: "I spent [specific time] on [specific thing]. Here's what I found."
+9. Question subversion: Lead with the specific situation that made you start asking the question — NOT the question itself
+10. Bold claim: The most controversial true thing about this topic, stated flatly
+
+${isPersonal ? 'Voice: first person singular, conversational.' : 'Voice: first person plural (we/our), professional but direct.'}
+Return ONLY the 10 hooks, one per line, numbered 1-10. No explanations.`
+      }],
+    });
+
+    const raw = response.choices[0].message.content.trim();
+    const hooks = raw.split('\n').map(l => l.replace(/^\d+[\.\)]\s*/, '').trim()).filter(Boolean).slice(0, 10);
+    res.json({ success: true, hooks });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Resize Post ──────────────────────────────────────────────────────────────
+
+app.post('/api/resize-post', requireAuth, async (req, res) => {
+  try {
+    const { post, direction, platform, strategy } = req.body;
+    if (!post || !['shorter', 'longer'].includes(direction)) return res.status(400).json({ error: 'post and direction (shorter|longer) required' });
+
+    const instructions = direction === 'shorter'
+      ? `Make this post significantly shorter — keep only the single most powerful idea and the best sentence. Cut everything else. Do not summarize what was cut. The result should feel complete, not truncated.`
+      : `Expand this post — add one specific real moment, a concrete example, or a second layer of insight that earns the original point. Do not repeat what is already there. Do not add a moral or conclusion. Maintain the same voice and rhythm.`;
+
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [{
+        role: 'user',
+        content: `${instructions}
+
+BRAND VOICE:
+${JSON.stringify(strategy?.brand_voice, null, 2)}
+
+ORIGINAL ${platform?.toUpperCase()} POST:
+${post}
+
+Return ONLY the resized post text. No preamble.`
+      }],
+    });
+
+    res.json({ success: true, post: response.choices[0].message.content.trim() });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Idea Generator ───────────────────────────────────────────────────────────
+
+app.post('/api/generate-ideas', requireAuth, async (req, res) => {
+  try {
+    const { personalityMap, strategy, platform, pillarId } = req.body;
+    if (!personalityMap || !strategy) return res.status(400).json({ error: 'personalityMap and strategy required' });
+
+    const pillars = strategy.content_pillars || [];
+    const targetPillar = pillarId ? pillars.find(p => p.id === pillarId) : null;
+    const pillarContext = targetPillar
+      ? `Focus on this pillar: ${targetPillar.name} — ${targetPillar.description}. Audience pain point: ${targetPillar.audience_pain_point}`
+      : `Generate ideas spread across all pillars: ${pillars.map(p => p.name).join(', ')}`;
+
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      response_format: { type: 'json_object' },
+      messages: [{
+        role: 'user',
+        content: `Generate 18 specific post concept ideas for ${platform || 'social media'} based on this brand data.
+
+PERSONALITY MAP / BRAND BRIEF:
+${JSON.stringify({ name: personalityMap.name, values: personalityMap.values, skills: personalityMap.skills, achievements: personalityMap.achievements, professional_experience: personalityMap.professional_experience }, null, 2)}
+
+BRAND VOICE: ${(strategy.brand_voice?.adjectives || []).join(', ')}
+
+${pillarContext}
+
+Each idea = one post concept. Make it specific enough that the writer knows exactly what to write — not "share a tip about X" but "The time you [specific situation] and what it revealed about [specific insight]".
+
+Return ONLY valid JSON:
+{
+  "ideas": [
+    { "pillar": "pillar name", "hook": "the opening line or concept in 1 sentence", "angle": "what makes this post unique or interesting" }
+  ]
+}`
+      }],
+    });
+
+    const { ideas } = JSON.parse(response.choices[0].message.content);
+    res.json({ success: true, ideas: ideas || [] });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Style Cloning ────────────────────────────────────────────────────────────
+
+app.post('/api/extract-style', requireAuth, async (req, res) => {
+  try {
+    const { posts, sessionId } = req.body;
+    if (!Array.isArray(posts) || posts.length < 2) return res.status(400).json({ error: 'Provide at least 2 sample posts' });
+    if (posts.length > 10) return res.status(400).json({ error: 'Maximum 10 sample posts' });
+
+    const safePosts = posts.map(p => String(p).slice(0, 1000)).join('\n\n---\n\n');
+
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [{
+        role: 'user',
+        content: `Analyze these social media posts and extract a precise style fingerprint that can be used to clone this writer's voice in future posts.
+
+POSTS:
+${safePosts}
+
+Write a style fingerprint as a set of specific, actionable observations — not generic descriptions. Focus on:
+1. SENTENCE PATTERNS: Typical length, rhythm, how they mix short and long sentences, use of fragments
+2. VOCABULARY: Specific words or phrases they use repeatedly, words they avoid, register (formal/casual)
+3. STRUCTURAL HABITS: How they open, how they close, use of line breaks, paragraph length
+4. PERSONALITY MARKERS: Self-deprecation, humor style, how they show doubt or vulnerability, use of "I"
+5. WHAT THEY NEVER DO: Patterns conspicuously absent from their writing
+
+Be specific — quote actual phrases where possible. This fingerprint will be injected directly into AI generation prompts.
+Keep it under 300 words.`
+      }],
+    });
+
+    const fingerprint = response.choices[0].message.content.trim();
+
+    // Save to session if provided
+    if (sessionId) {
+      await sql`UPDATE sessions SET style_fingerprint = ${fingerprint} WHERE id = ${sessionId} AND user_id = ${req.user.id}`;
+    }
+
+    res.json({ success: true, fingerprint });
   } catch (err) {
     return serverErr(res, err);
   }
