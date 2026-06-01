@@ -622,7 +622,7 @@ function carouselUpdateField(i, key, value) {
   if (!carouselState.slides[i]) return;
   carouselState.slides[i][key] = value;
   carouselUpdatePreview();
-  if (i === 0 && key === 'username') carouselSaveTemplate();
+  carouselSaveTemplate();
 }
 
 function carouselRemoveSlideImage(i) {
@@ -640,6 +640,7 @@ function carouselDeleteSlide(i) {
   }
   carouselRenderEditor();
   carouselUpdatePreview();
+  carouselSaveTemplate();
 }
 
 function carouselAddSlide() {
@@ -654,6 +655,7 @@ function carouselAddSlide() {
   });
   carouselRenderEditor();
   carouselUpdatePreview();
+  carouselSaveTemplate();
   setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
 }
 
@@ -667,6 +669,7 @@ function carouselAddCtaSlide() {
   });
   carouselRenderEditor();
   carouselUpdatePreview();
+  carouselSaveTemplate();
   setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
 }
 
@@ -675,6 +678,8 @@ function carouselAddCtaSlide() {
 function carouselSaveTemplate() {
   try {
     const username = (carouselState.slides[0] && carouselState.slides[0].username) || '@yourhandle';
+    // Strip per-slide images before saving — they can be several MB and blow the localStorage quota
+    const slides = carouselState.slides.map(s => ({ ...s, image: null }));
     localStorage.setItem(CAROUSEL_TEMPLATE_KEY, JSON.stringify({
       accentColor: carouselState.accentColor,
       bgColor: carouselState.bgColor,
@@ -683,6 +688,7 @@ function carouselSaveTemplate() {
       websiteUrl: carouselState.websiteUrl,
       avatarImage: carouselState.avatarImage,
       username,
+      slides,
     }));
   } catch (e) {}
 }
@@ -725,7 +731,9 @@ function carouselLoadTemplate() {
       if (el) el.value = t.websiteUrl;
     }
     if (t.avatarImage) carouselState.avatarImage = t.avatarImage;
-    if (t.username && carouselState.slides[0]) {
+    if (t.slides && Array.isArray(t.slides) && t.slides.length) {
+      carouselState.slides = t.slides;
+    } else if (t.username && carouselState.slides[0]) {
       carouselState.slides[0].username = t.username;
     }
   } catch (e) {}
