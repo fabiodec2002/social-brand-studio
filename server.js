@@ -890,7 +890,7 @@ CRITICAL — NO FABRICATION: You may ONLY reference details that appear in the p
 
 CRITICAL — NO FABRICATION: You may ONLY reference details, results, and situations that appear in the brand brief provided. Do not invent client names, revenue figures, timelines, case study outcomes, or specific scenarios not in the data. If a detail is not in the brief, describe it generally or omit it. Made-up specifics destroy trust when readers notice them.`;
 
-  const brandContext = isPersonal
+  const mapBlock = isPersonal
     ? `THEIR PERSONALITY MAP:\n${JSON.stringify(personalityMap, null, 2)}\n\nTHEIR BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}`
     : `COMPANY BRIEF:\n${JSON.stringify(personalityMap, null, 2)}\n\nCOMPANY BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}`;
 
@@ -934,7 +934,7 @@ CRITICAL — NO FABRICATION: You may ONLY reference details, results, and situat
       role: 'user',
       content: `${systemPrompt}
 
-${brandContext}
+${mapBlock}
 
 CONTENT PILLAR: ${pillarData.name} — ${pillarData.description}
 
