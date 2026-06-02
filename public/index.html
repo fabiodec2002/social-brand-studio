@@ -5659,6 +5659,7 @@
     if (customItem) { customItem.classList.add('active'); input.style.display = 'block'; }
     selectedPillar = 'custom';
     generatePost();
+    document.getElementById('post-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // ─── Style Cloning ────────────────────────────────────────────────────────
