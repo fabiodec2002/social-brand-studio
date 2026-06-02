@@ -5582,7 +5582,7 @@
         <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem">Click any hook to use it as your custom topic in the generator</div>
         <div class="hook-list">
           ${data.hooks.map((h, i) => `
-            <div class="hook-item" onclick="useHookAsCustomTopic(${JSON.stringify(_escHtml(h))})">
+            <div class="hook-item" onclick="useHookAsCustomTopic(${_escHtml(JSON.stringify(h))})">
               <span>${_escHtml(h)}</span>
               <span class="hook-num">#${i + 1}</span>
             </div>`).join('')}
@@ -5636,7 +5636,7 @@
         <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem">Click any idea to generate the full post immediately</div>
         <div class="ideas-grid">
           ${data.ideas.map((idea, i) => `
-            <div class="idea-card" onclick="generateFromIdea(${JSON.stringify(_escHtml(idea.hook + (idea.angle ? ' — ' + idea.angle : '')))}, '${_escHtml(platform)}')">
+            <div class="idea-card" onclick="generateFromIdea(${_escHtml(JSON.stringify(idea.hook + (idea.angle ? ' — ' + idea.angle : '')))}, '${_escHtml(platform)}')">
               <div class="idea-meta">${_escHtml(idea.pillar || 'General')} · ${_escHtml(platform)}</div>
               <div class="idea-hook">${_escHtml(idea.hook)}</div>
               ${idea.angle ? `<div class="idea-angle">${_escHtml(idea.angle)}</div>` : ''}
