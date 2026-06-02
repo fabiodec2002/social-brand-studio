@@ -134,6 +134,18 @@ async function initDb() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS generated_posts_user_idx ON generated_posts (user_id, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS generated_posts_session_idx ON generated_posts (session_id, created_at DESC)`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS knowledge_docs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      type TEXT DEFAULT 'general',
+      summary TEXT NOT NULL,
+      source TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS knowledge_docs_user_idx ON knowledge_docs (user_id, created_at DESC)`;
   if (process.env.SEED_USER_EMAIL && process.env.SEED_USER_WEBSITE) {
     await sql`UPDATE users SET website_url = ${process.env.SEED_USER_WEBSITE} WHERE email = ${process.env.SEED_USER_EMAIL} AND (website_url IS NULL OR website_url = '')`;
   }
@@ -1233,6 +1245,21 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
         })).slice(0, 10)
       : null;
 
+    // Fetch summaries from the persistent knowledge base
+    let allRefs = safeRefs ? [...safeRefs] : [];
+    const { knowledgeDocIds } = req.body;
+    if (Array.isArray(knowledgeDocIds) && knowledgeDocIds.length) {
+      const validIds = knowledgeDocIds
+        .filter(id => typeof id === 'string' && /^[0-9a-f-]{36}$/.test(id))
+        .slice(0, 10);
+      if (validIds.length) {
+        const kRows = await sql`SELECT title, summary FROM knowledge_docs WHERE id = ANY(${validIds}) AND user_id = ${req.user.id}`;
+        const kRefs = kRows.map(r => ({ title: r.title, summary: r.summary.slice(0, 500) }));
+        allRefs = [...kRefs, ...allRefs].slice(0, 10);
+      }
+    }
+    const finalRefs = allRefs.length ? allRefs : null;
+
     let topPosts = [];
     if (sessionId && useAnalytics && ['linkedin', 'instagram'].includes(platform)) {
       const rows = await sql`SELECT posts FROM post_analytics WHERE session_id = ${sessionId} AND platform = ${platform} AND user_id = ${req.user.id}`;
@@ -1250,7 +1277,7 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
 
     const { post, voiceScore, voiceNote } = await generatePost(
       personalityMap, strategy, platform, pillar, tone, customTopic,
-      instagramOptions, topPosts, brandType || 'personal', safeContext, safeRefs, styleFingerprint
+      instagramOptions, topPosts, brandType || 'personal', safeContext, finalRefs, styleFingerprint
     );
 
     // Save to generated_posts library
@@ -1722,6 +1749,77 @@ Return ONLY valid JSON:
 
     const { ideas } = JSON.parse(response.choices[0].message.content);
     res.json({ success: true, ideas: ideas || [] });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Knowledge Base ───────────────────────────────────────────────────────────
+
+app.get('/api/knowledge', requireAuth, async (req, res) => {
+  try {
+    const rows = await sql`SELECT id, title, type, source, created_at FROM knowledge_docs WHERE user_id = ${req.user.id} ORDER BY created_at DESC`;
+    res.json({ success: true, docs: rows });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+app.post('/api/knowledge', requireAuth, upload.single('pdf'), async (req, res) => {
+  try {
+    let text, title, type, source;
+
+    if (req.file) {
+      if (!req.file.mimetype.includes('pdf') && !req.file.originalname.toLowerCase().endsWith('.pdf')) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ error: 'Only PDF files are accepted' });
+      }
+      text = await extractPdfText(req.file.path);
+      fs.unlinkSync(req.file.path);
+      title = (req.body.title || req.file.originalname.replace(/\.pdf$/i, '')).slice(0, 100);
+      type = req.body.type || 'general';
+      source = req.file.originalname;
+    } else {
+      const rawText = String(req.body.text || '');
+      const rawTitle = String(req.body.title || '');
+      if (!rawText || !rawTitle) return res.status(400).json({ error: 'title and text required' });
+      text = rawText.slice(0, 20000);
+      title = rawTitle.slice(0, 100);
+      type = String(req.body.type || 'general');
+      source = null;
+    }
+
+    const capped = text.slice(0, 12000);
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [{
+        role: 'user',
+        content: `Extract key insights from this document for a content creator who wants to reference it in social media posts.
+
+Summarize in flowing plain text (~400 words):
+1. Core frameworks or models described
+2. Key claims or arguments (3–5 points)
+3. Specific vocabulary and concepts the creator can use authentically
+4. Any statistics, studies, or data points that could ground posts in specificity
+
+Document:
+${capped}`,
+      }],
+    });
+    const summary = response.choices[0].message.content.trim();
+
+    const id = crypto.randomUUID();
+    await sql`INSERT INTO knowledge_docs (id, user_id, title, type, summary, source) VALUES (${id}, ${req.user.id}, ${title}, ${type}, ${summary}, ${source})`;
+    res.json({ success: true, id, title, type, source, created_at: new Date().toISOString() });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+app.delete('/api/knowledge/:id', requireAuth, async (req, res) => {
+  try {
+    await sql`DELETE FROM knowledge_docs WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    res.json({ success: true });
   } catch (err) {
     return serverErr(res, err);
   }

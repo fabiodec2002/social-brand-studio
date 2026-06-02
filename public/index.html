@@ -2871,16 +2871,24 @@
               </div>
             </div>
 
-            <!-- Reference materials -->
+            <!-- Knowledge base -->
             <div>
               <div class="context-toggle" id="ref-mat-toggle" onclick="toggleReferenceMaterials()">
-                <span id="ref-mat-toggle-label">+ Reference materials</span>
-                <span class="context-toggle-hint">books, articles, PDFs</span>
+                <span id="ref-mat-toggle-label">+ Knowledge base</span>
+                <span class="context-toggle-hint">books, research, market docs</span>
               </div>
               <div id="ref-mat-body" style="display:none;" class="context-body">
+                <!-- Persistent library (from DB) -->
+                <div id="knowledge-library-list"></div>
+                <label class="ref-upload-label" for="ref-save-pdf-input" id="ref-save-upload-label">
+                  + Add PDF to library
+                  <input type="file" id="ref-save-pdf-input" accept=".pdf" style="display:none" onchange="handleKnowledgeUpload(this.files[0])">
+                </label>
+                <!-- Session-only refs -->
+                <div class="context-note" style="border-top:1px solid var(--border);margin:0.6rem 0 0.3rem;padding-top:0.5rem;">Session only (cleared on refresh)</div>
                 <div id="ref-mat-list"></div>
-                <label class="ref-upload-label" for="ref-pdf-input" id="ref-upload-label">
-                  + Upload PDF reference
+                <label class="ref-upload-label" for="ref-pdf-input" id="ref-upload-label" style="opacity:0.75;">
+                  + Session PDF
                   <input type="file" id="ref-pdf-input" accept=".pdf" style="display:none" onchange="handleReferenceUpload(this.files[0])">
                 </label>
                 <div class="context-note" id="ref-upload-status"></div>
@@ -3089,6 +3097,7 @@
       if (data.websiteUrl) document.getElementById('website-url-input').value = data.websiteUrl;
       showUploadScreen();
       loadSessions();
+      loadKnowledgeDocs();
     } catch (err) {
       errEl.textContent = err.message;
       errEl.style.display = 'block';
@@ -3129,6 +3138,8 @@
     localStorage.removeItem('userEmail');
     appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal' };
     analyticsData = { linkedin: [], instagram: [] };
+    knowledgeDocs = [];
+    selectedKnowledgeDocIds = new Set();
     showAuthScreen();
   }
 
@@ -3136,6 +3147,7 @@
     if (authToken) {
       showUploadScreen();
       loadSessions();
+      loadKnowledgeDocs();
       authFetch('/api/auth/profile').then(r => r.json()).then(d => {
         if (d.websiteUrl) document.getElementById('website-url-input').value = d.websiteUrl;
       }).catch(() => {});
@@ -3149,6 +3161,8 @@
   let selectedBrandType = 'personal';
   let pendingFile = null;
   let referenceSummaries = [];
+  let knowledgeDocs = [];
+  let selectedKnowledgeDocIds = new Set();
   let selectedPillar = null;
   let selectedTone = 'authentic';
   let selectedIgFormat = 'post';
@@ -3691,6 +3705,73 @@
     `).join('');
   }
 
+  async function loadKnowledgeDocs() {
+    try {
+      const res = await authFetch('/api/knowledge');
+      const data = await res.json();
+      if (data.success) { knowledgeDocs = data.docs; renderKnowledgeLibrary(); }
+    } catch {}
+  }
+
+  function renderKnowledgeLibrary() {
+    const list = document.getElementById('knowledge-library-list');
+    if (!list) return;
+    if (!knowledgeDocs.length) {
+      list.innerHTML = '<div class="context-note" style="margin-bottom:0.4rem;">No docs saved yet — add a PDF above.</div>';
+      return;
+    }
+    list.innerHTML = knowledgeDocs.map(doc => `
+      <div class="ref-item">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;flex:1;min-width:0;overflow:hidden;">
+          <input type="checkbox" ${selectedKnowledgeDocIds.has(doc.id) ? 'checked' : ''} onchange="toggleKnowledgeDoc('${_escHtml(doc.id)}', this.checked)" style="flex-shrink:0;">
+          <span class="ref-item-title" title="${_escHtml(doc.title)}">${_escHtml(doc.title)}</span>
+          <span style="font-size:0.65rem;color:var(--text3);text-transform:uppercase;flex-shrink:0;">${_escHtml(doc.type)}</span>
+        </label>
+        <button class="ref-item-remove" onclick="deleteKnowledgeDoc('${_escHtml(doc.id)}')">&#x2715;</button>
+      </div>
+    `).join('');
+  }
+
+  function toggleKnowledgeDoc(id, checked) {
+    if (checked) selectedKnowledgeDocIds.add(id);
+    else selectedKnowledgeDocIds.delete(id);
+  }
+
+  async function deleteKnowledgeDoc(id) {
+    try {
+      await authFetch(`/api/knowledge/${id}`, { method: 'DELETE' });
+      knowledgeDocs = knowledgeDocs.filter(d => d.id !== id);
+      selectedKnowledgeDocIds.delete(id);
+      renderKnowledgeLibrary();
+    } catch {}
+  }
+
+  async function handleKnowledgeUpload(file) {
+    if (!file) return;
+    const label = document.getElementById('ref-save-upload-label');
+    const status = document.getElementById('ref-upload-status');
+    const origText = label.firstChild.textContent;
+    label.firstChild.textContent = 'Saving...';
+    status.textContent = '';
+    try {
+      const formData = new FormData();
+      formData.append('pdf', file);
+      const res = await authFetch('/api/knowledge', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Upload failed');
+      knowledgeDocs.unshift({ id: data.id, title: data.title, type: data.type, source: data.source, created_at: data.created_at });
+      selectedKnowledgeDocIds.add(data.id);
+      renderKnowledgeLibrary();
+      status.textContent = `Saved: "${data.title}"`;
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    } catch (err) {
+      status.textContent = 'Error: ' + err.message;
+    } finally {
+      label.firstChild.textContent = origText;
+      document.getElementById('ref-save-pdf-input').value = '';
+    }
+  }
+
   const PLATFORM_LABELS = { linkedin: 'LinkedIn', instagram: 'Instagram', twitter: 'Twitter/X', tiktok: 'TikTok', email: 'Email' };
 
   function buildPostCard(p, pillarLabel) {
@@ -3782,6 +3863,7 @@
             brandType: appData.brandType || 'personal',
             extraContext: document.getElementById('extra-context-input')?.value.trim() || null,
             referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
+            knowledgeDocIds: selectedKnowledgeDocIds.size ? [...selectedKnowledgeDocIds] : null,
           })
         });
         const data = await res.json();
@@ -3827,6 +3909,7 @@
           brandType: appData.brandType || 'personal',
           extraContext: document.getElementById('extra-context-input')?.value.trim() || null,
           referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
+          knowledgeDocIds: selectedKnowledgeDocIds.size ? [...selectedKnowledgeDocIds] : null,
         })
       });
       const data = await res.json();
@@ -3900,11 +3983,9 @@
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
 
+      showTab('carousel');
       carouselState.slides = data.slides;
       carouselState.currentSlide = 0;
-      if (typeof carouselLoadTemplate === 'function') carouselLoadTemplate();
-
-      showTab('carousel');
       carouselUpdatePreview();
       carouselRenderEditor();
       carouselSwitchTab('preview');
