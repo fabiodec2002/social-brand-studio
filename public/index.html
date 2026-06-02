@@ -1750,6 +1750,188 @@
 
     .save-indicator.visible { opacity: 1; }
 
+    /* ── Brand DNA Panel (onboarding step 3) ─────────────────────────── */
+    .ob-bc-field { margin-bottom: 1.25rem; }
+    .ob-bc-label-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+    .ob-bc-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .ob-extracted-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      background: rgba(201,169,110,0.1);
+      border: 1px solid rgba(201,169,110,0.25);
+      border-radius: 2px;
+      padding: 0.1rem 0.4rem;
+    }
+    .ob-missing-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 0.1rem 0.4rem;
+    }
+    .ob-bc-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      padding: 0.65rem 0.85rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .ob-bc-input:focus { border-color: var(--gold); }
+    .ob-bc-input::placeholder { color: var(--text3); font-style: italic; }
+    .ob-bc-input.prefilled { border-color: rgba(201,169,110,0.3); }
+
+    /* Pillar section dividers */
+    .ob-pillar-section {
+      margin-bottom: 2rem;
+    }
+    .ob-pillar-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .ob-pillar-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      background: rgba(201,169,110,0.1);
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 2px;
+      padding: 0.15rem 0.45rem;
+      flex-shrink: 0;
+    }
+    .ob-pillar-name-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--text);
+      font-style: italic;
+    }
+    .ob-pillar-name-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      margin-left: auto;
+    }
+
+    /* Persona card grid */
+    .ob-persona-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .ob-persona-grid .ob-bc-field { margin-bottom: 0; }
+
+    /* Tone of voice sliders */
+    .ob-tov-sliders { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+    .ob-tov-row { display: flex; align-items: center; gap: 0.75rem; }
+    .ob-tov-left, .ob-tov-right {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      width: 80px;
+      flex-shrink: 0;
+    }
+    .ob-tov-right { text-align: right; }
+    .ob-tov-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 1px;
+      background: var(--border2);
+      outline: none;
+      cursor: pointer;
+    }
+    .ob-tov-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+    .ob-tov-slider::-moz-range-thumb {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+      border: 2px solid var(--bg);
+    }
+
+    /* Goal cards */
+    .ob-goal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .ob-goal-card {
+      border: 1px solid var(--border2);
+      border-radius: 2px;
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      background: var(--bg2);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .ob-goal-card:hover { border-color: var(--gold); }
+    .ob-goal-card.selected {
+      border-color: var(--gold);
+      background: rgba(201,169,110,0.06);
+    }
+    .ob-goal-card .og-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+    .ob-goal-card .og-desc {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.63rem;
+      color: var(--text3);
+      letter-spacing: 0.04em;
+    }
+    .ob-bc-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text3);
+      letter-spacing: 0.04em;
+      margin-top: 0.35rem;
+    }
+    @media (max-width: 600px) {
+      .ob-persona-grid { grid-template-columns: 1fr; }
+      .ob-goal-grid { grid-template-columns: 1fr; }
+      .ob-tov-left, .ob-tov-right { width: 56px; font-size: 0.58rem; }
+    }
+
     /* ── Brand Type Toggle ──────────────────────────────────────────────── */
     .brand-type-row {
       display: flex;
@@ -2989,7 +3171,7 @@
   <div class="screen" id="onboarding-screen">
     <div class="ob-wrap">
       <div class="ob-progress-row">
-        <div class="ob-step-label" id="ob-step-label">Step 1 of 5</div>
+        <div class="ob-step-label" id="ob-step-label">Step 1 of 6</div>
         <div class="ob-progress-bar"><div class="ob-progress-fill" id="ob-progress-fill" style="width:0%"></div></div>
       </div>
 
@@ -3006,21 +3188,27 @@
       </div>
 
       <div id="ob-panel-3" style="display:none">
-        <div class="ob-title">Your content <em style="font-style:italic;color:var(--gold);">pillars</em></div>
-        <div class="ob-subtitle">3–5 themes that drive every piece of content — including the audience pain each one addresses</div>
+        <div class="ob-title">Your brand <em style="font-style:italic;color:var(--gold);">DNA</em></div>
+        <div class="ob-subtitle" id="ob-subtitle-3">We extracted what we could from your website — review every pillar and fill in anything missing</div>
         <div class="ob-body" id="ob-body-3"></div>
       </div>
 
       <div id="ob-panel-4" style="display:none">
-        <div class="ob-title">Your platform <em style="font-style:italic;color:var(--gold);">playbook</em></div>
-        <div class="ob-subtitle">How to show up differently on LinkedIn and Instagram — click to edit</div>
+        <div class="ob-title">Your content <em style="font-style:italic;color:var(--gold);">pillars</em></div>
+        <div class="ob-subtitle">3–5 themes that drive every piece of content — including the audience pain each one addresses</div>
         <div class="ob-body" id="ob-body-4"></div>
       </div>
 
       <div id="ob-panel-5" style="display:none">
+        <div class="ob-title">Your platform <em style="font-style:italic;color:var(--gold);">playbook</em></div>
+        <div class="ob-subtitle">How to show up differently on LinkedIn and Instagram — click to edit</div>
+        <div class="ob-body" id="ob-body-5"></div>
+      </div>
+
+      <div id="ob-panel-6" style="display:none">
         <div class="ob-title">Your strategy is <em style="font-style:italic;color:var(--gold);">ready</em></div>
         <div class="ob-subtitle">Everything is set. You can edit any field at any time inside the studio.</div>
-        <div class="ob-body" id="ob-body-5"></div>
+        <div class="ob-body" id="ob-body-6"></div>
       </div>
 
       <div class="ob-nav">
@@ -3136,7 +3324,7 @@
     currentUserEmail = null;
     localStorage.removeItem('token');
     localStorage.removeItem('userEmail');
-    appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal' };
+    appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal', brandContext: null };
     analyticsData = { linkedin: [], instagram: [] };
     knowledgeDocs = [];
     selectedKnowledgeDocIds = new Set();
@@ -3157,7 +3345,7 @@
   }
 
   // ─── App state ───────────────────────────────────────────────────────────────
-  let appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal' };
+  let appData = { sessionId: null, personalityMap: null, strategy: null, brandType: 'personal', brandContext: null };
   let selectedBrandType = 'personal';
   let pendingFile = null;
   let referenceSummaries = [];
@@ -3360,14 +3548,26 @@
     }
   }
 
+  function isBrandContextComplete(bc) {
+    if (!bc) return false;
+    const p = bc.buyer_persona || {};
+    return !!(bc.missie || bc.visie || p.archetype || p.fear || p.desire);
+  }
+
   async function loadSession(id, e) {
-    e.stopPropagation();
-    showLoading('Loading your strategy...');
+    e?.stopPropagation();
+    showLoading('Loading your brand strategy...');
     try {
       const res = await authFetch(`/api/sessions/${id}`);
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      appData = { sessionId: id, personalityMap: data.personalityMap, strategy: data.strategy, brandType: data.brandType || 'personal' };
+      appData = { sessionId: id, personalityMap: data.personalityMap, strategy: data.strategy, brandType: data.brandType || 'personal', brandContext: data.brandContext || null };
+      if (!isBrandContextComplete(data.brandContext)) {
+        // Brand DNA has never been filled — send them to onboarding starting at step 3
+        showOnboarding(data.strategy, data.personalityMap, data.brandContext, 3);
+        loadAnalyticsForSession(id);
+        return;
+      }
       populateApp(data.strategy, data.personalityMap);
       showApp();
       loadAnalyticsForSession(id);
@@ -3471,8 +3671,8 @@
 
       if (!data.success) throw new Error(data.error);
 
-      appData = { sessionId: data.id, personalityMap: data.personalityMap, strategy: data.strategy, brandType: data.brandType || selectedBrandType };
-      showOnboarding(data.strategy, data.personalityMap);
+      appData = { sessionId: data.id, personalityMap: data.personalityMap, strategy: data.strategy, brandType: data.brandType || selectedBrandType, brandContext: data.brandContext || null };
+      showOnboarding(data.strategy, data.personalityMap, data.brandContext);
     } catch (err) {
       hideLoading();
       alert('Error processing your PDF: ' + err.message);
@@ -3864,6 +4064,7 @@
             extraContext: document.getElementById('extra-context-input')?.value.trim() || null,
             referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
             knowledgeDocIds: selectedKnowledgeDocIds.size ? [...selectedKnowledgeDocIds] : null,
+            brandContext: appData.brandContext || null,
           })
         });
         const data = await res.json();
@@ -3910,6 +4111,7 @@
           extraContext: document.getElementById('extra-context-input')?.value.trim() || null,
           referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
           knowledgeDocIds: selectedKnowledgeDocIds.size ? [...selectedKnowledgeDocIds] : null,
+          brandContext: appData.brandContext || null,
         })
       });
       const data = await res.json();
@@ -4565,19 +4767,22 @@
   // ── Onboarding ───────────────────────────────────────────────────────────────
 
   let obStep = 1;
-  const OB_STEPS = 5;
+  const OB_STEPS = 6;
   let obMap = null;
   let obStrat = null;
+  let obBrandContext = {};
 
-  function showOnboarding(strategy, personalityMap) {
+  function showOnboarding(strategy, personalityMap, brandContext, startStep) {
     obStrat = JSON.parse(JSON.stringify(strategy));
     obMap = JSON.parse(JSON.stringify(personalityMap));
+    obBrandContext = brandContext ? JSON.parse(JSON.stringify(brandContext)) : {};
     buildObStep1();
     buildObStep2();
     buildObStep3();
     buildObStep4();
     buildObStep5();
-    obStep = 1;
+    buildObStep6();
+    obStep = startStep || 1;
     renderObStep();
     document.getElementById('auth-screen').classList.remove('active');
     document.getElementById('upload-screen').classList.remove('active');
@@ -4611,7 +4816,13 @@
   function finalizeOnboarding() {
     appData.strategy = obStrat;
     appData.personalityMap = obMap;
+    appData.brandContext = obBrandContext;
     if (appData.sessionId) {
+      authFetch(`/api/sessions/${appData.sessionId}/brand-context`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brandContext: obBrandContext }),
+      }).catch(() => {});
       authFetch(`/api/sessions/${appData.sessionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -4776,8 +4987,291 @@
     dontF.appendChild(dontT); body.appendChild(dontF);
   }
 
+  // ── Step 3: Brand DNA — 5 pillars (Missie · Visie · Kernwaarden · Buyer Persona · Tone of Voice)
   function buildObStep3() {
     const body = document.getElementById('ob-body-3');
+    body.innerHTML = '';
+    const bc = obBrandContext || {};
+    const extracted = bc.extracted_fields || [];
+    const wasExtracted = (field) => extracted.includes(field);
+
+    // Update subtitle
+    const nExtracted = extracted.length;
+    const subtitle = document.getElementById('ob-subtitle-3');
+    if (subtitle) {
+      subtitle.textContent = nExtracted > 0
+        ? `We pulled ${nExtracted} pillar${nExtracted > 1 ? 's' : ''} from your website — review and fill in what's missing`
+        : 'No website provided — define the 5 pillars that make every post unmistakably yours';
+    }
+
+    // Helper: build a labeled textarea/input field
+    function bcField(labelText, fieldKey, inputId, placeholder, isTextarea, rows, nestedObj) {
+      const wrap = document.createElement('div');
+      wrap.className = 'ob-bc-field';
+      const labelRow = document.createElement('div');
+      labelRow.className = 'ob-bc-label-row';
+      const lbl = document.createElement('div');
+      lbl.className = 'ob-bc-label';
+      lbl.textContent = labelText;
+      labelRow.appendChild(lbl);
+      const currentVal = nestedObj ? (nestedObj[fieldKey] || '') : (bc[fieldKey] || '');
+      const isFilled = !!currentVal;
+      const badge = document.createElement('span');
+      badge.className = isFilled ? 'ob-extracted-badge' : 'ob-missing-badge';
+      badge.textContent = isFilled ? '✓ extracted' : 'Fill in';
+      labelRow.appendChild(badge);
+      wrap.appendChild(labelRow);
+      const input = document.createElement(isTextarea ? 'textarea' : 'input');
+      input.className = 'ob-bc-input' + (isFilled ? ' prefilled' : '');
+      input.id = inputId;
+      input.placeholder = placeholder;
+      input.value = currentVal;
+      if (isTextarea) input.rows = rows || 2;
+      input.addEventListener('input', () => {
+        const v = input.value.trim();
+        if (nestedObj) { nestedObj[fieldKey] = v; }
+        else { obBrandContext[fieldKey] = v; }
+      });
+      wrap.appendChild(input);
+      return wrap;
+    }
+
+    // Helper: pillar section wrapper
+    function pillarSection(num, name, sublabel) {
+      const sec = document.createElement('div');
+      sec.className = 'ob-pillar-section';
+      const hdr = document.createElement('div');
+      hdr.className = 'ob-pillar-header';
+      hdr.innerHTML = `<span class="ob-pillar-num">${num}</span><span class="ob-pillar-name-text">${name}</span><span class="ob-pillar-name-sub">${sublabel}</span>`;
+      sec.appendChild(hdr);
+      return sec;
+    }
+
+    // ── 1. Missie ────────────────────────────────────────────────────────────
+    const s1 = pillarSection('01', 'Missie', 'why you exist');
+    s1.appendChild(bcField(
+      'Mission — why you do what you do beyond making money',
+      'missie', 'bc-missie',
+      'e.g. I exist to help ambitious professionals own their career instead of renting it out.',
+      true, 2
+    ));
+    body.appendChild(s1);
+
+    // ── 2. Visie ─────────────────────────────────────────────────────────────
+    const s2 = pillarSection('02', 'Visie', 'where you\'re going');
+    s2.appendChild(bcField(
+      'Vision — the world you want to create, or where you take your clients',
+      'visie', 'bc-visie',
+      'e.g. A world where expertise is valued over job titles and professionals build on their own terms.',
+      true, 2
+    ));
+    body.appendChild(s2);
+
+    // ── 3. Kernwaarden ────────────────────────────────────────────────────────
+    const s3 = pillarSection('03', 'Kernwaarden', 'what you stand for');
+    const kvWrap = document.createElement('div');
+    kvWrap.className = 'ob-bc-field';
+    const kvLabelRow = document.createElement('div');
+    kvLabelRow.className = 'ob-bc-label-row';
+    const kvLbl = document.createElement('div'); kvLbl.className = 'ob-bc-label'; kvLbl.textContent = 'Core values';
+    kvLabelRow.appendChild(kvLbl);
+    if (wasExtracted('kernwaarden') || (bc.kernwaarden || []).length) {
+      const b = document.createElement('span'); b.className = 'ob-extracted-badge'; b.textContent = '✓ extracted'; kvLabelRow.appendChild(b);
+    } else {
+      const b = document.createElement('span'); b.className = 'ob-missing-badge'; b.textContent = 'Fill in'; kvLabelRow.appendChild(b);
+    }
+    kvWrap.appendChild(kvLabelRow);
+    // Pre-seed kernwaarden from bc.kernwaarden or fall back to personalityMap values
+    if (!bc.kernwaarden || !bc.kernwaarden.length) {
+      obBrandContext.kernwaarden = [...(obMap.values || [])];
+    }
+    const kvTagsEl = document.createElement('div'); kvTagsEl.className = 'ob-tags';
+    renderTagEditor(kvTagsEl, obBrandContext.kernwaarden || [], null);
+    kvWrap.appendChild(kvTagsEl);
+    const kvNote = document.createElement('div'); kvNote.className = 'ob-bc-note';
+    kvNote.textContent = '3–5 values. Click × to remove. Press Enter or Tab to add.';
+    kvWrap.appendChild(kvNote);
+    s3.appendChild(kvWrap);
+    body.appendChild(s3);
+
+    // ── 4. Buyer Persona ──────────────────────────────────────────────────────
+    const s4 = pillarSection('04', 'Buyer Persona', 'the one person you\'re writing to');
+    if (!bc.buyer_persona || typeof bc.buyer_persona !== 'object') {
+      obBrandContext.buyer_persona = {};
+    }
+    const persona = obBrandContext.buyer_persona;
+
+    const personaNote = document.createElement('div'); personaNote.className = 'ob-bc-note';
+    personaNote.style.marginBottom = '0.75rem';
+    personaNote.textContent = 'Write every post to this ONE person. The more specific, the better the output.';
+    s4.appendChild(personaNote);
+
+    // Archetype (full width)
+    s4.appendChild(bcField(
+      'Who are they — role, situation, archetype',
+      'archetype', 'bc-persona-archetype',
+      'e.g. Senior HR director, 38, at a fast-growing scale-up. Burned out. Secretly wants to go independent.',
+      true, 2, persona
+    ));
+
+    // 2-column grid: fear + desire
+    const personaGrid = document.createElement('div');
+    personaGrid.className = 'ob-persona-grid';
+    personaGrid.appendChild(bcField('Their deepest fear', 'fear', 'bc-persona-fear',
+      'e.g. Not being taken seriously if they leave their corporate title', true, 3, persona));
+    personaGrid.appendChild(bcField('Their real desire', 'desire', 'bc-persona-desire',
+      'e.g. Work they\'re proud of, full control over their schedule, being paid for expertise not hours', true, 3, persona));
+    s4.appendChild(personaGrid);
+
+    // Buying trigger (full width)
+    s4.appendChild(bcField(
+      'What finally makes them take action',
+      'buying_trigger', 'bc-persona-trigger',
+      'e.g. A colleague leaves corporate and starts thriving — that\'s when they Google you.',
+      true, 2, persona
+    ));
+    body.appendChild(s4);
+
+    // ── 5. Tone of Voice ──────────────────────────────────────────────────────
+    const s5 = pillarSection('05', 'Tone of Voice', 'how you communicate');
+    const tov = bc.tone_of_voice || {};
+    if (!obBrandContext.tone_of_voice) obBrandContext.tone_of_voice = {};
+
+    // Voice description
+    const tovDescWrap = document.createElement('div');
+    tovDescWrap.className = 'ob-bc-field';
+    const tovDescRow = document.createElement('div'); tovDescRow.className = 'ob-bc-label-row';
+    const tovDescLbl = document.createElement('div'); tovDescLbl.className = 'ob-bc-label';
+    tovDescLbl.textContent = 'In your own words — how do you sound when you\'re at your best?';
+    tovDescRow.appendChild(tovDescLbl);
+    if (tov.description) { const b = document.createElement('span'); b.className = 'ob-extracted-badge'; b.textContent = '✓ extracted'; tovDescRow.appendChild(b); }
+    tovDescWrap.appendChild(tovDescRow);
+    const tovDescInput = document.createElement('textarea');
+    tovDescInput.className = 'ob-bc-input' + (tov.description ? ' prefilled' : '');
+    tovDescInput.rows = 2;
+    tovDescInput.placeholder = 'e.g. Direct but warm. I use short sentences. I swear occasionally. No corporate speak, ever.';
+    tovDescInput.value = tov.description || '';
+    tovDescInput.addEventListener('input', () => { obBrandContext.tone_of_voice.description = tovDescInput.value.trim(); });
+    tovDescWrap.appendChild(tovDescInput);
+    s5.appendChild(tovDescWrap);
+
+    // Sliders
+    const slidersWrap = document.createElement('div');
+    slidersWrap.className = 'ob-bc-field';
+    const slidersLabelRow = document.createElement('div'); slidersLabelRow.className = 'ob-bc-label-row';
+    const slidersLbl = document.createElement('div'); slidersLbl.className = 'ob-bc-label';
+    slidersLbl.textContent = 'Voice calibration';
+    slidersLabelRow.appendChild(slidersLbl);
+    if (tov.formal_casual) { const b = document.createElement('span'); b.className = 'ob-extracted-badge'; b.textContent = '✓ inferred'; slidersLabelRow.appendChild(b); }
+    slidersWrap.appendChild(slidersLabelRow);
+
+    const slidersContainer = document.createElement('div');
+    slidersContainer.className = 'ob-tov-sliders';
+    [
+      { key: 'formal_casual',    left: 'Formal',   right: 'Casual',    default: tov.formal_casual    || 3 },
+      { key: 'direct_nurturing', left: 'Direct',   right: 'Nurturing', default: tov.direct_nurturing || 3 },
+      { key: 'serious_playful',  left: 'Serious',  right: 'Playful',   default: tov.serious_playful  || 2 },
+    ].forEach(({ key, left, right, default: def }) => {
+      obBrandContext.tone_of_voice[key] = def;
+      const row = document.createElement('div'); row.className = 'ob-tov-row';
+      const leftLbl = document.createElement('span'); leftLbl.className = 'ob-tov-left'; leftLbl.textContent = left;
+      const slider = document.createElement('input');
+      slider.type = 'range'; slider.min = 1; slider.max = 5; slider.step = 1;
+      slider.value = def;
+      slider.className = 'ob-tov-slider';
+      slider.addEventListener('input', () => { obBrandContext.tone_of_voice[key] = parseInt(slider.value); });
+      const rightLbl = document.createElement('span'); rightLbl.className = 'ob-tov-right'; rightLbl.textContent = right;
+      row.appendChild(leftLbl); row.appendChild(slider); row.appendChild(rightLbl);
+      slidersContainer.appendChild(row);
+    });
+    slidersWrap.appendChild(slidersContainer);
+    s5.appendChild(slidersWrap);
+    body.appendChild(s5);
+
+    // ── Supporting context (compact) ──────────────────────────────────────────
+    const sExtra = pillarSection('→', 'Offer & proof', 'what you sell and your best result');
+
+    // Goal cards
+    const goalWrap = document.createElement('div');
+    goalWrap.className = 'ob-bc-field';
+    const goalLabelRow = document.createElement('div'); goalLabelRow.className = 'ob-bc-label-row';
+    const goalLbl = document.createElement('div'); goalLbl.className = 'ob-bc-label'; goalLbl.textContent = 'Primary goal on social media';
+    goalLabelRow.appendChild(goalLbl);
+    if (wasExtracted('social_goal')) { const b = document.createElement('span'); b.className = 'ob-extracted-badge'; b.textContent = '✓ inferred'; goalLabelRow.appendChild(b); }
+    goalWrap.appendChild(goalLabelRow);
+    const goalGrid = document.createElement('div'); goalGrid.className = 'ob-goal-grid';
+    [
+      { value: 'get_clients',             title: 'Get clients',         desc: 'Convert followers into paid work' },
+      { value: 'build_thought_leadership',title: 'Build authority',     desc: 'Own a topic, earn speaking & media' },
+      { value: 'grow_audience',           title: 'Grow audience',       desc: 'Reach more people, build following' },
+      { value: 'nurture_community',       title: 'Nurture community',   desc: 'Deepen trust with existing audience' },
+    ].forEach(g => {
+      const card = document.createElement('div');
+      card.className = 'ob-goal-card' + (bc.social_goal === g.value ? ' selected' : '');
+      card.innerHTML = `<div class="og-title">${g.title}</div><div class="og-desc">${g.desc}</div>`;
+      card.addEventListener('click', () => {
+        goalGrid.querySelectorAll('.ob-goal-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        obBrandContext.social_goal = g.value;
+      });
+      goalGrid.appendChild(card);
+    });
+    goalWrap.appendChild(goalGrid);
+    sExtra.appendChild(goalWrap);
+
+    // Offer + price side by side
+    const offerRow = document.createElement('div');
+    offerRow.style.cssText = 'display:grid;grid-template-columns:2fr 1fr;gap:0.75rem;';
+    const offerWrap = document.createElement('div'); offerWrap.className = 'ob-bc-field'; offerWrap.style.marginBottom = '0';
+    const offerLabelRow = document.createElement('div'); offerLabelRow.className = 'ob-bc-label-row';
+    const offerLbl = document.createElement('div'); offerLbl.className = 'ob-bc-label'; offerLbl.textContent = 'What you sell';
+    offerLabelRow.appendChild(offerLbl);
+    if (bc.offer) { const b = document.createElement('span'); b.className = 'ob-extracted-badge'; b.textContent = '✓ extracted'; offerLabelRow.appendChild(b); }
+    offerWrap.appendChild(offerLabelRow);
+    const offerInp = document.createElement('input'); offerInp.className = 'ob-bc-input' + (bc.offer ? ' prefilled' : '');
+    offerInp.placeholder = 'e.g. 1:1 executive coaching, LinkedIn retainer, online course';
+    offerInp.value = bc.offer || '';
+    offerInp.addEventListener('input', () => { obBrandContext.offer = offerInp.value.trim(); });
+    offerWrap.appendChild(offerInp);
+
+    const priceWrap = document.createElement('div'); priceWrap.className = 'ob-bc-field'; priceWrap.style.marginBottom = '0';
+    const priceLabelRow = document.createElement('div'); priceLabelRow.className = 'ob-bc-label-row';
+    const priceLbl = document.createElement('div'); priceLbl.className = 'ob-bc-label'; priceLbl.textContent = 'Price point';
+    priceLabelRow.appendChild(priceLbl);
+    priceWrap.appendChild(priceLabelRow);
+    const priceInp = document.createElement('input'); priceInp.className = 'ob-bc-input' + (bc.price_point ? ' prefilled' : '');
+    priceInp.placeholder = 'e.g. €2,500/mo';
+    priceInp.value = bc.price_point || '';
+    priceInp.addEventListener('input', () => { obBrandContext.price_point = priceInp.value.trim(); });
+    priceWrap.appendChild(priceInp);
+    offerRow.appendChild(offerWrap); offerRow.appendChild(priceWrap);
+    const offerOuter = document.createElement('div'); offerOuter.className = 'ob-bc-field';
+    offerOuter.appendChild(offerRow);
+    sExtra.appendChild(offerOuter);
+
+    sExtra.appendChild(bcField(
+      'Your single best result (one sentence)',
+      'best_result', 'bc-result',
+      'e.g. A client added €240k ARR in 90 days using this framework.',
+      true, 2
+    ));
+    sExtra.appendChild(bcField(
+      'A belief in your industry you publicly disagree with',
+      'contrarian_belief', 'bc-contrarian',
+      'e.g. Everyone says you need to post daily. I don\'t buy it.',
+      true, 2
+    ));
+    sExtra.appendChild(bcField(
+      'Topics or angles that are off-limits',
+      'off_limits', 'bc-offlimits',
+      'e.g. Family is private. No competitor mentions. Stay clear of politics.',
+      true, 2
+    ));
+    body.appendChild(sExtra);
+  }
+
+  function buildObStep4() {
+    const body = document.getElementById('ob-body-4');
     body.innerHTML = '';
     const grid = document.createElement('div');
     grid.className = 'ob-pillars-row';
@@ -4834,8 +5328,8 @@
     body.appendChild(grid);
   }
 
-  function buildObStep4() {
-    const body = document.getElementById('ob-body-4');
+  function buildObStep5() {
+    const body = document.getElementById('ob-body-5');
     body.innerHTML = '';
     const grid = document.createElement('div');
     grid.className = 'ob-platform-grid';
@@ -4879,8 +5373,8 @@
     body.appendChild(grid);
   }
 
-  function buildObStep5() {
-    const body = document.getElementById('ob-body-5');
+  function buildObStep6() {
+    const body = document.getElementById('ob-body-6');
     const pillars = obStrat.content_pillars || [];
     const platforms = Object.keys(obStrat.platform_strategy || {});
     body.innerHTML = `

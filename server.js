@@ -115,6 +115,7 @@ async function initDb() {
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS website_url TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url TEXT`;
   await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS style_fingerprint TEXT`;
+  await sql`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS brand_context JSONB`;
   await sql`
     CREATE TABLE IF NOT EXISTS generated_posts (
       id TEXT PRIMARY KEY,
@@ -165,6 +166,67 @@ function isSafeUrl(rawUrl) {
   } catch {
     return false;
   }
+}
+
+// Extract the 5 brand pillars + supporting context from website text + personality map
+async function extractBrandContext(websiteText, personalityMap) {
+  const mapSnippet = personalityMap
+    ? `Name: ${personalityMap.name || 'Unknown'}
+Values: ${(personalityMap.values || []).slice(0, 8).join(', ')}
+Skills: ${(personalityMap.skills || []).slice(0, 8).join(', ')}
+Expertise: ${((personalityMap.professional_experience || {}).areas_of_expertise || []).join(', ')}
+Tangible assets (offers): ${(personalityMap.tangible_assets || []).slice(0, 6).join(', ')}
+Personality notes: ${personalityMap.personality_notes || ''}`
+    : '';
+
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    response_format: { type: 'json_object' },
+    messages: [{
+      role: 'user',
+      content: `Extract the 5 brand pillars from this content. These are: Missie, Visie, Kernwaarden, Buyer Persona, and Tone of Voice. Set fields to null only if you genuinely cannot determine them — make confident inferences from context where possible.
+
+CONTENT:
+${websiteText}
+
+${mapSnippet ? `PERSONALITY/BRAND DATA (additional context):\n${mapSnippet}` : ''}
+
+Return this exact JSON:
+{
+  "missie": "Why they exist beyond making money — their mission in one powerful sentence. Infer from the work, values, and positioning if not stated explicitly. null only if truly impossible to determine.",
+  "visie": "The world they want to create, or where they are taking their clients in the next 3–5 years. One forward-facing sentence. null if not determinable.",
+  "kernwaarden": ["core value 1", "core value 2", "core value 3"],
+  "buyer_persona": {
+    "archetype": "Name or role description for their ideal client (e.g. 'The Ambitious Executive' or 'Senior HR directors at fast-growing companies'). null if unclear.",
+    "situation": "Their current situation — what is happening in their life or work that brings them here. null if unclear.",
+    "fear": "Their deepest fear or the thing keeping them up at night — the real emotional pain, not the surface problem. null if unclear.",
+    "desire": "What they secretly want — the deeper desire beneath the stated goal. null if unclear.",
+    "buying_trigger": "What finally makes them take action — the moment or event that pushes them to buy. null if unclear."
+  },
+  "tone_of_voice": {
+    "description": "How they actually sound — 2 concrete sentences capturing their communication style. Quote specific phrases from the content if helpful.",
+    "formal_casual": 3,
+    "direct_nurturing": 3,
+    "serious_playful": 2
+  },
+  "offer": "What they sell — specific product or service name and format. null if not found.",
+  "price_point": "Price range if shown on the site. null if not found.",
+  "best_result": "Single most compelling proof point, case study result, or testimonial. One sentence. null if none found.",
+  "contrarian_belief": "Any opinion or positioning they state as different from how their industry normally operates. null if not found.",
+  "social_goal": "Most likely primary content goal — one of: get_clients / build_thought_leadership / grow_audience / nurture_community. Always infer from context, never null.",
+  "off_limits": null,
+  "extracted_fields": ["array of top-level field names (missie, visie, kernwaarden, buyer_persona, tone_of_voice, offer, price_point, best_result, contrarian_belief, social_goal) that were filled with confident data"]
+}
+
+Note: tone_of_voice sliders use 1–5 scale where 1=left extreme, 5=right extreme:
+- formal_casual: 1=very formal, 5=very casual
+- direct_nurturing: 1=very direct, 5=very nurturing
+- serious_playful: 1=very serious, 5=very playful
+
+Return ONLY valid JSON.`,
+    }],
+  });
+  return JSON.parse(response.choices[0].message.content);
 }
 
 // Fetch website and strip to plain text (best-effort)
@@ -702,7 +764,7 @@ Return ONLY the revised post text. No explanation, no preamble.`,
 }
 
 // Generate a social post
-async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal', extraContext = null, referenceSummaries = null, styleFingerprint = null) {
+async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal', extraContext = null, referenceSummaries = null, styleFingerprint = null, brandContext = null) {
   const pillarData = customTopic
     ? { name: 'Custom Topic', description: customTopic }
     : (strategy.content_pillars.find(p => p.id === pillar) || strategy.content_pillars[0]);
@@ -889,7 +951,45 @@ TOP PERFORMING POSTS — study the emotional tone, level of specificity, and str
 ${topPosts.slice(0, 3).map((p, i) => `[Top post ${i + 1} — ${p.likes} likes${p.saves ? `, ${p.saves} saves` : ''}${p.comments ? `, ${p.comments} comments` : ''}]
 "${p.text.slice(0, 350)}"`).join('\n\n')}
 ` : ''}
-${extraContext ? `\nADDITIONAL CONTEXT FROM THE WRITER:\n${extraContext}\n\nUse this as background knowledge and voice calibration. Do not quote it directly — let it inform the specificity and perspective of what you write.\n` : ''}${referenceSummaries && referenceSummaries.length ? `\nREFERENCE MATERIALS — insights from books/articles the writer wants to draw from:\n${referenceSummaries.map(r => `[${r.title}]\n${r.summary}`).join('\n\n')}\n\nDraw on these frameworks and vocabulary where relevant. Don't cite them explicitly unless it fits naturally.\n` : ''}${styleFingerprint ? `\nSTYLE FINGERPRINT — learned from this writer's actual posts. Mirror these patterns:\n${styleFingerprint}\n` : ''}Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
+${brandContext ? (() => {
+  const bc = brandContext;
+  const p = bc.buyer_persona || {};
+  const tov = bc.tone_of_voice || {};
+  const tovScale = (val, left, right) => {
+    if (!val) return '';
+    if (val <= 2) return `leans ${left}`;
+    if (val >= 4) return `leans ${right}`;
+    return 'balanced';
+  };
+  const lines = [
+    '\nBRAND DNA (confirmed by the writer — treat as ground truth for every post):',
+    bc.missie    ? `MISSIE (why they exist): ${bc.missie}` : '',
+    bc.visie     ? `VISIE (where they're going): ${bc.visie}` : '',
+    (bc.kernwaarden || []).length ? `KERNWAARDEN: ${bc.kernwaarden.join(' · ')}` : '',
+    (p.archetype || p.situation || p.fear || p.desire) ? [
+      'BUYER PERSONA:',
+      p.archetype      ? `  Who: ${p.archetype}` : '',
+      p.situation      ? `  Situation: ${p.situation}` : '',
+      p.fear           ? `  Deepest fear: ${p.fear}` : '',
+      p.desire         ? `  Real desire: ${p.desire}` : '',
+      p.buying_trigger ? `  Buying trigger: ${p.buying_trigger}` : '',
+    ].filter(Boolean).join('\n') : '',
+    tov.description ? `TONE OF VOICE: ${tov.description}` : '',
+    [
+      tovScale(tov.formal_casual, 'formal', 'casual'),
+      tovScale(tov.direct_nurturing, 'direct', 'nurturing'),
+      tovScale(tov.serious_playful, 'serious', 'playful'),
+    ].filter(Boolean).length ? `Voice calibration: ${[tovScale(tov.formal_casual,'formal','casual'),tovScale(tov.direct_nurturing,'direct','nurturing'),tovScale(tov.serious_playful,'serious','playful')].filter(Boolean).join(', ')}` : '',
+    bc.offer       ? `OFFER: ${bc.offer}${bc.price_point ? ` (${bc.price_point})` : ''}` : '',
+    bc.best_result ? `PROOF POINT: ${bc.best_result}` : '',
+    bc.contrarian_belief ? `CONTRARIAN TAKE: ${bc.contrarian_belief}` : '',
+    bc.social_goal ? `CONTENT GOAL: ${bc.social_goal.replace(/_/g, ' ')}` : '',
+    bc.off_limits  ? `OFF-LIMITS: ${bc.off_limits}` : '',
+    '',
+    'Use the buyer persona fear and desire to make posts land emotionally. Use the missie to keep posts purposeful. Use the proof point when the pillar calls for credibility. Mirror the tone of voice calibration in every sentence.',
+  ];
+  return lines.filter(Boolean).join('\n');
+})() : ''}${extraContext ? `\nADDITIONAL CONTEXT FROM THE WRITER:\n${extraContext}\n\nUse this as background knowledge and voice calibration. Do not quote it directly — let it inform the specificity and perspective of what you write.\n` : ''}${referenceSummaries && referenceSummaries.length ? `\nREFERENCE MATERIALS — insights from books/articles the writer wants to draw from:\n${referenceSummaries.map(r => `[${r.title}]\n${r.summary}`).join('\n\n')}\n\nDraw on these frameworks and vocabulary where relevant. Don't cite them explicitly unless it fits naturally.\n` : ''}${styleFingerprint ? `\nSTYLE FINGERPRINT — learned from this writer's actual posts. Mirror these patterns:\n${styleFingerprint}\n` : ''}Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
     }],
   });
 
@@ -1120,18 +1220,36 @@ app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
       : await parsePersonalityMap(text, websiteText);
     const strategy = await generateStrategy(personalityMap, brandType);
 
+    // Extract structured brand context from website (or personality map alone if no site)
+    let brandContext = null;
+    try {
+      const contextSource = websiteText || null;
+      if (contextSource) {
+        brandContext = await extractBrandContext(contextSource, personalityMap);
+      } else {
+        // Derive what we can from the personality map itself when no website is provided
+        brandContext = await extractBrandContext(
+          `Name: ${personalityMap.name || ''}\n` +
+          `Skills: ${(personalityMap.skills || []).join(', ')}\n` +
+          `Tangible assets (offers): ${(personalityMap.tangible_assets || []).join(', ')}\n` +
+          `Professional experience: ${JSON.stringify(personalityMap.professional_experience || {})}`,
+          personalityMap
+        );
+      }
+    } catch { /* non-fatal */ }
+
     const id = crypto.randomUUID();
     await Promise.all([
       sql`
-        INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, brand_type, user_id, website_url)
-        VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)}, ${brandType}, ${req.user.id}, ${websiteUrl || null})
+        INSERT INTO sessions (id, name, pdf_name, personality_map, strategy, brand_type, user_id, website_url, brand_context)
+        VALUES (${id}, ${personalityMap.name || 'Unknown'}, ${req.file.originalname}, ${JSON.stringify(personalityMap)}, ${JSON.stringify(strategy)}, ${brandType}, ${req.user.id}, ${websiteUrl || null}, ${brandContext ? JSON.stringify(brandContext) : null})
       `,
       websiteUrl
         ? sql`UPDATE users SET website_url = ${websiteUrl} WHERE id = ${req.user.id}`
         : Promise.resolve(),
     ]);
 
-    res.json({ success: true, id, personalityMap, strategy, brandType });
+    res.json({ success: true, id, personalityMap, strategy, brandType, brandContext });
   } catch (err) {
     return serverErr(res, err);
   }
@@ -1186,9 +1304,20 @@ app.get('/api/sessions', requireAuth, async (req, res) => {
 
 app.get('/api/sessions/:id', requireAuth, async (req, res) => {
   try {
-    const rows = await sql`SELECT personality_map, strategy, brand_type FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    const rows = await sql`SELECT personality_map, strategy, brand_type, brand_context FROM sessions WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     if (!rows.length) return res.status(404).json({ error: 'Session not found' });
-    res.json({ success: true, personalityMap: rows[0].personality_map, strategy: rows[0].strategy, brandType: rows[0].brand_type || 'personal' });
+    res.json({ success: true, personalityMap: rows[0].personality_map, strategy: rows[0].strategy, brandType: rows[0].brand_type || 'personal', brandContext: rows[0].brand_context || null });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+app.put('/api/sessions/:id/brand-context', requireAuth, async (req, res) => {
+  try {
+    const { brandContext } = req.body;
+    if (!brandContext || typeof brandContext !== 'object') return res.status(400).json({ error: 'brandContext object required' });
+    await sql`UPDATE sessions SET brand_context = ${JSON.stringify(brandContext)} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    res.json({ success: true });
   } catch (err) {
     return serverErr(res, err);
   }
@@ -1222,7 +1351,7 @@ const VALID_EMAIL_SUBTYPES = ['value', 'story', 'curation'];
 
 app.post('/api/generate-post', requireAuth, async (req, res) => {
   try {
-    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType, extraContext, referenceSummaries } = req.body;
+    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType, extraContext, referenceSummaries, brandContext: bodyBrandContext } = req.body;
 
     if (!VALID_PLATFORMS.includes(platform)) return res.status(400).json({ error: 'Invalid platform' });
     if (tone && !VALID_TONES.includes(tone)) return res.status(400).json({ error: 'Invalid tone' });
@@ -1268,16 +1397,22 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
       }
     }
 
-    // Load style fingerprint for this session if available
+    // Load style fingerprint and brand context for this session if available
     let styleFingerprint = null;
+    let sessionBrandContext = null;
     if (sessionId) {
-      const sfRows = await sql`SELECT style_fingerprint FROM sessions WHERE id = ${sessionId} AND user_id = ${req.user.id}`;
+      const sfRows = await sql`SELECT style_fingerprint, brand_context FROM sessions WHERE id = ${sessionId} AND user_id = ${req.user.id}`;
       styleFingerprint = sfRows[0]?.style_fingerprint || null;
+      sessionBrandContext = sfRows[0]?.brand_context || null;
     }
+    // Body-supplied brandContext (edited by user) takes precedence over DB snapshot
+    const resolvedBrandContext = (bodyBrandContext && typeof bodyBrandContext === 'object')
+      ? bodyBrandContext
+      : sessionBrandContext;
 
     const { post, voiceScore, voiceNote } = await generatePost(
       personalityMap, strategy, platform, pillar, tone, customTopic,
-      instagramOptions, topPosts, brandType || 'personal', safeContext, finalRefs, styleFingerprint
+      instagramOptions, topPosts, brandType || 'personal', safeContext, finalRefs, styleFingerprint, resolvedBrandContext
     );
 
     // Save to generated_posts library
