@@ -3357,6 +3357,7 @@
   let selectedIgSubType = 'educational';
   let selectedTwitterFormat = 'single';
   let selectedEmailSubtype = 'value';
+  let currentIdeas = [];
 
   const IG_SUBTYPES = {
     post: {
@@ -5632,11 +5633,12 @@
       });
       const data = await res.json();
       if (!data.ideas?.length) { resultsEl.innerHTML = '<div style="color:var(--text3)">No ideas returned. Try again.</div>'; return; }
+      currentIdeas = data.ideas;
       resultsEl.innerHTML = `
         <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem">Click any idea to generate the full post immediately</div>
         <div class="ideas-grid">
           ${data.ideas.map((idea, i) => `
-            <div class="idea-card" onclick="generateFromIdea(${_escHtml(JSON.stringify(idea.hook + (idea.angle ? ' — ' + idea.angle : '')))}, '${_escHtml(platform)}')">
+            <div class="idea-card" onclick="generateFromIdea(${i})">
               <div class="idea-meta">${_escHtml(idea.pillar || 'General')} · ${_escHtml(platform)}</div>
               <div class="idea-hook">${_escHtml(idea.hook)}</div>
               ${idea.angle ? `<div class="idea-angle">${_escHtml(idea.angle)}</div>` : ''}
@@ -5648,15 +5650,20 @@
     btn.disabled = false; btn.textContent = 'Generate ideas';
   }
 
-  function generateFromIdea(conceptText, platform) {
+  function generateFromIdea(index) {
+    const idea = currentIdeas[index];
+    if (!idea) return;
+    const platform = document.getElementById('ideas-platform-select').value;
+    const conceptText = idea.hook + (idea.angle ? ' — ' + idea.angle : '');
+
     showTab('generator');
     const input = document.getElementById('custom-topic-input');
-    if (input) input.value = conceptText;
     const platformSelect = document.getElementById('gen-platform');
-    if (platformSelect && platform) { platformSelect.value = platform; onPlatformChange(platform); }
+    if (platformSelect) { platformSelect.value = platform; onPlatformChange(platform); }
     document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
     const customItem = document.querySelector('.pillar-select-item.custom');
-    if (customItem) { customItem.classList.add('active'); input.style.display = 'block'; }
+    if (customItem) { customItem.classList.add('active'); }
+    if (input) { input.value = conceptText; input.style.display = 'block'; }
     selectedPillar = 'custom';
     generatePost();
     document.getElementById('post-output').scrollIntoView({ behavior: 'smooth', block: 'start' });
