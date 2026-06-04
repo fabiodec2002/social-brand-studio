@@ -366,6 +366,7 @@ Return a JSON object with this exact structure:
       "name": "Pillar name",
       "description": "Why this pillar matters for their brand",
       "audience_pain_point": "The specific frustration, fear, or gap this pillar directly addresses for their target audience — be concrete, not generic",
+      "client_language": ["3-5 exact phrases, objections, or fears the target audience actually uses in their own words — not the expert's vocabulary, but the client's raw language. E.g. 'I don't know where to start', 'I feel like a fraud', 'nobody takes me seriously'. These are the words to mirror in posts."],
       "post_frequency": "e.g. 3x per week",
       "platform_fit": ["linkedin", "instagram"],
       "content_ideas": ["3 specific content ideas based on their actual experiences/expertise"]
@@ -412,6 +413,7 @@ Return a JSON object with this exact structure:
       "name": "Pillar name",
       "description": "Why this pillar builds authority and trust for this company",
       "audience_pain_point": "The specific customer frustration, fear, or gap this pillar directly addresses — be concrete",
+      "client_language": ["3-5 exact phrases, objections, or fears the target audience actually uses in their own words — not the company's vocabulary, but the customer's raw language. E.g. 'we keep losing deals we should win', 'I don't know what our brand actually stands for', 'our team isn't aligned'. These are the words to mirror in posts."],
       "post_frequency": "e.g. 3x per week",
       "platform_fit": ["linkedin", "instagram"],
       "content_ideas": ["3 specific content ideas rooted in this company's actual work, results, and expertise"]
@@ -822,6 +824,20 @@ BANNED PHRASES — never write any of these:
 "fostering" / "bolstered" / "pivotal" / "cornerstone" / "vibrant" / "meticulous"
 "Not only X but also Y" (as structural template)
 "showcase" / "showcasing"
+"mindset" / "mindset shift" / "mental shift" (replace with the concrete outcome — never the method)
+"resonates with" / "resonating with" (when used to describe your offer's effect on people)
+"energy" / "vibration" / "alignment" (as vague transformation descriptors)
+"transformation journey" / "holistic approach" / "unique combination of X and Y"
+"I help you with [process name]" — always replace with the concrete result the client will have
+
+OUTCOME RULE — mandatory:
+Never describe the method, tool, or process you use. Describe only the concrete result the client will have.
+BAD: "I help you shift your mindset" / "I provide a holistic approach to growth"
+GOOD: "Your calendar fills up. You stop second-guessing your prices." / "Three months later, you raise your rates and clients say yes."
+Every benefit claim must name a specific, observable change in the reader's life or business.
+
+CTA RULE — one action only:
+End with exactly ONE specific action. If the post implies multiple things the reader could do, pick the most important and cut the rest.
 
 WHAT AUTHENTIC POSTS DO:
 - Start with a specific moment already in progress, not a setup
@@ -853,6 +869,19 @@ BANNED OPENERS — first word must NOT be:
 
 BANNED PHRASES:
 "We're thrilled/excited/honored to announce" / "game-changer" / "synergy" / "leverage" (as verb) / "At the end of the day" / "In today's fast-paced world" / "delve" / "Moreover" / "Furthermore" / "That being said" / "serves as" / "fostering" / "pivotal" / "cornerstone" / "showcase"
+"mindset" / "mindset shift" (replace with the concrete outcome delivered)
+"resonates with" / "resonating with" (when describing your offer's effect)
+"holistic approach" / "unique combination of X and Y" / "transformation journey"
+"We help you with [process name]" — always state the result the client achieves, not the service delivered
+
+OUTCOME RULE — mandatory:
+Never describe the service, method, or process. Describe the concrete result the client will have.
+BAD: "We provide a holistic approach to business growth" / "We help align your team's mindset"
+GOOD: "Their close rate went from 20% to 41% in six weeks." / "The team stopped losing deals they should have won."
+Every benefit claim must name a specific, observable change in the client's situation.
+
+CTA RULE — one action only:
+End with exactly ONE specific action. If multiple options exist, choose the most important and cut the rest.
 
 WHAT STRONG COMPANY POSTS DO:
 - Show real client or team situations, not abstract principles
@@ -890,9 +919,13 @@ CRITICAL — NO FABRICATION: You may ONLY reference details that appear in the p
 
 CRITICAL — NO FABRICATION: You may ONLY reference details, results, and situations that appear in the brand brief provided. Do not invent client names, revenue figures, timelines, case study outcomes, or specific scenarios not in the data. If a detail is not in the brief, describe it generally or omit it. Made-up specifics destroy trust when readers notice them.`;
 
+  const clientLanguageNote = pillarData.client_language?.length
+    ? `\n\nCLIENT LANGUAGE — these are the exact words and phrases their target audience actually uses. Mirror this vocabulary in the post; do not replace it with expert jargon:\n${pillarData.client_language.map(p => `• ${p}`).join('\n')}`
+    : '';
+
   const mapBlock = isPersonal
-    ? `THEIR PERSONALITY MAP:\n${JSON.stringify(personalityMap, null, 2)}\n\nTHEIR BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}`
-    : `COMPANY BRIEF:\n${JSON.stringify(personalityMap, null, 2)}\n\nCOMPANY BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}`;
+    ? `THEIR PERSONALITY MAP:\n${JSON.stringify(personalityMap, null, 2)}\n\nTHEIR BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}${clientLanguageNote}`
+    : `COMPANY BRIEF:\n${JSON.stringify(personalityMap, null, 2)}\n\nCOMPANY BRAND VOICE:\n${JSON.stringify(strategy.brand_voice, null, 2)}${clientLanguageNote}`;
 
   const realityAnchors = isPersonal
     ? `WHAT MAKES IT FEEL REAL:
@@ -937,6 +970,27 @@ CRITICAL — NO FABRICATION: You may ONLY reference details, results, and situat
 ${mapBlock}
 
 CONTENT PILLAR: ${pillarData.name} — ${pillarData.description}
+
+CONTENT ARCHITECTURE — think through these before writing a single word:
+1. Core Concept: pick ONE pain point from this pillar. State it in one sentence.
+2. Clou: why that pain point persists, and what it costs them. 2–3 sentences max.
+3. Style Figure: choose ONE device from the list below to make the clou visceral and concrete. Do not use plain narrative if a style figure fits — it almost always does.
+4. Pain Bridge: one sentence on the cost of inaction. ("This can lead to [specific outcome].")
+5. Bridge: one sentence that pivots to the reader's situation. ("But what does this mean for you?")
+6. Resolution: one sentence on what becomes possible when this is solved.
+7. CTA: one action only — never two.
+
+STYLE FIGURES — pick one and use it to carry the Core Concept:
+• Metaphor: map your concept onto a familiar object or everyday situation (e.g., avoiding grief = staying on the train you hate every morning because getting a license feels hard)
+• Equation: X + Y = Z (e.g., avoidance behavior + suppression = eventual burnout — spell it out like a math problem)
+• Binary Framing: force a vivid either/or choice (e.g., "60-hour work weeks or 6 focused hours — those are your two options")
+• Reframe: flip a limiting belief the audience holds (e.g., "The longer you delay dealing with this, the bigger it grows — delay isn't rest, it's compound interest on pain")
+• Borrowed Authority: name a credible external source that validates the claim (e.g., "Harvard's research on avoidance shows..." — only use if data appears in their map or is widely known)
+• Paradox: state something that sounds impossible but is true (e.g., "The client who worked fewer hours this quarter generated more revenue than any previous quarter")
+• Temporal Shift: create urgency using what is happening right now (e.g., "While you're reading this, your competitor who stopped avoiding this is booking the clients you're not")
+• Personification: give an abstract thing human traits (e.g., "Your calendar doesn't lie to you — but you've been lying to it for months")
+• Contrast: I own X, not Y (e.g., "I own a process, not a panic" / "We ship decisions, not decks")
+• Statistic + Source: ground the pain in real data with a cited source (e.g., "60% of caregivers in the Netherlands show burnout symptoms within 3 years — source: TNO 2023")
 
 PLATFORM: ${platform.toUpperCase()}
 ${platformInstructions[platform]}
