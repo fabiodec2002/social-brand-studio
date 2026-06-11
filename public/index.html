@@ -3531,7 +3531,64 @@
               <a href="#" onclick="oauthConnect('instagram');return false;" style="display:inline-block;padding:0.5rem 1rem;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.35);color:#e1306c;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;border-radius:5px;text-decoration:none;cursor:pointer">Connect Instagram</a>
             </div>
           </div>
-          <div style="margin-top:0.75rem;font-size:0.75rem;color:var(--text3)">LinkedIn requires Marketing Developer Program approval. Instagram requires a Business/Creator account linked to a Facebook Page.</div>
+          <!-- Setup instructions accordion -->
+          <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:0.75rem">
+
+            <!-- LinkedIn instructions -->
+            <div style="background:rgba(10,102,194,0.05);border:1px solid rgba(10,102,194,0.2);border-radius:8px;overflow:hidden">
+              <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chevron').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)'" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1rem;background:none;border:none;cursor:pointer;color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em">
+                <span>HOW TO SET UP LINKEDIN</span>
+                <span class="chevron" style="transition:transform 0.2s;display:inline-block;color:#0a66c2">▼</span>
+              </button>
+              <div style="display:none;padding:0 1rem 1rem">
+                <ol style="margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:0.5rem;font-size:0.8rem;color:var(--text2);line-height:1.6">
+                  <li>Go to <strong style="color:var(--text1)">linkedin.com/developers</strong> → Create App</li>
+                  <li>Fill in app name, associate it with your LinkedIn Company Page</li>
+                  <li>Under <strong style="color:var(--text1)">Products</strong>, add:<br>
+                    — <em>Sign In with LinkedIn using OpenID Connect</em><br>
+                    — <em>Share on LinkedIn</em>
+                  </li>
+                  <li>Go to <strong style="color:var(--text1)">Auth</strong> tab → copy <strong style="color:var(--text1)">Client ID</strong> and generate a <strong style="color:var(--text1)">Client Secret</strong></li>
+                  <li>Under OAuth 2.0 settings, add redirect URL:<br>
+                    <code style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:0.2rem 0.4rem;border-radius:3px">https://social-brand-studio-production.up.railway.app/api/oauth/linkedin/callback</code>
+                  </li>
+                  <li>Add these to Railway environment variables:<br>
+                    <code style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:0.2rem 0.4rem;border-radius:3px">LINKEDIN_CLIENT_ID</code><br>
+                    <code style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:0.2rem 0.4rem;border-radius:3px">LINKEDIN_CLIENT_SECRET</code><br>
+                    <code style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:0.2rem 0.4rem;border-radius:3px">LINKEDIN_REDIRECT_URI</code>
+                  </li>
+                  <li>Click <strong style="color:var(--text1)">Connect LinkedIn</strong> above — you'll be redirected to authorize</li>
+                </ol>
+              </div>
+            </div>
+
+            <!-- Instagram instructions -->
+            <div style="background:rgba(225,48,108,0.05);border:1px solid rgba(225,48,108,0.2);border-radius:8px;overflow:hidden">
+              <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.chevron').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':'rotate(0deg)'" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1rem;background:none;border:none;cursor:pointer;color:var(--text2);font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em">
+                <span>HOW TO SET UP INSTAGRAM</span>
+                <span class="chevron" style="transition:transform 0.2s;display:inline-block;color:#e1306c">▼</span>
+              </button>
+              <div style="display:none;padding:0 1rem 1rem">
+                <div style="font-size:0.75rem;color:#fbbf24;margin-bottom:0.75rem;padding:0.5rem 0.75rem;background:rgba(251,191,36,0.08);border-radius:5px;border:1px solid rgba(251,191,36,0.2)">
+                  Requires an Instagram Business or Creator account linked to a Facebook Page.
+                </div>
+                <ol style="margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:0.5rem;font-size:0.8rem;color:var(--text2);line-height:1.6">
+                  <li>Go to <strong style="color:var(--text1)">developers.facebook.com</strong> → Create App → choose <strong style="color:var(--text1)">Business</strong></li>
+                  <li>Add the <strong style="color:var(--text1)">Instagram Graph API</strong> product</li>
+                  <li>Go to <strong style="color:var(--text1)">Settings → Basic</strong> → copy <strong style="color:var(--text1)">App ID</strong> and <strong style="color:var(--text1)">App Secret</strong></li>
+                  <li>Under <strong style="color:var(--text1)">Facebook Login → Settings</strong>, add redirect URL:<br>
+                    <code style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:0.2rem 0.4rem;border-radius:3px">https://social-brand-studio-production.up.railway.app/api/oauth/instagram/callback</code>
+                  </li>
+                  <li>Add these to Railway environment variables:<br>
+                    <code style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:0.2rem 0.4rem;border-radius:3px">FACEBOOK_APP_ID</code><br>
+                    <code style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:0.2rem 0.4rem;border-radius:3px">FACEBOOK_APP_SECRET</code>
+                  </li>
+                  <li>Click <strong style="color:var(--text1)">Connect Instagram</strong> above — you'll be redirected to authorize via Facebook</li>
+                </ol>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
