@@ -211,6 +211,29 @@ async function initDb() {
   // Phase 3: engagement_score on generated_posts
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS engagement_score INTEGER`;
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS platform_post_id TEXT`;
+
+  // Phase 5: Self-improving prompt rules
+  await sql`
+    CREATE TABLE IF NOT EXISTS prompt_rules (
+      user_id    TEXT PRIMARY KEY,
+      rules      JSONB DEFAULT '{}',
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
+  // Phase 4: Metrics Agent
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS linkedin_profile_url TEXT`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS metrics_runs (
+      user_id      TEXT PRIMARY KEY,
+      run_id       TEXT,
+      run_status   TEXT DEFAULT 'idle',
+      linkedin_url TEXT,
+      processed_at TIMESTAMPTZ,
+      updated_at   TIMESTAMPTZ DEFAULT NOW(),
+      created_at   TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
@@ -836,7 +859,7 @@ Return ONLY the revised post text. No explanation, no preamble.`,
 }
 
 // Generate a social post
-async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal', extraContext = null, referenceSummaries = null, styleFingerprint = null, brandContext = null) {
+async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal', extraContext = null, referenceSummaries = null, styleFingerprint = null, brandContext = null, learnedRules = null) {
   const pillarData = customTopic
     ? { name: 'Custom Topic', description: customTopic }
     : (strategy.content_pillars.find(p => p.id === pillar) || strategy.content_pillars[0]);
@@ -1113,7 +1136,10 @@ ${brandContext ? (() => {
     'Use the buyer persona fear and desire to make posts land emotionally. Use the missie to keep posts purposeful. Use the proof point when the pillar calls for credibility. Mirror the tone of voice calibration in every sentence.',
   ];
   return lines.filter(Boolean).join('\n');
-})() : ''}${extraContext ? `\nADDITIONAL CONTEXT FROM THE WRITER:\n${extraContext}\n\nUse this as background knowledge and voice calibration. Do not quote it directly — let it inform the specificity and perspective of what you write.\n` : ''}${referenceSummaries && referenceSummaries.length ? `\nREFERENCE MATERIALS — insights from books/articles the writer wants to draw from:\n${referenceSummaries.map(r => `[${r.title}]\n${r.summary}`).join('\n\n')}\n\nDraw on these frameworks and vocabulary where relevant. Don't cite them explicitly unless it fits naturally.\n` : ''}${styleFingerprint ? `\nSTYLE FINGERPRINT — learned from this writer's actual posts. Mirror these patterns:\n${styleFingerprint}\n` : ''}Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
+})() : ''}${extraContext ? `\nADDITIONAL CONTEXT FROM THE WRITER:\n${extraContext}\n\nUse this as background knowledge and voice calibration. Do not quote it directly — let it inform the specificity and perspective of what you write.\n` : ''}${referenceSummaries && referenceSummaries.length ? `\nREFERENCE MATERIALS — insights from books/articles the writer wants to draw from:\n${referenceSummaries.map(r => `[${r.title}]\n${r.summary}`).join('\n\n')}\n\nDraw on these frameworks and vocabulary where relevant. Don't cite them explicitly unless it fits naturally.\n` : ''}${styleFingerprint ? `\nSTYLE FINGERPRINT — learned from this writer's actual posts. Mirror these patterns:\n${styleFingerprint}\n` : ''}${learnedRules ? `\nLEARNED FROM THIS WRITER'S PERFORMANCE DATA — these rules come from what actually performed well vs. poorly. Follow them closely:
+${(learnedRules.do || []).length ? `DO:\n${(learnedRules.do).map(r => `• ${r}`).join('\n')}` : ''}
+${(learnedRules.dont || []).length ? `AVOID:\n${(learnedRules.dont).map(r => `• ${r}`).join('\n')}` : ''}
+${learnedRules.platform_notes?.[platform] ? `FOR ${platform.toUpperCase()}: ${learnedRules.platform_notes[platform]}` : ''}\n` : ''}Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
     }],
   });
 
@@ -1310,9 +1336,9 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.get('/api/auth/profile', requireAuth, async (req, res) => {
   try {
-    const rows = await sql`SELECT email, website_url FROM users WHERE id = ${req.user.id}`;
+    const rows = await sql`SELECT email, website_url, linkedin_profile_url FROM users WHERE id = ${req.user.id}`;
     if (!rows.length) return res.status(404).json({ error: 'User not found' });
-    res.json({ success: true, email: rows[0].email, websiteUrl: rows[0].website_url || '' });
+    res.json({ success: true, email: rows[0].email, websiteUrl: rows[0].website_url || '', linkedinProfileUrl: rows[0].linkedin_profile_url || '' });
   } catch (err) {
     return serverErr(res, err);
   }
@@ -1320,8 +1346,8 @@ app.get('/api/auth/profile', requireAuth, async (req, res) => {
 
 app.put('/api/auth/profile', requireAuth, async (req, res) => {
   try {
-    const { websiteUrl } = req.body;
-    await sql`UPDATE users SET website_url = ${websiteUrl || null} WHERE id = ${req.user.id}`;
+    const { websiteUrl, linkedinProfileUrl } = req.body;
+    await sql`UPDATE users SET website_url = ${websiteUrl || null}, linkedin_profile_url = ${linkedinProfileUrl || null} WHERE id = ${req.user.id}`;
     res.json({ success: true });
   } catch (err) {
     return serverErr(res, err);
@@ -1536,6 +1562,13 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
       styleFingerprint = sfRows[0]?.style_fingerprint || null;
       sessionBrandContext = sfRows[0]?.brand_context || null;
     }
+
+    // Load learned prompt rules for this user (from evolution agent)
+    let learnedRules = null;
+    const rulesRows = await sql`SELECT rules FROM prompt_rules WHERE user_id = ${req.user.id}`;
+    if (rulesRows[0]?.rules && Object.keys(rulesRows[0].rules).length) {
+      learnedRules = rulesRows[0].rules;
+    }
     // Body-supplied brandContext (edited by user) takes precedence over DB snapshot
     const resolvedBrandContext = (bodyBrandContext && typeof bodyBrandContext === 'object')
       ? bodyBrandContext
@@ -1543,7 +1576,7 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
 
     const { post, voiceScore, voiceNote } = await generatePost(
       personalityMap, strategy, platform, pillar, tone, customTopic,
-      instagramOptions, topPosts, brandType || 'personal', safeContext, finalRefs, styleFingerprint, resolvedBrandContext
+      instagramOptions, topPosts, brandType || 'personal', safeContext, finalRefs, styleFingerprint, resolvedBrandContext, learnedRules
     );
 
     // Save to generated_posts library
@@ -1845,6 +1878,48 @@ app.delete('/api/posts/:id', requireAuth, async (req, res) => {
   try {
     await sql`DELETE FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     res.json({ success: true });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// Quick engagement feedback — lets users enter real metrics directly to seed the learning loop
+app.patch('/api/posts/:id/feedback', requireAuth, async (req, res) => {
+  try {
+    const { likes, comments, shares, saves } = req.body;
+    const [post] = await sql`SELECT id, platform, pillar_name, tone FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    const impressions = Math.max((likes || 0) * 50, 1);
+    const engScore = Math.min(100, Math.round(
+      ((likes || 0) * 1 + (comments || 0) * 3 + (shares || 0) * 5 + (saves || 0) * 4) / impressions * 100
+    ));
+
+    await sql`UPDATE generated_posts SET engagement_score = ${engScore} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+
+    // Write to brain_diary so scoring + evolution agents can learn from it
+    const toneLabel = post.tone || 'authentic';
+    const pillarLabel = post.pillar_name || 'unknown';
+    const platform = post.platform;
+    if (engScore >= 70) {
+      await sql`
+        INSERT INTO brain_diary (id, user_id, type, pattern, insight, platform, pillar_name)
+        VALUES (${crypto.randomUUID()}, ${req.user.id}, 'win',
+          ${`${platform} — ${toneLabel} tone on ${pillarLabel} pillar`},
+          ${`User-reported: ${engScore}/100 score. Likes: ${likes || 0}, Comments: ${comments || 0}, Shares: ${shares || 0}, Saves: ${saves || 0}.`},
+          ${platform}, ${post.pillar_name || null})
+      `;
+    } else if (engScore <= 20) {
+      await sql`
+        INSERT INTO brain_diary (id, user_id, type, pattern, insight, platform, pillar_name)
+        VALUES (${crypto.randomUUID()}, ${req.user.id}, 'loss',
+          ${`${platform} — ${toneLabel} tone on ${pillarLabel} pillar underperformed`},
+          ${`User-reported: ${engScore}/100 score. Likes: ${likes || 0}, Comments: ${comments || 0}, Shares: ${shares || 0}, Saves: ${saves || 0}.`},
+          ${platform}, ${post.pillar_name || null})
+      `;
+    }
+
+    res.json({ success: true, engagementScore: engScore });
   } catch (err) {
     return serverErr(res, err);
   }
@@ -2426,6 +2501,226 @@ Return JSON: { "pattern": "one-line headline", "insight": "3-5 sentence summary"
   });
 }
 
+// ─── EVOLUTION AGENT ─────────────────────────────────────────────────────────
+// Reads win/loss patterns from brain_diary → synthesizes user-specific prompt rules →
+// those rules are injected into every future generatePost call for that user.
+// This closes the loop: performance → patterns → better prompts → better posts.
+
+async function runEvolutionAgent() {
+  return runAgent('evolution', null, async () => {
+    const users = await sql`SELECT DISTINCT user_id FROM brain_diary WHERE user_id IS NOT NULL`;
+    let updated = 0;
+
+    for (const { user_id } of users) {
+      const entries = await sql`
+        SELECT type, pattern, insight, platform
+        FROM brain_diary
+        WHERE user_id = ${user_id} AND type IN ('win', 'loss')
+        AND created_at > NOW() - INTERVAL '60 days'
+        ORDER BY created_at DESC LIMIT 30
+      `;
+      if (entries.length < 3) continue;
+
+      const wins  = entries.filter(e => e.type === 'win').map(e => `WIN [${e.platform || 'all'}]: ${e.pattern} — ${e.insight}`).join('\n');
+      const losses = entries.filter(e => e.type === 'loss').map(e => `LOSS [${e.platform || 'all'}]: ${e.pattern} — ${e.insight}`).join('\n');
+
+      try {
+        const response = await openai.chat.completions.create({
+          model: MODEL,
+          response_format: { type: 'json_object' },
+          messages: [{
+            role: 'user',
+            content: `You are a prompt engineer improving an AI content writer based on real performance data.
+
+WIN PATTERNS (what drove high engagement for this creator):
+${wins || 'None yet.'}
+
+LOSS PATTERNS (what caused low engagement):
+${losses || 'None yet.'}
+
+Synthesize 3–5 specific, actionable writing rules the AI should follow when generating this creator's posts.
+Rules must be derived from the data above — not generic advice.
+Each rule must be concrete: "do X when writing Y" or "avoid Z because it lowered engagement".
+
+Return JSON:
+{
+  "do": ["up to 3 rules derived from win patterns"],
+  "dont": ["up to 3 rules derived from loss patterns"],
+  "platform_notes": {
+    "linkedin": "one specific linkedin instruction from the data, or null",
+    "instagram": "one specific instagram instruction from the data, or null"
+  }
+}`,
+          }],
+        });
+
+        const rules = JSON.parse(response.choices[0].message.content);
+        // Sanitize arrays to strings
+        rules.do = (rules.do || []).map(r => String(r).slice(0, 200)).slice(0, 5);
+        rules.dont = (rules.dont || []).map(r => String(r).slice(0, 200)).slice(0, 5);
+        if (rules.platform_notes) {
+          rules.platform_notes.linkedin = rules.platform_notes.linkedin ? String(rules.platform_notes.linkedin).slice(0, 300) : null;
+          rules.platform_notes.instagram = rules.platform_notes.instagram ? String(rules.platform_notes.instagram).slice(0, 300) : null;
+        }
+
+        await sql`
+          INSERT INTO prompt_rules (user_id, rules, updated_at)
+          VALUES (${user_id}, ${JSON.stringify(rules)}, NOW())
+          ON CONFLICT (user_id) DO UPDATE SET rules = EXCLUDED.rules, updated_at = NOW()
+        `;
+
+        // Write a brain_diary entry so users can see what changed
+        await sql`
+          INSERT INTO brain_diary (id, user_id, type, pattern, insight)
+          VALUES (${crypto.randomUUID()}, ${user_id}, 'evolution',
+            'Prompt rules updated',
+            ${`DO: ${rules.do.join(' | ')} | AVOID: ${rules.dont.join(' | ')}`})
+        `;
+
+        updated++;
+      } catch (err) {
+        console.error(`Evolution agent failed for user ${user_id}:`, err.message);
+      }
+    }
+
+    return { action: `Updated prompt rules for ${updated} users` };
+  });
+}
+
+// ─── METRICS AGENT ───────────────────────────────────────────────────────────
+
+async function processMetricsResults(userId, sessionId, raw) {
+  const scraped = raw
+    .filter(p => (p.content || p.text || '').length > 10)
+    .map(p => ({
+      platform: 'linkedin',
+      author: p.author?.name ?? 'own profile',
+      text: p.content ?? p.text ?? '',
+      url: p.linkedinUrl ?? p.url ?? '',
+      likes: p.engagement?.likes ?? p.numLikes ?? p.likes ?? 0,
+      comments: p.engagement?.comments ?? p.numComments ?? p.comments ?? 0,
+      shares: p.engagement?.shares ?? p.numShares ?? p.shares ?? 0,
+      impressions: p.engagement?.impressions ?? p.numImpressions ?? p.impressions ?? 0,
+    }));
+
+  if (!scraped.length) return 0;
+
+  // Store in post_analytics so scoring agent can read this user's own posts
+  if (sessionId) {
+    await sql`
+      INSERT INTO post_analytics (session_id, platform, posts, imported_at, user_id)
+      VALUES (${sessionId}, 'linkedin', ${JSON.stringify(scraped)}, NOW(), ${userId})
+      ON CONFLICT (session_id, platform) DO UPDATE
+        SET posts = EXCLUDED.posts, imported_at = NOW(), user_id = EXCLUDED.user_id
+    `;
+  }
+
+  // Find unscored generated posts for this user on LinkedIn
+  const genPosts = await sql`
+    SELECT id, content FROM generated_posts
+    WHERE user_id = ${userId} AND platform = 'linkedin' AND engagement_score IS NULL
+    ORDER BY created_at DESC LIMIT 40
+  `;
+  if (!genPosts.length) return scraped.length;
+
+  // AI-match published posts back to their generated drafts
+  try {
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      response_format: { type: 'json_object' },
+      messages: [{
+        role: 'user',
+        content: `Match AI-generated draft posts to actual LinkedIn published posts.
+A match means the published post was clearly derived from the draft (same topic, same angle, similar language — the user may have edited it).
+
+GENERATED DRAFTS:
+${genPosts.map((p, i) => `[G${i}]\n${p.content.slice(0, 300)}`).join('\n\n---\n\n')}
+
+PUBLISHED POSTS (real engagement data):
+${scraped.map((p, i) => `[P${i}] likes:${p.likes} comments:${p.comments} shares:${p.shares}\n${p.text.slice(0, 300)}`).join('\n\n---\n\n')}
+
+Return JSON: { "matches": [{ "generated_index": 0, "published_index": 1, "confidence": 0.9 }] }
+Only include pairs with confidence >= 0.75. Return empty matches array if nothing is strong enough.`,
+      }],
+    });
+
+    const { matches } = JSON.parse(response.choices[0].message.content);
+
+    for (const m of (matches || [])) {
+      const gen = genPosts[m.generated_index];
+      const pub = scraped[m.published_index];
+      if (!gen || !pub) continue;
+
+      // Weighted engagement score out of 100
+      const impressions = pub.impressions || Math.max(pub.likes * 50, 1);
+      const engScore = Math.min(100, Math.round(
+        (pub.likes * 1 + pub.comments * 3 + pub.shares * 5) / impressions * 100
+      ));
+
+      await sql`
+        UPDATE generated_posts
+        SET engagement_score = ${engScore}, platform_post_id = ${pub.url || null}
+        WHERE id = ${gen.id}
+      `;
+    }
+  } catch (err) {
+    console.error('Metrics agent: AI matching failed:', err.message);
+  }
+
+  return scraped.length;
+}
+
+async function runMetricsAgent() {
+  return runAgent('metrics', null, async () => {
+    const users = await sql`
+      SELECT u.id as user_id, u.linkedin_profile_url,
+        (SELECT id FROM sessions WHERE user_id = u.id ORDER BY created_at DESC LIMIT 1) as session_id
+      FROM users u
+      WHERE u.linkedin_profile_url IS NOT NULL AND u.linkedin_profile_url != ''
+    `;
+
+    let started = 0;
+    let imported = 0;
+
+    for (const u of users) {
+      try {
+        const [run] = await sql`SELECT * FROM metrics_runs WHERE user_id = ${u.user_id}`;
+
+        if (run?.run_status === 'processing' && run.run_id) {
+          // Poll existing run
+          const runData = await apifyCheckRun(run.run_id);
+          if (runData?.status === 'SUCCEEDED') {
+            const raw = await apifyFetchDataset(runData.defaultDatasetId);
+            const count = await processMetricsResults(u.user_id, u.session_id, raw);
+            await sql`UPDATE metrics_runs SET run_status = 'done', processed_at = NOW(), updated_at = NOW() WHERE user_id = ${u.user_id}`;
+            imported += count;
+          } else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(runData?.status)) {
+            await sql`UPDATE metrics_runs SET run_status = 'failed', updated_at = NOW() WHERE user_id = ${u.user_id}`;
+          }
+          // still processing → will pick up on next cron tick
+        } else {
+          // Start a new Apify profile scrape for this user
+          const runId = await apifyStartRun('harvestapi/linkedin-profile-posts', {
+            profileUrls: [u.linkedin_profile_url],
+            maxResults: 30,
+          });
+          await sql`
+            INSERT INTO metrics_runs (user_id, run_id, run_status, linkedin_url)
+            VALUES (${u.user_id}, ${runId}, 'processing', ${u.linkedin_profile_url})
+            ON CONFLICT (user_id) DO UPDATE
+              SET run_id = ${runId}, run_status = 'processing', linkedin_url = ${u.linkedin_profile_url}, updated_at = NOW()
+          `;
+          started++;
+        }
+      } catch (err) {
+        console.error(`Metrics agent failed for user ${u.user_id}:`, err.message);
+      }
+    }
+
+    return { action: `Started ${started} profile scrapes, imported ${imported} posts with metrics` };
+  });
+}
+
 // ─── AGENT API ROUTES ─────────────────────────────────────────────────────────
 
 app.get('/api/agents/status', requireAuth, async (req, res) => {
@@ -2440,9 +2735,11 @@ app.get('/api/agents/status', requireAuth, async (req, res) => {
 app.post('/api/agents/:name/run', requireAuth, async (req, res) => {
   const { name } = req.params;
   const agentMap = {
-    concept:  runConceptAgent,
-    scoring:  runScoringAgent,
-    feedback: runFeedbackAgent,
+    concept:   runConceptAgent,
+    scoring:   runScoringAgent,
+    feedback:  runFeedbackAgent,
+    metrics:   runMetricsAgent,
+    evolution: runEvolutionAgent,
   };
   if (!agentMap[name]) return res.status(404).json({ error: 'Unknown agent' });
   try {
@@ -2641,13 +2938,26 @@ app.delete('/api/brain-diary/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Returns learned prompt rules for the current user (what the evolution agent has learned)
+app.get('/api/prompt-rules', requireAuth, async (req, res) => {
+  try {
+    const rows = await sql`SELECT rules, updated_at FROM prompt_rules WHERE user_id = ${req.user.id}`;
+    res.json({ rules: rows[0]?.rules || null, updatedAt: rows[0]?.updated_at || null });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
 // ─── CRON SCHEDULER (only when running as main process) ──────────────────────
 
 function startAgentScheduler() {
   cron.schedule('0 7 * * *',   () => runConceptAgent().catch(e => console.error('Concept agent cron failed:', e.message)));
   cron.schedule('0 9 * * *',   () => runScoringAgent().catch(e => console.error('Scoring agent cron failed:', e.message)));
+  // Evolution runs after scoring (Sun 05:00) so rules are fresh before feedback summary (Sun 06:00)
+  cron.schedule('0 5 * * 0',   () => runEvolutionAgent().catch(e => console.error('Evolution agent cron failed:', e.message)));
   cron.schedule('0 6 * * 0',   () => runFeedbackAgent().catch(e => console.error('Feedback agent cron failed:', e.message)));
-  console.log('Agent scheduler started (concept 07:00, scoring 09:00, feedback Sunday 06:00)');
+  cron.schedule('0 */6 * * *', () => runMetricsAgent().catch(e => console.error('Metrics agent cron failed:', e.message)));
+  console.log('Agent scheduler started (concept 07:00, scoring 09:00, evolution Sunday 05:00, feedback Sunday 06:00, metrics every 6h)');
 }
 
 module.exports = app;
