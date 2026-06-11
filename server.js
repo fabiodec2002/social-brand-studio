@@ -280,6 +280,7 @@ async function initDb() {
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS rejection_note TEXT`;
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ`;
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS image_url TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram_profile_url TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_timezone TEXT DEFAULT 'UTC'`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_email TEXT`;
@@ -2089,7 +2090,7 @@ app.patch('/api/posts/:id/approve', requireAuth, async (req, res) => {
 
 app.patch('/api/posts/:id/reject', requireAuth, async (req, res) => {
   try {
-    const [post] = await sql`SELECT id, platform, pillar_name, tone FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    const [post] = await sql`SELECT id, session_id, platform, pillar_name, tone FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     if (!post) return res.status(404).json({ error: 'Post not found' });
 
     const { reason, note } = req.body;
@@ -2110,6 +2111,41 @@ app.patch('/api/posts/:id/reject', requireAuth, async (req, res) => {
       )
     `;
 
+    // Auto-requeue with fix instruction so AutoGen retries with the feedback baked in
+    if (reason || note) {
+      const parts = [];
+      if (reason) parts.push(`Avoid: ${reason}`);
+      if (note) parts.push(`Note: ${note}`);
+      const fixInstruction = `Fix from previous rejection — ${parts.join('. ')}. Write a fresh take that resolves these issues.`;
+
+      const sessionId = post.session_id || (await sql`SELECT id FROM sessions WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 1`)[0]?.id || null;
+      await sql`
+        INSERT INTO idea_queue (id, user_id, session_id, topic, angle, pillar_name, platform, source, priority)
+        VALUES (${crypto.randomUUID()}, ${req.user.id}, ${sessionId},
+          ${`Retry: ${post.pillar_name || post.platform} post`},
+          ${fixInstruction},
+          ${post.pillar_name || null}, ${post.platform}, 'rejection_requeue', 7)
+      `;
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
+app.patch('/api/posts/:id/image-url', requireAuth, async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+    if (!imageUrl || typeof imageUrl !== 'string') return res.status(400).json({ error: 'imageUrl is required' });
+
+    const url = new URL(imageUrl);
+    if (!['https:', 'http:'].includes(url.protocol)) return res.status(400).json({ error: 'imageUrl must be http(s)' });
+
+    const [post] = await sql`SELECT id FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    await sql`UPDATE generated_posts SET image_url = ${imageUrl} WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
     res.json({ success: true });
   } catch (err) {
     serverErr(res, err);
@@ -2811,6 +2847,71 @@ Return JSON:
       }
     }
 
+    // === GENERATED POSTS ATTRIBUTION LOOP ===
+    // Analyze which pillar/tone combinations in our own generated posts perform best.
+    // This is richer than post_analytics because it has structured metadata (pillar, tone, platform).
+    const scoredGenPosts = await sql`
+      SELECT user_id, pillar_name, tone, platform, engagement_score
+      FROM generated_posts
+      WHERE engagement_score IS NOT NULL AND pillar_name IS NOT NULL AND pillar_name != ''
+    `;
+
+    const byUserGen = {};
+    for (const p of scoredGenPosts) {
+      if (!byUserGen[p.user_id]) byUserGen[p.user_id] = [];
+      byUserGen[p.user_id].push(p);
+    }
+
+    for (const [userId, posts] of Object.entries(byUserGen)) {
+      if (posts.length < 3) continue;
+
+      // Group by pillar + tone + platform to find what combinations work
+      const comboMap = {};
+      for (const p of posts) {
+        const key = `${p.pillar_name}::${p.tone || 'unknown'}::${p.platform}`;
+        if (!comboMap[key]) comboMap[key] = { scores: [], pillar: p.pillar_name, tone: p.tone, platform: p.platform };
+        comboMap[key].scores.push(p.engagement_score);
+      }
+
+      const combos = Object.values(comboMap)
+        .map(c => ({ ...c, avg: c.scores.reduce((a, b) => a + b, 0) / c.scores.length, count: c.scores.length }))
+        .filter(c => c.count >= 2)
+        .sort((a, b) => b.avg - a.avg);
+
+      if (combos.length < 2) continue;
+
+      const topCombo = combos[0];
+      const bottomCombo = combos[combos.length - 1];
+
+      try {
+        const winPattern = `${topCombo.tone} tone on "${topCombo.pillar}" (${topCombo.platform}) avg ${Math.round(topCombo.avg)}% engagement`;
+        const winExists = await sql`SELECT id FROM brain_diary WHERE user_id=${userId} AND type='win' AND pattern=${winPattern} AND created_at > NOW() - INTERVAL '14 days'`;
+        if (!winExists.length) {
+          await sql`
+            INSERT INTO brain_diary (id, user_id, type, pattern, insight, pillar_name, platform, metrics)
+            VALUES (${crypto.randomUUID()}, ${userId}, 'win', ${winPattern},
+              ${`Your "${topCombo.tone}" tone posts on the "${topCombo.pillar}" pillar are your strongest performers (avg ${Math.round(topCombo.avg)}% engagement rate from ${topCombo.count} posts). Prioritise this combination.`},
+              ${topCombo.pillar}, ${topCombo.platform}, ${JSON.stringify({ avg_score: topCombo.avg, sample_size: topCombo.count })})
+          `;
+          totalWins++;
+        }
+
+        const lossPattern = `${bottomCombo.tone} tone on "${bottomCombo.pillar}" (${bottomCombo.platform}) avg ${Math.round(bottomCombo.avg)}% engagement`;
+        const lossExists = await sql`SELECT id FROM brain_diary WHERE user_id=${userId} AND type='loss' AND pattern=${lossPattern} AND created_at > NOW() - INTERVAL '14 days'`;
+        if (!lossExists.length) {
+          await sql`
+            INSERT INTO brain_diary (id, user_id, type, pattern, insight, pillar_name, platform, metrics)
+            VALUES (${crypto.randomUUID()}, ${userId}, 'loss', ${lossPattern},
+              ${`Your "${bottomCombo.tone}" tone posts on the "${bottomCombo.pillar}" pillar consistently underperform (avg ${Math.round(bottomCombo.avg)}% engagement from ${bottomCombo.count} posts). Try a different angle or tone for this pillar.`},
+              ${bottomCombo.pillar}, ${bottomCombo.platform}, ${JSON.stringify({ avg_score: bottomCombo.avg, sample_size: bottomCombo.count })})
+          `;
+          totalLosses++;
+        }
+      } catch (err) {
+        console.error(`Scoring agent: attribution analysis failed for user ${userId}:`, err.message);
+      }
+    }
+
     return { action: `Found ${totalWins} win patterns and ${totalLosses} loss patterns` };
   });
 }
@@ -3471,7 +3572,7 @@ async function publishToInstagram(accessToken, platformUserId, content, imageUrl
 async function runPublishAgent() {
   return runAgent('publish', null, async () => {
     const due = await sql`
-      SELECT gp.id, gp.user_id, gp.platform, gp.content, gp.format
+      SELECT gp.id, gp.user_id, gp.platform, gp.content, gp.format, gp.image_url
       FROM generated_posts gp
       WHERE gp.status = 'approved'
         AND gp.scheduled_for IS NOT NULL
@@ -3522,8 +3623,15 @@ async function runPublishAgent() {
         if (post.platform === 'linkedin') {
           platformPostId = await publishToLinkedIn(plainToken, token.platform_user_id, post.content);
         } else if (post.platform === 'instagram') {
-          // Instagram requires a hosted image — skip text-only posts until image hosting is set up
-          throw new Error('Instagram publishing requires a hosted image URL. Set up image hosting (Cloudinary/Vercel Blob) first.');
+          if (!post.image_url) {
+            // Log as pending_image instead of failing — user needs to attach an image URL first
+            await sql`
+              INSERT INTO publish_log (id, post_id, user_id, platform, status, error_msg)
+              VALUES (${crypto.randomUUID()}, ${post.id}, ${post.user_id}, ${post.platform}, 'pending_image', 'No image URL set — attach an image via the review panel before publishing')
+            `;
+            continue;
+          }
+          platformPostId = await publishToInstagram(plainToken, token.platform_user_id, post.content, post.image_url);
         } else {
           throw new Error(`Unsupported platform: ${post.platform}`);
         }

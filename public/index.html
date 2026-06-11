@@ -72,40 +72,117 @@
     /* Node overlay panel */
     .node-overlay { display:none; position:absolute; background:#0e0e10; border:1px solid rgba(139,92,246,0.4); border-radius:12px; padding:1.25rem; width:260px; z-index:10; box-shadow:0 8px 32px rgba(0,0,0,0.6); }
 
-    /* Metaverse office — gamified */
+    /* ─── Metaverse office — game desk view ─── */
     .mv-office-grid { display:block; }
     .mv-office-floor {
       display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-      gap:1rem;
+      grid-template-columns:repeat(auto-fill,minmax(165px,1fr));
+      gap:0;
       background:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
-      background-size:32px 32px;
-      border-radius:16px;
-      padding:1.5rem;
-      border:1px solid rgba(255,255,255,0.06);
-      min-height:360px;
-    }
-    .mv-desk-station {
+        repeating-linear-gradient(0deg,rgba(255,255,255,0.028) 0,rgba(255,255,255,0.028) 1px,transparent 1px,transparent 40px),
+        repeating-linear-gradient(90deg,rgba(255,255,255,0.028) 0,rgba(255,255,255,0.028) 1px,transparent 1px,transparent 40px),
+        #06060e;
       border:1px solid rgba(255,255,255,0.07);
-      border-radius:14px;
-      padding:1rem;
-      cursor:pointer;
-      transition:all 0.25s ease;
-      text-align:center;
-      position:relative;
+      border-radius:16px;
+      min-height:520px;
       overflow:hidden;
     }
-    .mv-desk-station:hover { transform:translateY(-3px); border-color:rgba(255,255,255,0.18); }
-    .mv-desk-station::before { content:''; position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);pointer-events:none; }
-    .mv-character { transition:all 0.3s ease; flex-shrink:0; }
-    .mv-character-active { animation:orbPulse 1.5s ease-in-out infinite; }
-    .mv-ticker-inner { font-family:'DM Mono',monospace; font-size:0.68rem; line-height:1.8; color:var(--text3); }
-    /* Legacy — kept for backwards compat */
-    .mv-room { border-radius:12px; padding:1.25rem; min-height:180px; position:relative; overflow:hidden; }
-    .mv-scanline { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, currentColor, transparent); opacity:0.15; animation:scanline 3s linear infinite; pointer-events:none; }
-    .mv-data-stream { display:inline-block; font-family:'DM Mono',monospace; font-size:0.6rem; animation:dataStream 2s ease-in-out infinite; }
+    /* Workstation cell */
+    .mv-workstation {
+      padding:1rem 0.75rem 0.85rem;
+      border:1px solid rgba(255,255,255,0.04);
+      display:flex; flex-direction:column; align-items:center;
+      cursor:pointer; transition:background 0.3s,border-color 0.3s;
+      position:relative; overflow:hidden;
+    }
+    .mv-workstation:hover { background:rgba(255,255,255,0.025) !important; }
+    .mv-workstation::after { content:''; position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);pointer-events:none; }
+    /* Room label */
+    .mv-room-label { font-family:'DM Mono',monospace;font-size:0.49rem;letter-spacing:0.14em;margin-bottom:0.7rem;opacity:0.75;text-align:center; }
+    /* Desk wrap */
+    .mv-desk-wrap { display:flex;flex-direction:column;align-items:center;margin-bottom:5px; }
+    /* Desk surface — top-down view of a wooden desk */
+    .mv-desk {
+      width:120px; height:46px;
+      background:linear-gradient(170deg,#2e2218 0%,#1e1610 60%,#171008 100%);
+      border-radius:4px 4px 0 0;
+      border-top:2px solid rgba(255,255,255,0.16);
+      border-left:1px solid rgba(255,255,255,0.09);
+      border-right:1px solid rgba(0,0,0,0.7);
+      box-shadow:0 3px 0 #0b0806, inset 0 1px 0 rgba(255,255,255,0.06);
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      position:relative;
+    }
+    /* Desk side panel (depth) */
+    .mv-desk-side {
+      width:120px; height:6px;
+      background:linear-gradient(to bottom,#0c0907,#07060400);
+      border-radius:0 0 3px 3px;
+      margin-bottom:11px;
+    }
+    /* Monitor body */
+    .mv-monitor-wrap { display:flex;flex-direction:column;align-items:center;gap:2px; }
+    .mv-monitor-body {
+      width:32px; height:23px;
+      background:#0c0c14;
+      border:1.5px solid #242438;
+      border-radius:2px;
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .mv-monitor-screen { width:26px; height:17px; border-radius:1px; transition:all 0.6s; }
+    .mv-monitor-stand { width:6px; height:4px; background:#181828; border-radius:0 0 2px 2px; }
+    /* Keyboard */
+    .mv-keyboard {
+      width:24px; height:10px;
+      background:#14141e;
+      border:1px solid rgba(255,255,255,0.09);
+      border-radius:2px;
+      box-shadow:inset 0 1px 2px rgba(0,0,0,0.4);
+    }
+    /* Small mug decoration */
+    .mv-mug {
+      width:10px; height:12px;
+      background:#1a1a24; border-radius:2px 2px 3px 3px;
+      border:1px solid rgba(255,255,255,0.08);
+      position:relative;
+    }
+    .mv-mug::after { content:''; position:absolute;right:-4px;top:2px;width:3px;height:6px;border-radius:0 3px 3px 0;border:1px solid rgba(255,255,255,0.08); }
+    /* Chair assembly */
+    .mv-chair-wrap { display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:8px; }
+    .mv-chair-back {
+      width:36px; height:9px;
+      background:#101018;
+      border:1px solid rgba(255,255,255,0.1);
+      border-bottom:none;
+      border-radius:3px 3px 0 0;
+    }
+    .mv-chair-seat {
+      width:42px; height:42px;
+      border-radius:50%;
+      background:#0e0e18;
+      border:1.5px solid rgba(255,255,255,0.09);
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 3px 0 rgba(0,0,0,0.4);
+    }
+    /* Character orb in seat */
+    .mv-char-orb {
+      width:32px; height:32px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'DM Mono',monospace; font-size:0.58rem; font-weight:700;
+      position:relative; transition:all 0.3s;
+    }
+    .mv-char-active { animation:orbPulse 1.5s ease-in-out infinite; }
+    /* Status badge */
+    .mv-status-dot { display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle; }
+    /* Info strip */
+    .mv-ws-info { text-align:center;width:100%;padding-top:0.5rem;margin-top:auto;border-top:1px solid rgba(255,255,255,0.05); }
+    /* Event log */
+    .mv-ticker-inner { font-family:'DM Mono',monospace;font-size:0.68rem;line-height:1.9;color:var(--text3); }
+    /* Legacy compat */
+    .mv-room { border-radius:12px;padding:1.25rem;min-height:180px;position:relative;overflow:hidden; }
+    .mv-scanline { position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,currentColor,transparent);opacity:0.15;animation:scanline 3s linear infinite;pointer-events:none; }
+    .mv-data-stream { display:inline-block;font-family:'DM Mono',monospace;font-size:0.6rem;animation:dataStream 2s ease-in-out infinite; }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -3487,7 +3564,12 @@
             <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:1rem">SCHEDULE POST</div>
             <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem">Confirm the scheduled time for this post. You can adjust it below.</div>
             <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--text3);display:block;margin-bottom:0.4rem">PUBLISH AT</label>
-            <input type="datetime-local" id="review-schedule-input" style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box;margin-bottom:1.5rem">
+            <input type="datetime-local" id="review-schedule-input" style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box;margin-bottom:1rem">
+            <div id="review-image-url-wrap" style="display:none;margin-bottom:1.25rem">
+              <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:#f97316;display:block;margin-bottom:0.4rem">INSTAGRAM IMAGE URL <span style="color:var(--text3)">(required to publish)</span></label>
+              <input type="url" id="review-image-url-input" placeholder="https://your-cdn.com/image.jpg" style="width:100%;background:#111110;border:1px solid rgba(249,115,22,0.35);color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box">
+              <div style="font-size:0.72rem;color:var(--text3);margin-top:0.4rem">Upload your carousel PNG to any CDN (Cloudinary, Imgur, etc.) and paste the URL here.</div>
+            </div>
             <div style="display:flex;gap:0.75rem">
               <button onclick="reviewApproveConfirm()" style="flex:1;padding:0.75rem;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.5);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;border-radius:6px;cursor:pointer">CONFIRM SCHEDULE</button>
               <button onclick="closeReviewApproveModal()" style="padding:0.75rem 1rem;background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.72rem;border-radius:6px;cursor:pointer">Cancel</button>
@@ -6858,73 +6940,88 @@
     const container = document.getElementById('mv-office-container');
     if (!container) return;
 
-    // Build character cells
     const cells = MV_DESKS.map(desk => {
       const a = agentMap[desk.agent] || { status: 'idle', run_count: 0, last_action: null, finished_at: null };
       const meta = desk.meta;
-      const col = AGENT_CFG[desk.agent]?.color || AGENT_CFG.concept.color;
+      const col = AGENT_CFG[desk.agent]?.color || '#8B5CF6';
       const status = a.status || 'idle';
       const isRunning = status === 'running';
-      const isError = status === 'error';
-      const isDone = status === 'done';
+      const isError   = status === 'error';
+      const isDone    = status === 'done';
 
-      const statusDot = isRunning ? `<span style="color:${col};animation:orbPulse 1.5s infinite">◉</span> ACTIVE`
-        : isError ? '<span style="color:#f87171">✕</span> ERROR'
-        : isDone  ? '<span style="color:#6366f1">●</span> DONE'
-        : '<span style="color:#374151">○</span> IDLE';
+      // Monitor screen glow
+      const screenStyle = isRunning
+        ? `background:radial-gradient(circle at 40% 35%,${col}dd,${col}66);box-shadow:0 0 10px ${col}88;`
+        : isDone
+        ? `background:${col}44;`
+        : `background:#0a0a14;`;
+
+      // Status indicator
+      const dotColor = isRunning ? '#10B981' : isError ? '#f87171' : isDone ? '#6366f1' : '#2a2a40';
+      const dotLabel = isRunning ? 'ACTIVE' : isError ? 'ERROR' : isDone ? 'DONE' : 'IDLE';
 
       return `
-        <div class="mv-desk-station" style="border-color:${isRunning ? col+'66' : 'rgba(255,255,255,0.07)'};${isRunning ? `box-shadow:0 0 28px ${col}22;` : ''}background:${col}08" onclick="showTab('agents')">
-          <!-- Desk label -->
-          <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:${col};letter-spacing:0.12em;margin-bottom:0.75rem;opacity:0.8">${desk.floor}</div>
+        <div class="mv-workstation" style="background:${col}${isRunning ? '10' : '06'};${isRunning ? `border-color:${col}33;box-shadow:inset 0 0 60px ${col}0a;` : ''}" onclick="showTab('agents')" title="${meta.label} — ${meta.does.slice(0,80)}…">
 
-          <!-- Character sprite -->
-          <div style="display:flex;justify-content:center;margin-bottom:0.75rem">
-            <div class="mv-character${isRunning ? ' mv-character-active' : ''}" style="
-              width:52px;height:52px;border-radius:50%;
-              background:radial-gradient(circle at 35% 30%, ${col}66, ${col}22);
-              border:2px solid ${isRunning ? col : col+'44'};
-              display:flex;align-items:center;justify-content:center;
-              font-family:'DM Mono',monospace;font-size:1rem;font-weight:700;color:${col};
-              ${isRunning ? `box-shadow:0 0 18px ${col}55;animation:orbPulse 1.5s ease-in-out infinite;` : ''}
-              ${isError ? 'border-color:#f87171;filter:grayscale(0.6);' : ''}
-              position:relative;
-            ">
-              ${meta.label.slice(0,2).toUpperCase()}
-              ${isRunning ? `<span style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#10B981;border:1.5px solid #0a0a14;animation:orbPulse 1s infinite"></span>` : ''}
+          <!-- Room label -->
+          <div class="mv-room-label" style="color:${col}">${desk.floor}</div>
+
+          <!-- Desk surface -->
+          <div class="mv-desk-wrap">
+            <div class="mv-desk">
+              <!-- Monitor -->
+              <div class="mv-monitor-wrap">
+                <div class="mv-monitor-body">
+                  <div class="mv-monitor-screen" style="${screenStyle}${isRunning ? 'animation:orbPulse 2.5s ease-in-out infinite;' : ''}"></div>
+                </div>
+                <div class="mv-monitor-stand"></div>
+              </div>
+              <!-- Keyboard -->
+              <div class="mv-keyboard"></div>
+              <!-- Mug -->
+              <div class="mv-mug" style="border-color:${col}33"></div>
+            </div>
+            <div class="mv-desk-side"></div>
+          </div>
+
+          <!-- Chair + character -->
+          <div class="mv-chair-wrap">
+            <div class="mv-chair-back" style="border-color:${col}22;background:${col}08"></div>
+            <div class="mv-chair-seat" style="border-color:${col}${isRunning ? '44' : '1a'}">
+              <div class="mv-char-orb${isRunning ? ' mv-char-active' : ''}" style="background:radial-gradient(circle at 35% 30%,${col}99,${col}33);border:2px solid ${isRunning ? col : col+'55'};color:${col};${isRunning ? `box-shadow:0 0 16px ${col}77;` : ''}${isError ? 'filter:grayscale(0.5);border-color:#f8717177;' : ''}">
+                ${meta.label.slice(0,2).toUpperCase()}
+                ${isRunning ? `<span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#10B981;border:1.5px solid #06060e;"></span>` : ''}
+              </div>
             </div>
           </div>
 
-          <!-- Desk surface (decorative) -->
-          <div style="background:rgba(255,255,255,0.04);border:1px solid ${col}22;border-radius:8px;padding:0.6rem 0.75rem;margin-bottom:0.6rem;min-height:40px">
-            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
-              ${a.last_action ? a.last_action.slice(0, 60) + (a.last_action.length > 60 ? '…' : '') : 'Waiting for tasks…'}
+          <!-- Info -->
+          <div class="mv-ws-info">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--text);margin-bottom:0.1rem">${meta.label}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--text3);letter-spacing:0.08em;margin-bottom:0.3rem">${meta.role}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.57rem;letter-spacing:0.06em">
+              <span class="mv-status-dot" style="background:${dotColor};${isRunning ? `box-shadow:0 0 5px ${dotColor};` : ''}"></span>${dotLabel}
             </div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--text3);margin-top:0.25rem">${a.run_count || 0} runs · ${a.finished_at ? timeAgo(a.finished_at) : 'never'}</div>
+            ${a.last_action && isRunning ? `<div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:${col};margin-top:0.35rem;opacity:0.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${a.last_action.slice(0,40)}</div>` : ''}
           </div>
-
-          <!-- Agent name + status -->
-          <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;margin-bottom:0.2rem">${meta.label}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.08em;margin-bottom:0.5rem">${meta.role}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.06em">${statusDot}</div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);margin-top:0.4rem">${a.run_count || 0} runs · ${a.finished_at ? timeAgo(a.finished_at) : 'never'}</div>
         </div>`;
     }).join('');
 
     container.innerHTML = `<div class="mv-office-floor">${cells}</div>`;
 
-    // Event log ticker
+    // Event log
     const streams = document.getElementById('mv-streams');
     if (streams) {
-      const active = agents.filter(a => a.status === 'running' || a.last_action);
-      const logs = active.slice(0, 6).map(a => {
-        const col = AGENT_CFG[a.agent_name]?.color || 'var(--text2)';
-        const lbl = AGENT_CFG[a.agent_name]?.label || a.agent_name;
-        return `<span style="color:${col}">[${lbl}]</span> <span style="color:var(--text3)">${a.last_action || 'standby'}</span>`;
-      });
-      if (logs.length) {
-        streams.innerHTML = `<div class="mv-ticker-inner">${logs.join(' &nbsp;·&nbsp; &nbsp;·&nbsp; ')}</div>`;
+      const withActions = agents.filter(a => a.last_action);
+      if (withActions.length) {
+        streams.innerHTML = `<div class="mv-ticker-inner">${withActions.slice(0,8).map(a => {
+          const col = AGENT_CFG[a.agent_name]?.color || 'var(--text2)';
+          const lbl = AGENT_CFG[a.agent_name]?.label || a.agent_name;
+          return `<span style="color:${col}">[${lbl}]</span> <span style="color:var(--text3)">${_escHtml(a.last_action)}</span>`;
+        }).join('<br>')}</div>`;
       } else {
-        streams.innerHTML = '<div style="opacity:0.35;font-size:0.72rem">All agents on standby. Loop runs automatically on schedule.</div>';
+        streams.innerHTML = '<div style="opacity:0.35;font-size:0.72rem">All agents on standby. Loop runs on schedule.</div>';
       }
     }
   }
@@ -7041,6 +7138,16 @@
     while ([0, 6].includes(d.getDay())) d.setDate(d.getDate() + 1);
     const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById('review-schedule-input').value = local;
+    // Show image URL field for Instagram posts
+    const imageWrap = document.getElementById('review-image-url-wrap');
+    const imageInput = document.getElementById('review-image-url-input');
+    if (post.platform === 'instagram') {
+      imageWrap.style.display = 'block';
+      imageInput.value = post.image_url || '';
+    } else {
+      imageWrap.style.display = 'none';
+      imageInput.value = '';
+    }
     const modal = document.getElementById('review-approve-modal');
     modal.style.display = 'flex';
   }
@@ -7053,7 +7160,19 @@
     const post = reviewQueue[reviewIndex];
     if (!post) return;
     const scheduledFor = document.getElementById('review-schedule-input').value;
+    const imageUrl = document.getElementById('review-image-url-input').value.trim();
     try {
+      // Save image URL first if provided (required for Instagram publishing)
+      if (imageUrl) {
+        const imgRes = await authFetch(`/api/posts/${post.id}/image-url`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl }),
+        });
+        const imgData = await imgRes.json();
+        if (!imgData.success) throw new Error('Image URL save failed: ' + imgData.error);
+        post.image_url = imageUrl;
+      }
       const res = await authFetch(`/api/posts/${post.id}/approve`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
