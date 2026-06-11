@@ -6948,21 +6948,17 @@
     svg.setAttribute('viewBox', '0 0 820 520');
     svg.style.cssText = 'min-width:640px;width:100%;display:block;';
 
-    // Defs: filters + per-agent radial gradients
+    // Defs: filters + per-agent radial gradients (single innerHTML to avoid re-serialization)
     const defs = document.createElementNS(NS, 'defs');
     const AGENT_KEYS = ['concept','autogen','publish','metrics','scoring','decide','evolution','feedback'];
-    AGENT_KEYS.forEach(k => {
+    const gradHTML = AGENT_KEYS.map(k => {
       const c = AGENT_CFG[k]?.color || '#8B5CF6';
-      const g = document.createElementNS(NS, 'radialGradient');
-      g.setAttribute('id', `mvg-${k}`);
-      g.setAttribute('cx', '38%'); g.setAttribute('cy', '32%'); g.setAttribute('r', '68%');
-      g.innerHTML = `<stop offset="0%" stop-color="#fff" stop-opacity="0.55"/><stop offset="50%" stop-color="${c}" stop-opacity="0.9"/><stop offset="100%" stop-color="${c}" stop-opacity="0.3"/>`;
-      defs.appendChild(g);
-    });
-    defs.innerHTML += `
-      <filter id="mv-drop"><feDropShadow dx="1" dy="3" stdDeviation="2.5" flood-color="rgba(0,0,0,0.65)"/></filter>
-      <filter id="mv-glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="mv-bloom"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+      return `<radialGradient id="mvg-${k}" cx="38%" cy="32%" r="68%"><stop offset="0%" stop-color="#fff" stop-opacity="0.55"/><stop offset="50%" stop-color="${c}" stop-opacity="0.9"/><stop offset="100%" stop-color="${c}" stop-opacity="0.3"/></radialGradient>`;
+    }).join('');
+    defs.innerHTML = gradHTML + `
+      <filter id="mv-drop" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="1" dy="3" stdDeviation="2.5" flood-color="#000" flood-opacity="0.65"/></filter>
+      <filter id="mv-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="mv-bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
     svg.appendChild(defs);
 
     // ── Iso coordinate helpers ────────────────────────────────────────────
