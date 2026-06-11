@@ -6,6 +6,7 @@
 const CAROUSEL_ACCENT_PRESETS = ['#39FF14','#ffffff','#c9a96e','#c13584','#0d3b8c','#ff6b35','#a855f7','#ef4444'];
 const CAROUSEL_BG_PRESETS = ['#0a0a0a','#141413','#0f0f0f','#1a1a1a','#0d0d14','#14140a','#0a0d14','#140a0a'];
 const CAROUSEL_TEMPLATE_KEY = 'carousel_template_v1';
+const CAROUSEL_AVATAR_KEY = 'carousel_avatar_v1';
 const SLIDE_W = 540;
 const SLIDE_H = 675;
 const SLIDE_FONT = "'Poppins','Open Sans',sans-serif";
@@ -75,6 +76,7 @@ function carouselInit() {
   carouselState.initialized = true;
   _carouselLoadHtml2Canvas();
   carouselLoadTemplate();
+  carouselLoadAvatar();
   _carouselBuildColorPresets();
   carouselUpdatePreview();
   carouselRenderEditor();
@@ -427,8 +429,46 @@ function carouselHandleAvatar(input) {
   _carouselReadFile(file, dataUrl => {
     carouselState.avatarImage = dataUrl;
     carouselUpdatePreview();
-    carouselSaveTemplate();
+    carouselSaveAvatar();
+    _carouselUpdateAvatarBtn();
   });
+}
+
+function carouselSaveAvatar() {
+  try {
+    if (carouselState.avatarImage) {
+      localStorage.setItem(CAROUSEL_AVATAR_KEY, carouselState.avatarImage);
+    } else {
+      localStorage.removeItem(CAROUSEL_AVATAR_KEY);
+    }
+  } catch (e) {}
+}
+
+function carouselLoadAvatar() {
+  try {
+    const data = localStorage.getItem(CAROUSEL_AVATAR_KEY);
+    if (data) {
+      carouselState.avatarImage = data;
+      _carouselUpdateAvatarBtn();
+    }
+  } catch (e) {}
+}
+
+function _carouselUpdateAvatarBtn() {
+  const label = document.querySelector('label[for="carousel-avatar-input"]');
+  if (!label) return;
+  const existing = label.querySelector('.carousel-avatar-thumb');
+  if (carouselState.avatarImage) {
+    if (!existing) {
+      const img = document.createElement('img');
+      img.className = 'carousel-avatar-thumb';
+      img.style.cssText = 'width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;border:1.5px solid rgba(255,255,255,0.4);';
+      label.prepend(img);
+    }
+    label.querySelector('.carousel-avatar-thumb').src = carouselState.avatarImage;
+  } else if (existing) {
+    existing.remove();
+  }
 }
 
 function _carouselReadFile(file, cb) {
@@ -682,7 +722,8 @@ function carouselAddCtaSlide() {
 function carouselSaveTemplate() {
   try {
     const username = (carouselState.slides[0] && carouselState.slides[0].username) || '@yourhandle';
-    // Strip per-slide images before saving — they can be several MB and blow the localStorage quota
+    // Strip per-slide images and avatar before saving — they can be several MB and blow the localStorage quota
+    // Avatar is persisted separately under CAROUSEL_AVATAR_KEY
     const slides = carouselState.slides.map(s => ({ ...s, image: null }));
     localStorage.setItem(CAROUSEL_TEMPLATE_KEY, JSON.stringify({
       accentColor: carouselState.accentColor,
@@ -690,7 +731,6 @@ function carouselSaveTemplate() {
       slideStyle: carouselState.slideStyle,
       logoText: carouselState.logoText,
       websiteUrl: carouselState.websiteUrl,
-      avatarImage: carouselState.avatarImage,
       username,
       slides,
     }));
@@ -734,7 +774,6 @@ function carouselLoadTemplate() {
       const el = document.getElementById('carousel-website-url');
       if (el) el.value = t.websiteUrl;
     }
-    if (t.avatarImage) carouselState.avatarImage = t.avatarImage;
     if (t.slides && Array.isArray(t.slides) && t.slides.length) {
       carouselState.slides = t.slides;
     } else if (t.username && carouselState.slides[0]) {
@@ -993,10 +1032,12 @@ function carouselHandleTemplateUpload(input) {
 function carouselReset() {
   if (!confirm('Reset to default content? This will clear all slides, images, and saved brand settings.')) return;
   localStorage.removeItem(CAROUSEL_TEMPLATE_KEY);
+  localStorage.removeItem(CAROUSEL_AVATAR_KEY);
   carouselState.slides = getDefaultCarouselSlides();
   carouselState.currentSlide = 0;
   carouselState.coverImage = null;
   carouselState.avatarImage = null;
+  _carouselUpdateAvatarBtn();
   carouselState.accentColor = '#39FF14';
   carouselState.bgColor = '#0a0a0a';
   carouselState.slideStyle = 'dark';
