@@ -3737,8 +3737,8 @@
           <button class="secondary-btn" style="margin:0;padding:0.5rem 1rem;font-size:0.65rem" onclick="loadMetaverse()">Refresh</button>
         </div>
 
-        <div id="mv-office-container" class="mv-office-grid">
-          <!-- Injected by JS -->
+        <div id="mv-office-container" style="overflow-x:auto;border-radius:16px;background:#07071a;border:1px solid rgba(255,255,255,0.07);position:relative;min-height:520px">
+          <!-- Isometric SVG injected by JS -->
         </div>
 
         <!-- Event log ticker -->
@@ -6381,6 +6381,7 @@
     winloss:   { label:'Brain',  role:'Pattern Store',   does:'Stores every win, loss, weekly summary and strategic decision as a diary entry. The institutional memory of your brand.',                       impact:'All agents read from here. More data = smarter decisions.',                               input:'Patterns + Feedback',    output:'Win/Loss Log', agentKey:'scoring'  },
     decide:    { label:'Oracle', role:'Strategist',      does:'Reviews 30 days of brain diary entries every Monday. Boosts ideas matching win patterns to priority 9, archives ideas matching losses.',         impact:'Directs the next cycle focus. Cuts waste, amplifies signal.',                              input:'Brain Diary',            output:'Boosted Queue',agentKey:'decide'   },
     evolution: { label:'Echo',   role:'Synthesizer',     does:'Every Sunday distils 60 days of wins and losses into 3–5 learned prompt rules. These rules are injected into every future post generation.',    impact:'Makes the AI smarter each week — compounding improvement.',                               input:'Brain Diary (60 days)',  output:'Prompt Rules', agentKey:'evolution' },
+    feedback:  { label:'Debrief',role:'Coach',           does:'Every Sunday synthesises the week\'s wins and losses into a coaching narrative so you understand what\'s working and why.',                           impact:'Closes the human-in-the-loop. You learn what the AI learned.',                            input:'Brain Diary',            output:'Weekly Summary',agentKey:'feedback' },
   };
 
   const TOPO_POSITIONS = {
@@ -6940,89 +6941,289 @@
     const container = document.getElementById('mv-office-container');
     if (!container) return;
 
-    const cells = MV_DESKS.map(desk => {
-      const a = agentMap[desk.agent] || { status: 'idle', run_count: 0, last_action: null, finished_at: null };
-      const meta = desk.meta;
-      const col = AGENT_CFG[desk.agent]?.color || '#8B5CF6';
-      const status = a.status || 'idle';
-      const isRunning = status === 'running';
-      const isError   = status === 'error';
-      const isDone    = status === 'done';
+    const NS = 'http://www.w3.org/2000/svg';
 
-      // Monitor screen glow
-      const screenStyle = isRunning
-        ? `background:radial-gradient(circle at 40% 35%,${col}dd,${col}66);box-shadow:0 0 10px ${col}88;`
-        : isDone
-        ? `background:${col}44;`
-        : `background:#0a0a14;`;
+    // ── Build SVG ────────────────────────────────────────────────────────
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 820 520');
+    svg.style.cssText = 'min-width:640px;width:100%;display:block;';
 
-      // Status indicator
-      const dotColor = isRunning ? '#10B981' : isError ? '#f87171' : isDone ? '#6366f1' : '#2a2a40';
-      const dotLabel = isRunning ? 'ACTIVE' : isError ? 'ERROR' : isDone ? 'DONE' : 'IDLE';
+    // Defs: filters + per-agent radial gradients
+    const defs = document.createElementNS(NS, 'defs');
+    const AGENT_KEYS = ['concept','autogen','publish','metrics','scoring','decide','evolution','feedback'];
+    AGENT_KEYS.forEach(k => {
+      const c = AGENT_CFG[k]?.color || '#8B5CF6';
+      const g = document.createElementNS(NS, 'radialGradient');
+      g.setAttribute('id', `mvg-${k}`);
+      g.setAttribute('cx', '38%'); g.setAttribute('cy', '32%'); g.setAttribute('r', '68%');
+      g.innerHTML = `<stop offset="0%" stop-color="#fff" stop-opacity="0.55"/><stop offset="50%" stop-color="${c}" stop-opacity="0.9"/><stop offset="100%" stop-color="${c}" stop-opacity="0.3"/>`;
+      defs.appendChild(g);
+    });
+    defs.innerHTML += `
+      <filter id="mv-drop"><feDropShadow dx="1" dy="3" stdDeviation="2.5" flood-color="rgba(0,0,0,0.65)"/></filter>
+      <filter id="mv-glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="mv-bloom"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+    svg.appendChild(defs);
 
-      return `
-        <div class="mv-workstation" style="background:${col}${isRunning ? '10' : '06'};${isRunning ? `border-color:${col}33;box-shadow:inset 0 0 60px ${col}0a;` : ''}" onclick="showTab('agents')" title="${meta.label} — ${meta.does.slice(0,80)}…">
+    // ── Iso coordinate helpers ────────────────────────────────────────────
+    const TW = 62, TH = 31, ZS = 36, OX = 412, OY = 118;
+    const sc = (gx, gy, gz = 0) => ({ x: OX + (gx - gy) * (TW/2), y: OY + (gx + gy) * (TH/2) - gz * ZS });
 
-          <!-- Room label -->
-          <div class="mv-room-label" style="color:${col}">${desk.floor}</div>
+    const mkP = (pts, fill, str, sw) => {
+      const el = document.createElementNS(NS, 'polygon');
+      el.setAttribute('points', pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
+      el.setAttribute('fill', fill);
+      if (str) { el.setAttribute('stroke', str); el.setAttribute('stroke-width', sw || 0.5); }
+      return el;
+    };
+    const mkC = (cx, cy, r, fill, str, sw) => {
+      const el = document.createElementNS(NS, 'circle');
+      el.setAttribute('cx', cx.toFixed(1)); el.setAttribute('cy', cy.toFixed(1)); el.setAttribute('r', r);
+      el.setAttribute('fill', fill);
+      if (str) { el.setAttribute('stroke', str); el.setAttribute('stroke-width', sw || 1); }
+      return el;
+    };
+    const mkT = (x, y, txt, size, fill, anchor, extra = {}) => {
+      const el = document.createElementNS(NS, 'text');
+      el.setAttribute('x', x.toFixed(1)); el.setAttribute('y', y.toFixed(1));
+      el.setAttribute('font-family', "'DM Mono',monospace");
+      el.setAttribute('font-size', size); el.setAttribute('fill', fill);
+      el.setAttribute('text-anchor', anchor || 'middle');
+      if (extra.w) el.setAttribute('font-weight', extra.w);
+      if (extra.ls) el.setAttribute('letter-spacing', extra.ls);
+      if (extra.op) el.setAttribute('opacity', extra.op);
+      el.textContent = txt;
+      return el;
+    };
+    const mkL = (x1, y1, x2, y2, str, sw) => {
+      const el = document.createElementNS(NS, 'line');
+      el.setAttribute('x1', x1.toFixed(1)); el.setAttribute('y1', y1.toFixed(1));
+      el.setAttribute('x2', x2.toFixed(1)); el.setAttribute('y2', y2.toFixed(1));
+      el.setAttribute('stroke', str); el.setAttribute('stroke-width', sw || 1);
+      return el;
+    };
 
-          <!-- Desk surface -->
-          <div class="mv-desk-wrap">
-            <div class="mv-desk">
-              <!-- Monitor -->
-              <div class="mv-monitor-wrap">
-                <div class="mv-monitor-body">
-                  <div class="mv-monitor-screen" style="${screenStyle}${isRunning ? 'animation:orbPulse 2.5s ease-in-out infinite;' : ''}"></div>
-                </div>
-                <div class="mv-monitor-stand"></div>
-              </div>
-              <!-- Keyboard -->
-              <div class="mv-keyboard"></div>
-              <!-- Mug -->
-              <div class="mv-mug" style="border-color:${col}33"></div>
-            </div>
-            <div class="mv-desk-side"></div>
-          </div>
+    // ── FLOOR TILES ───────────────────────────────────────────────────────
+    const GW = 11, GH = 8;
+    const FC = ['#0f0f24', '#0d0d20'];
+    const FS = 'rgba(120,120,255,0.04)';
 
-          <!-- Chair + character -->
-          <div class="mv-chair-wrap">
-            <div class="mv-chair-back" style="border-color:${col}22;background:${col}08"></div>
-            <div class="mv-chair-seat" style="border-color:${col}${isRunning ? '44' : '1a'}">
-              <div class="mv-char-orb${isRunning ? ' mv-char-active' : ''}" style="background:radial-gradient(circle at 35% 30%,${col}99,${col}33);border:2px solid ${isRunning ? col : col+'55'};color:${col};${isRunning ? `box-shadow:0 0 16px ${col}77;` : ''}${isError ? 'filter:grayscale(0.5);border-color:#f8717177;' : ''}">
-                ${meta.label.slice(0,2).toUpperCase()}
-                ${isRunning ? `<span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#10B981;border:1.5px solid #06060e;"></span>` : ''}
-              </div>
-            </div>
-          </div>
+    for (let sum = 0; sum <= GW + GH - 2; sum++) {
+      for (let gy = Math.max(0, sum - GW + 1); gy <= Math.min(sum, GH - 1); gy++) {
+        const gx = sum - gy;
+        if (gx < 0 || gx >= GW) continue;
+        svg.appendChild(mkP([sc(gx,gy), sc(gx+1,gy), sc(gx+1,gy+1), sc(gx,gy+1)], FC[(gx+gy)%2], FS, 0.5));
+      }
+    }
 
-          <!-- Info -->
-          <div class="mv-ws-info">
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--text);margin-bottom:0.1rem">${meta.label}</div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--text3);letter-spacing:0.08em;margin-bottom:0.3rem">${meta.role}</div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.57rem;letter-spacing:0.06em">
-              <span class="mv-status-dot" style="background:${dotColor};${isRunning ? `box-shadow:0 0 5px ${dotColor};` : ''}"></span>${dotLabel}
-            </div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--text3);margin-top:0.25rem">${a.run_count || 0} runs · ${a.finished_at ? timeAgo(a.finished_at) : 'never'}</div>
-            ${a.last_action && isRunning ? `<div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:${col};margin-top:0.35rem;opacity:0.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">${a.last_action.slice(0,40)}</div>` : ''}
-          </div>
-        </div>`;
-    }).join('');
+    // Subtle grid lines on floor
+    for (let i = 0; i <= GW; i++) svg.appendChild(mkL(sc(i,0).x, sc(i,0).y, sc(i,GH).x, sc(i,GH).y, 'rgba(255,255,255,0.025)', 0.5));
+    for (let i = 0; i <= GH; i++) svg.appendChild(mkL(sc(0,i).x, sc(0,i).y, sc(GW,i).x, sc(GW,i).y, 'rgba(255,255,255,0.025)', 0.5));
 
-    container.innerHTML = `<div class="mv-office-floor">${cells}</div>`;
+    // ── BACK WALL (y = 0) ─────────────────────────────────────────────────
+    const WH = 2.4;
+    for (let gx = GW-1; gx >= 0; gx--) {
+      svg.appendChild(mkP([sc(gx,0,WH),sc(gx+1,0,WH),sc(gx+1,0,0),sc(gx,0,0)], '#0b0b20', 'rgba(255,255,255,0.04)', 0.5));
+    }
 
-    // Event log
+    // ── LEFT WALL (x = 0) ─────────────────────────────────────────────────
+    for (let gy = 0; gy < GH; gy++) {
+      svg.appendChild(mkP([sc(0,gy,WH),sc(0,gy+1,WH),sc(0,gy+1,0),sc(0,gy,0)], '#090918', 'rgba(255,255,255,0.04)', 0.5));
+    }
+
+    // Wall cap highlights
+    {
+      const wPts = Array.from({length:GW+1},(_,i) => sc(i,0,WH));
+      const el = document.createElementNS(NS, 'polyline');
+      el.setAttribute('points', wPts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
+      el.setAttribute('fill','none'); el.setAttribute('stroke','rgba(255,255,255,0.1)'); el.setAttribute('stroke-width','1');
+      svg.appendChild(el);
+    }
+    {
+      const wPts = Array.from({length:GH+1},(_,i) => sc(0,i,WH));
+      const el = document.createElementNS(NS, 'polyline');
+      el.setAttribute('points', wPts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
+      el.setAttribute('fill','none'); el.setAttribute('stroke','rgba(255,255,255,0.07)'); el.setAttribute('stroke-width','1');
+      svg.appendChild(el);
+    }
+
+    // Room sign on back wall
+    const sign = sc(GW/2, 0, WH * 0.55);
+    svg.appendChild(mkT(sign.x, sign.y + 4, 'BRAND HEADQUARTERS', 9, 'rgba(255,255,255,0.22)', 'middle', { ls: '3' }));
+
+    // ── DESK DRAWER FUNCTION ──────────────────────────────────────────────
+    function drawDesk(gx, gy, agentKey) {
+      const a = agentMap[agentKey] || { status:'idle', run_count:0, finished_at:null, last_action:null };
+      const meta = AGENT_META[agentKey] || AGENT_META.concept;
+      const col  = AGENT_CFG[agentKey]?.color || '#8B5CF6';
+      const running = a.status === 'running';
+      const done    = a.status === 'done';
+      const err     = a.status === 'error';
+
+      // ── Desk box (DW wide, DD deep, DH tall) ─────────────────────────
+      const DW=1.8, DD=1.3, DH=0.48;
+
+      // Left face (y+DD side)
+      svg.appendChild(mkP([sc(gx,gy+DD,DH),sc(gx+DW,gy+DD,DH),sc(gx+DW,gy+DD,0),sc(gx,gy+DD,0)], '#1e1912', 'rgba(0,0,0,0.4)', 0.5));
+      // Right face (x+DW side)
+      svg.appendChild(mkP([sc(gx+DW,gy,DH),sc(gx+DW,gy+DD,DH),sc(gx+DW,gy+DD,0),sc(gx+DW,gy,0)], '#272012', 'rgba(0,0,0,0.25)', 0.5));
+      // Top surface
+      const deskTop = mkP([sc(gx,gy,DH),sc(gx+DW,gy,DH),sc(gx+DW,gy+DD,DH),sc(gx,gy+DD,DH)], '#312618', 'rgba(255,255,255,0.1)', 0.5);
+      deskTop.setAttribute('filter','url(#mv-drop)');
+      svg.appendChild(deskTop);
+
+      // Desk legs (thin dark lines at corners)
+      [[0,0],[DW,0],[DW,DD],[0,DD]].forEach(([dx,dy]) => {
+        const top = sc(gx+dx,gy+dy,DH), bot = sc(gx+dx,gy+dy,0);
+        svg.appendChild(mkL(top.x,top.y,bot.x,bot.y,'rgba(0,0,0,0.5)',0.8));
+      });
+
+      // ── Keyboard on desk ───────────────────────────────────────────────
+      const KX=0.35,KY=0.55,KW=0.8,KD=0.28;
+      const kbFace = mkP([sc(gx+KX,gy+KY,DH+.03),sc(gx+KX+KW,gy+KY,DH+.03),sc(gx+KX+KW,gy+KY+KD,DH+.03),sc(gx+KX,gy+KY+KD,DH+.03)], '#171724','rgba(255,255,255,0.09)',0.5);
+      svg.appendChild(kbFace);
+
+      // ── Monitor ────────────────────────────────────────────────────────
+      const MX=0.3,MY=0.08,MW=0.8,MD=0.06,MH=0.78;
+
+      // Monitor back face
+      svg.appendChild(mkP([sc(gx+MX,gy+MY+MD,DH+MH),sc(gx+MX+MW,gy+MY+MD,DH+MH),sc(gx+MX+MW,gy+MY+MD,DH),sc(gx+MX,gy+MY+MD,DH)], '#0e0e16','rgba(0,0,0,0.3)',0.5));
+      // Monitor right face
+      svg.appendChild(mkP([sc(gx+MX+MW,gy+MY,DH+MH),sc(gx+MX+MW,gy+MY+MD,DH+MH),sc(gx+MX+MW,gy+MY+MD,DH),sc(gx+MX+MW,gy+MY,DH)], '#111118','rgba(0,0,0,0.2)',0.5));
+      // Monitor stand
+      const ms1 = sc(gx+MX+MW*0.5, gy+MY+MD*0.5, DH+0.04);
+      const ms2 = sc(gx+MX+MW*0.5, gy+MY+MD*0.5, DH);
+      svg.appendChild(mkL(ms1.x,ms1.y,ms2.x,ms2.y,'#0a0a14',2));
+
+      // Monitor screen (the visible top face in iso view)
+      const screenFill = running ? col + 'bb' : col + '30';
+      const screenEl = mkP([sc(gx+MX,gy+MY,DH+MH),sc(gx+MX+MW,gy+MY,DH+MH),sc(gx+MX+MW,gy+MY+MD,DH+MH),sc(gx+MX,gy+MY+MD,DH+MH)], screenFill, col+(running?'ff':'66'), running?1.5:0.8);
+      if (running) screenEl.setAttribute('filter','url(#mv-bloom)');
+      svg.appendChild(screenEl);
+
+      // Screen glow bars (simulates scrolling text when running)
+      if (running) {
+        for (let li = 0; li < 3; li++) {
+          const ly = MY + MD * (0.3 + li * 0.25);
+          const l1 = sc(gx+MX+0.05, gy+ly, DH+MH+0.01);
+          const l2 = sc(gx+MX+MW-0.05, gy+ly, DH+MH+0.01);
+          const lEl = mkL(l1.x,l1.y,l2.x,l2.y, col+'88', 0.8);
+          svg.appendChild(lEl);
+        }
+      }
+
+      // Mug on desk (small cylinder)
+      const mugP = sc(gx+DW-0.25, gy+0.15, DH+0.06);
+      svg.appendChild(mkC(mugP.x, mugP.y, 5, '#1a1a2a', 'rgba(255,255,255,0.12)', 0.8));
+      svg.appendChild(mkC(mugP.x, mugP.y, 3, col+'33', col+'55', 0.5));
+
+      // ── Chair ──────────────────────────────────────────────────────────
+      const CX = gx + DW*0.5, CY = gy + DD + 0.5;
+      // Chair back panel
+      svg.appendChild(mkP([sc(CX-0.32,CY,0.42),sc(CX+0.32,CY,0.42),sc(CX+0.32,CY,0.08),sc(CX-0.32,CY,0.08)], '#131320', col+'28', 1));
+      // Chair seat (iso circle = ellipse)
+      const cSeat = sc(CX, CY, 0.14);
+      const el = document.createElementNS(NS, 'ellipse');
+      el.setAttribute('cx', cSeat.x.toFixed(1)); el.setAttribute('cy', cSeat.y.toFixed(1));
+      el.setAttribute('rx', (TW*0.32).toFixed(1)); el.setAttribute('ry', (TH*0.32).toFixed(1));
+      el.setAttribute('fill', '#0e0e1e'); el.setAttribute('stroke', col+'44'); el.setAttribute('stroke-width','1.2');
+      svg.appendChild(el);
+
+      // ── Character orb ──────────────────────────────────────────────────
+      const charP = sc(CX, CY, 0.56);
+      const CR = 16;
+
+      if (running) {
+        const glowEl = mkC(charP.x, charP.y, CR+10, col+'18', col+'33', 1);
+        glowEl.setAttribute('filter','url(#mv-glow)');
+        svg.appendChild(glowEl);
+
+        // Animated pulse ring
+        const ring = mkC(charP.x, charP.y, CR+4, 'none', col+'77', 1.2);
+        const anim = document.createElementNS(NS, 'animate');
+        anim.setAttribute('attributeName','r'); anim.setAttribute('values',`${CR+2};${CR+8};${CR+2}`);
+        anim.setAttribute('dur','2s'); anim.setAttribute('repeatCount','indefinite');
+        ring.appendChild(anim);
+        const animO = document.createElementNS(NS, 'animate');
+        animO.setAttribute('attributeName','stroke-opacity'); animO.setAttribute('values','0.8;0.1;0.8');
+        animO.setAttribute('dur','2s'); animO.setAttribute('repeatCount','indefinite');
+        ring.appendChild(animO);
+        svg.appendChild(ring);
+      }
+
+      // Shadow under char
+      const shEl = document.createElementNS(NS, 'ellipse');
+      shEl.setAttribute('cx', charP.x.toFixed(1)); shEl.setAttribute('cy', (charP.y+CR*0.7).toFixed(1));
+      shEl.setAttribute('rx', CR.toFixed(1)); shEl.setAttribute('ry', (CR*0.35).toFixed(1));
+      shEl.setAttribute('fill','rgba(0,0,0,0.35)');
+      svg.appendChild(shEl);
+
+      // Main orb
+      const orb = mkC(charP.x, charP.y, CR, `url(#mvg-${agentKey})`, running ? col : col+'88', running ? 2 : 1.5);
+      if (err) orb.setAttribute('filter','grayscale(0.7)');
+      svg.appendChild(orb);
+
+      // Initials text
+      svg.appendChild(mkT(charP.x, charP.y + 4.5, meta.label.slice(0,2).toUpperCase(), '9', running ? '#fff' : col, 'middle', { w:'700' }));
+
+      // Status dot (top right)
+      const dotC = running ? '#10B981' : err ? '#f87171' : done ? '#6366f1' : '#2a2a44';
+      const dotEl = mkC(charP.x + CR*0.72, charP.y - CR*0.72, 4.5, dotC, '#07071a', 1.5);
+      svg.appendChild(dotEl);
+
+      // Agent name tag
+      const nameP = sc(CX, CY + 1.05, 0);
+      svg.appendChild(mkT(nameP.x, nameP.y + 4, meta.label, 11, running ? col : 'rgba(255,255,255,0.82)', 'middle', { w: running ? '700' : '400' }));
+      svg.appendChild(mkT(nameP.x, nameP.y + 16, (a.run_count || 0) + ' runs', 8, 'rgba(255,255,255,0.28)', 'middle'));
+      if (running && a.last_action) {
+        const laP = sc(CX, CY + 1.55, 0);
+        svg.appendChild(mkT(laP.x, laP.y, a.last_action.slice(0, 28)+'…', 7.5, col+'cc', 'middle', { op:'0.85' }));
+      }
+    }
+
+    // ── DESK LAYOUT (back-to-front painter order) ─────────────────────────
+    const DESKS = [
+      { gx:0.7,  gy:0.4, agent:'concept'   },
+      { gx:3.4,  gy:0.2, agent:'autogen'   },
+      { gx:6.1,  gy:0.4, agent:'publish'   },
+      { gx:8.6,  gy:0.2, agent:'metrics'   },
+      { gx:0.7,  gy:4.2, agent:'scoring'   },
+      { gx:3.4,  gy:4.0, agent:'decide'    },
+      { gx:6.1,  gy:4.2, agent:'evolution' },
+      { gx:8.6,  gy:4.0, agent:'feedback'  },
+    ];
+    DESKS.sort((a, b) => (a.gx + a.gy) - (b.gx + b.gy));
+    for (const d of DESKS) drawDesk(d.gx, d.gy, d.agent);
+
+    // ── PLANTS (corner decorations) ────────────────────────────────────────
+    function drawPlant(gx, gy) {
+      const base = sc(gx, gy, 0);
+      // Pot body
+      svg.appendChild(mkC(base.x, base.y, 7, '#1a1108', 'rgba(255,255,255,0.1)', 0.5));
+      // Leaves cluster
+      [[-5,-12],[2,-16],[8,-10],[-1,-9]].forEach(([dx,dy]) => {
+        const el = mkC(base.x + dx, base.y + dy, 6 + Math.abs(dy) * 0.1, '#0d2010', '#1e3a1e', 0.8);
+        svg.appendChild(el);
+      });
+    }
+    drawPlant(0.3, 0.3); drawPlant(10.4, 0.3);
+    drawPlant(0.3, 7.6); drawPlant(10.4, 7.6);
+
+    // Swap into DOM
+    container.innerHTML = '';
+    container.appendChild(svg);
+
+    // ── Event log ──────────────────────────────────────────────────────────
     const streams = document.getElementById('mv-streams');
     if (streams) {
-      const withActions = agents.filter(a => a.last_action);
-      if (withActions.length) {
-        streams.innerHTML = `<div class="mv-ticker-inner">${withActions.slice(0,8).map(a => {
-          const col = AGENT_CFG[a.agent_name]?.color || 'var(--text2)';
-          const lbl = AGENT_CFG[a.agent_name]?.label || a.agent_name;
-          return `<span style="color:${col}">[${lbl}]</span> <span style="color:var(--text3)">${_escHtml(a.last_action)}</span>`;
-        }).join('<br>')}</div>`;
-      } else {
-        streams.innerHTML = '<div style="opacity:0.35;font-size:0.72rem">All agents on standby. Loop runs on schedule.</div>';
-      }
+      const withAct = agents.filter(a => a.last_action);
+      streams.innerHTML = withAct.length
+        ? `<div class="mv-ticker-inner">${withAct.slice(0,8).map(a => {
+            const c = AGENT_CFG[a.agent_name]?.color || 'var(--text2)';
+            const l = AGENT_CFG[a.agent_name]?.label || a.agent_name;
+            return `<span style="color:${c}">[${l}]</span> <span style="color:var(--text3)">${_escHtml(a.last_action)}</span>`;
+          }).join('<br>')}</div>`
+        : '<div style="opacity:0.35;font-size:0.72rem">All agents on standby. Loop runs on schedule.</div>';
     }
   }
 
