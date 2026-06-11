@@ -21,7 +21,66 @@
       --red: #8B0000;
       --linkedin: #0077b5;
       --instagram: #c13584;
+      /* Neon agent palette */
+      --neon-violet: #8B5CF6;
+      --neon-green:  #10B981;
+      --neon-orange: #F59E0B;
+      --neon-blue:   #3B82F6;
+      --neon-magenta:#EC4899;
+      --glass-bg: rgba(255,255,255,0.03);
+      --glass-border: rgba(255,255,255,0.07);
     }
+
+    /* Nav group labels */
+    .nav-group-label { font-size:0.6rem !important; letter-spacing:0.12em !important; color:var(--text3) !important; margin-top:0.25rem !important; }
+
+    /* Live pill badge */
+    .nav-live-pill { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; padding:0.15rem 0.45rem; border-radius:20px; background:rgba(139,92,246,0.15); color:var(--neon-violet); border:1px solid rgba(139,92,246,0.4); margin-left:auto; animation:pulse 2s ease-in-out infinite; }
+
+    /* Glassmorphism card */
+    .glass-card { background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--glass-border); border-radius:12px; padding:1.25rem; transition:all 0.3s ease; }
+    .glass-card:hover { border-color:rgba(255,255,255,0.12); transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+
+    /* KPI telemetry card */
+    .kpi-card { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:10px; padding:1rem 1.25rem; flex:1; min-width:140px; }
+    .kpi-value { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:600; line-height:1; margin-bottom:0.25rem; }
+    .kpi-label { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; color:var(--text3); text-transform:uppercase; }
+    .kpi-sub { font-size:0.72rem; color:var(--text3); margin-top:0.4rem; }
+
+    /* Agent orb */
+    .agent-orb { width:52px; height:52px; border-radius:50%; flex-shrink:0; position:relative; display:flex; align-items:center; justify-content:center; }
+    .agent-orb-inner { width:100%; height:100%; border-radius:50%; }
+    .agent-orb.running .agent-orb-inner { animation:orbPulse 1.5s ease-in-out infinite; }
+    .agent-orb::after { content:''; position:absolute; inset:0; border-radius:50%; animation:orbGlow 2s ease-in-out infinite; opacity:0.5; }
+
+    /* Agent card */
+    .agent-profile-card { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:14px; padding:1.25rem; transition:all 0.3s ease; cursor:default; }
+    .agent-profile-card:hover { transform:translateY(-2px); }
+    .agent-role-badge { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; padding:0.2rem 0.5rem; border-radius:4px; }
+    .agent-prompt-box { font-family:'DM Mono',monospace; font-size:0.68rem; line-height:1.6; color:var(--text3); background:rgba(0,0,0,0.2); border:1px solid var(--glass-border); border-radius:6px; padding:0.75rem; margin-top:0.75rem; max-height:80px; overflow:hidden; position:relative; }
+    .agent-prompt-box::after { content:''; position:absolute; bottom:0; left:0; right:0; height:24px; background:linear-gradient(transparent, var(--bg)); }
+
+    /* Topology canvas */
+    #topology-svg { width:100%; height:320px; }
+    .topo-node-ring { animation:nodeRing 2s ease-out infinite; transform-origin:center; }
+
+    /* Pipeline nodes */
+    .pipeline-node-card { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:10px; padding:0.75rem 1rem; text-align:center; flex:1; min-width:80px; transition:all 0.3s ease; cursor:pointer; }
+    .pipeline-node-card:hover { transform:translateY(-2px); }
+    .pipeline-node-card.active-node { border-color:var(--neon-violet); box-shadow:0 0 12px rgba(139,92,246,0.25); }
+
+    /* Node overlay panel */
+    .node-overlay { display:none; position:absolute; background:#0e0e10; border:1px solid rgba(139,92,246,0.4); border-radius:12px; padding:1.25rem; width:260px; z-index:10; box-shadow:0 8px 32px rgba(0,0,0,0.6); }
+
+    /* Metaverse office */
+    .mv-office-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    .mv-room { border-radius:12px; padding:1.25rem; min-height:180px; position:relative; overflow:hidden; }
+    .mv-room::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at center, currentColor 0%, transparent 60%); opacity:0.03; pointer-events:none; }
+    .mv-pixel-avatar { font-size:1.8rem; display:inline-block; line-height:1; transition:all 0.3s ease; }
+    .mv-pixel-avatar.working { animation:float 1s ease-in-out infinite; }
+    .mv-pixel-avatar.idle { opacity:0.5; }
+    .mv-scanline { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, currentColor, transparent); opacity:0.15; animation:scanline 3s linear infinite; pointer-events:none; }
+    .mv-data-stream { display:inline-block; font-family:'DM Mono',monospace; font-size:0.6rem; animation:dataStream 2s ease-in-out infinite; }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -271,6 +330,13 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    @keyframes orbPulse { 0%,100% { transform:scale(1); opacity:0.9; } 50% { transform:scale(1.08); opacity:1; } }
+    @keyframes orbGlow { 0%,100% { filter:blur(8px) brightness(1); } 50% { filter:blur(12px) brightness(1.4); } }
+    @keyframes nodeRing { 0%,100% { transform:scale(1); opacity:0.6; } 50% { transform:scale(1.5); opacity:0; } }
+    @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+    @keyframes pixelBlink { 0%,49% { opacity:1; } 50%,100% { opacity:0.3; } }
+    @keyframes dataStream { 0% { opacity:0; transform:translateX(-10px); } 20%,80% { opacity:1; } 100% { opacity:0; transform:translateX(10px); } }
+    @keyframes scanline { 0% { top:-10%; } 100% { top:110%; } }
 
     .loading-text {
       font-family: 'DM Mono', monospace;
@@ -2651,7 +2717,7 @@
         <div class="brand-statement" id="sidebar-brand-statement">Loading...</div>
       </div>
       <div class="sidebar-section">
-        <div class="sidebar-label">Navigation</div>
+        <div class="sidebar-label nav-group-label">STUDIO</div>
         <div class="nav-item active" onclick="showTab('strategy')" id="nav-strategy">
           <div class="nav-dot"></div>Strategy overview
         </div>
@@ -2667,9 +2733,6 @@
         <div class="nav-item" onclick="showTab('remake')" id="nav-remake">
           <div class="nav-dot"></div>Remake this
         </div>
-        <div class="nav-item" onclick="showTab('analytics')" id="nav-analytics">
-          <div class="nav-dot"></div>Analytics
-        </div>
         <div class="nav-item" onclick="showTab('carousel')" id="nav-carousel">
           <div class="nav-dot"></div>Carousel builder
         </div>
@@ -2682,14 +2745,28 @@
         <div class="nav-item" onclick="showTab('ideas')" id="nav-ideas">
           <div class="nav-dot"></div>Idea bank
         </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label nav-group-label">THE TEAM</div>
+        <div class="nav-item" onclick="showTab('agents')" id="nav-agents">
+          <div class="nav-dot"></div>The team
+          <span class="nav-live-pill" id="nav-live-pill">LIVE</span>
+        </div>
+        <div class="nav-item" onclick="showTab('metaverse')" id="nav-metaverse">
+          <div class="nav-dot"></div>Metaverse office
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label nav-group-label">INTELLIGENCE</div>
         <div class="nav-item" onclick="showTab('pipeline')" id="nav-pipeline">
-          <div class="nav-dot"></div>Pipeline
+          <div class="nav-dot"></div>Feedback loop
+          <span class="nav-live-pill" id="nav-live-pill-2">LIVE</span>
         </div>
         <div class="nav-item" onclick="showTab('brain-diary')" id="nav-brain-diary">
           <div class="nav-dot"></div>Brain diary
         </div>
-        <div class="nav-item" onclick="showTab('agents')" id="nav-agents">
-          <div class="nav-dot"></div>Agent room
+        <div class="nav-item" onclick="showTab('analytics')" id="nav-analytics">
+          <div class="nav-dot"></div>Analytics
         </div>
       </div>
       <div class="sidebar-section" id="sidebar-expertise">
@@ -3176,36 +3253,77 @@
         <div id="ideas-results"></div>
       </div>
 
-      <!-- Pipeline Tab -->
+      <!-- Feedback Loop Tab (replaces Pipeline) -->
       <div id="tab-pipeline" class="tab-content" style="display:none">
-        <div class="section-title">Content pipeline</div>
-        <div class="section-subtitle">Ideas move through stages: Pending → Generating → Created → Scheduled → Published → Analyzed</div>
-
-        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
-          <button class="generate-btn" onclick="addManualIdea()" style="margin:0">+ Add idea</button>
-          <button class="secondary-btn" onclick="loadPipeline()" style="margin:0">Refresh</button>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.4rem">INTELLIGENCE / Feedback Loop</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:0.25rem">Feedback loop</div>
+            <div style="font-size:0.82rem;color:var(--text3);max-width:520px">Ideas flow through creation, publishing, and analysis — each cycle feeds the next with richer intelligence.</div>
+          </div>
+          <div style="display:flex;gap:0.75rem">
+            <button class="secondary-btn" style="margin:0;padding:0.5rem 1rem;font-size:0.65rem" onclick="addManualIdea()">+ Add idea</button>
+            <button class="secondary-btn" style="margin:0;padding:0.5rem 1rem;font-size:0.65rem" onclick="loadPipeline()">Refresh</button>
+          </div>
         </div>
 
-        <div id="pipeline-kanban" style="display:flex;gap:1rem;overflow-x:auto;padding-bottom:1rem">
-          <!-- Columns injected by JS -->
+        <!-- KPI row -->
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem" id="fl-kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-value" id="fl-kpi-throughput" style="color:var(--neon-violet)">—</div>
+            <div class="kpi-label">Throughput</div>
+            <div class="kpi-sub">cycles completed</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="fl-kpi-inflight" style="color:var(--neon-green)">—</div>
+            <div class="kpi-label">In-flight</div>
+            <div class="kpi-sub">ideas mid-cycle</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="fl-kpi-integrity" style="color:var(--neon-orange)">100%</div>
+            <div class="kpi-label">Loop integrity</div>
+            <div class="kpi-sub">all stages healthy</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="fl-kpi-pending" style="color:var(--neon-blue)">—</div>
+            <div class="kpi-label">Pending ideas</div>
+            <div class="kpi-sub">ready to generate</div>
+          </div>
+        </div>
+
+        <!-- SVG Pipeline canvas -->
+        <div style="position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;margin-bottom:2rem;overflow:hidden">
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem">PIPELINE FLOW</div>
+          <div style="overflow-x:auto">
+            <svg id="fl-pipeline-svg" viewBox="0 0 920 120" style="min-width:700px;width:100%;height:120px">
+              <defs>
+                <filter id="glow-violet"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="glow-green"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <!-- Paths drawn by JS -->
+            </svg>
+          </div>
+        </div>
+
+        <!-- Stage breakdown grid -->
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem">STAGE BREAKDOWN</div>
+        <div id="fl-stage-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.75rem">
+          <!-- Injected by JS -->
         </div>
 
         <!-- Add idea modal -->
-        <div id="add-idea-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:none;align-items:center;justify-content:center">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;width:min(480px,90vw);max-height:80vh;overflow-y:auto">
+        <div id="add-idea-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;align-items:center;justify-content:center">
+          <div style="background:#0e0e10;border:1px solid var(--glass-border);border-radius:14px;padding:2rem;width:min(480px,90vw);max-height:80vh;overflow-y:auto">
             <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:1.5rem">New idea</div>
             <div class="control-group"><label>Topic *</label><input type="text" id="new-idea-topic" placeholder="What is this post about?"></div>
             <div class="control-group"><label>Opening hook</label><input type="text" id="new-idea-hook" placeholder="First line that grabs attention"></div>
             <div class="control-group"><label>Unique angle</label><input type="text" id="new-idea-angle" placeholder="What makes this contrarian or surprising?"></div>
             <div class="control-group"><label>Platform</label>
-              <select id="new-idea-platform">
-                <option value="linkedin">LinkedIn</option>
-                <option value="instagram">Instagram</option>
-              </select>
+              <select id="new-idea-platform"><option value="linkedin">LinkedIn</option><option value="instagram">Instagram</option></select>
             </div>
             <div style="display:flex;gap:1rem;margin-top:1rem">
               <button class="generate-btn" onclick="submitNewIdea()" style="flex:1">Save idea</button>
-              <button class="secondary-btn" onclick="closeAddIdeaModal()" style="flex:1">Cancel</button>
+              <button class="secondary-btn" onclick="closeAddIdeaModal()" style="flex:1;margin:0">Cancel</button>
             </div>
           </div>
         </div>
@@ -3213,52 +3331,110 @@
 
       <!-- Brain Diary Tab -->
       <div id="tab-brain-diary" class="tab-content" style="display:none">
-        <div class="section-title">Brain diary</div>
-        <div class="section-subtitle">Patterns discovered from your analytics — what works, what doesn't, and weekly summaries</div>
-
-        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
-          <button class="secondary-btn" onclick="loadBrainDiary()" style="margin:0">Refresh</button>
-          <button class="generate-btn" onclick="runAgentManual('scoring')" style="margin:0">Run scoring agent</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.4rem">INTELLIGENCE / Brain Diary</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem">Brain diary</div>
+          </div>
+          <div style="display:flex;gap:0.75rem">
+            <button class="secondary-btn" style="margin:0;padding:0.5rem 1rem;font-size:0.65rem" onclick="loadBrainDiary()">Refresh</button>
+            <button class="generate-btn" onclick="runAgentManual('scoring')" style="margin:0;padding:0.5rem 1.25rem;font-size:0.65rem">Run scoring agent</button>
+          </div>
         </div>
 
-        <!-- Weekly summary card -->
-        <div id="brain-diary-summary" style="display:none;border:1px solid var(--gold);border-radius:12px;padding:1.5rem;margin-bottom:2rem;background:rgba(201,169,110,0.05)">
-          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:0.5rem">WEEKLY SUMMARY</div>
+        <div id="brain-diary-summary" style="display:none;border:1px solid rgba(201,169,110,0.3);border-radius:12px;padding:1.5rem;margin-bottom:2rem;background:rgba(201,169,110,0.04)">
+          <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:0.5rem">WEEKLY SUMMARY</div>
           <div id="brain-diary-summary-pattern" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;margin-bottom:0.75rem"></div>
           <div id="brain-diary-summary-insight" style="color:var(--text2);line-height:1.6;font-size:0.9rem"></div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" id="brain-diary-columns">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:#4ade80;letter-spacing:0.1em;margin-bottom:1rem">WIN PATTERNS</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--neon-green);letter-spacing:0.1em;margin-bottom:1rem">WIN PATTERNS</div>
             <div id="brain-diary-wins"></div>
           </div>
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:#f87171;letter-spacing:0.1em;margin-bottom:1rem">LOSS PATTERNS</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:#f87171;letter-spacing:0.1em;margin-bottom:1rem">LOSS PATTERNS</div>
             <div id="brain-diary-losses"></div>
           </div>
         </div>
-
-        <div id="brain-diary-empty" style="display:none;text-align:center;padding:3rem;color:var(--text3)">
-          <div style="font-size:2rem;margin-bottom:1rem">📊</div>
-          <div>No patterns yet. Import analytics data and run the scoring agent to discover what works.</div>
+        <div id="brain-diary-empty" style="display:none;text-align:center;padding:4rem;color:var(--text3)">
+          <div style="font-size:2.5rem;margin-bottom:1rem;opacity:0.4">◈</div>
+          <div>No patterns yet. Import analytics data and run the scoring agent.</div>
         </div>
       </div>
 
-      <!-- Agent Room Tab -->
+      <!-- The Team Tab (replaces Agent Room) -->
       <div id="tab-agents" class="tab-content" style="display:none">
-        <div class="section-title">Agent room</div>
-        <div id="agent-system-status" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:2rem">LOADING...</div>
-
-        <div id="agent-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;margin-bottom:2.5rem">
-          <!-- Agent cards injected by JS -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.4rem">THE TEAM / Network</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:0.25rem">The team</div>
+            <div id="agent-system-status" style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--neon-violet);letter-spacing:0.1em">INITIALIZING...</div>
+          </div>
         </div>
 
-        <!-- Pipeline flow diagram -->
-        <div style="margin-top:2rem;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:12px">
-          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1.25rem">CONTENT FEEDBACK LOOP</div>
-          <div id="agent-pipeline-flow" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
-            <!-- Nodes injected by JS -->
+        <!-- KPI row -->
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem">
+          <div class="kpi-card">
+            <div class="kpi-value" id="team-kpi-tasks" style="color:var(--neon-violet)">—</div>
+            <div class="kpi-label">Tasks today</div>
+            <div class="kpi-sub" id="team-kpi-tasks-sub">agent cycles run</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="team-kpi-ideas" style="color:var(--neon-green)">—</div>
+            <div class="kpi-label">Ideas live</div>
+            <div class="kpi-sub">in the pipeline</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="team-kpi-active" style="color:var(--neon-orange)">—</div>
+            <div class="kpi-label">Active agents</div>
+            <div class="kpi-sub">running now</div>
+          </div>
+        </div>
+
+        <!-- Topology map -->
+        <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;margin-bottom:2rem;overflow:hidden;position:relative">
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.5rem">AGENT TOPOLOGY — LIVE NETWORK</div>
+          <svg id="topology-svg" viewBox="0 0 700 280" style="width:100%;height:280px;overflow:visible">
+            <defs>
+              <radialGradient id="orb-violet" cx="40%" cy="35%"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#7c3aed"/></radialGradient>
+              <radialGradient id="orb-green" cx="40%" cy="35%"><stop offset="0%" stop-color="#6ee7b7"/><stop offset="100%" stop-color="#059669"/></radialGradient>
+              <radialGradient id="orb-orange" cx="40%" cy="35%"><stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#d97706"/></radialGradient>
+              <radialGradient id="orb-blue" cx="40%" cy="35%"><stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#2563eb"/></radialGradient>
+              <radialGradient id="orb-magenta" cx="40%" cy="35%"><stop offset="0%" stop-color="#f9a8d4"/><stop offset="100%" stop-color="#db2777"/></radialGradient>
+              <filter id="node-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <!-- Paths, nodes, labels and particles drawn by JS -->
+          </svg>
+        </div>
+
+        <!-- Agent profile cards grid -->
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem">AGENT PROFILES</div>
+        <div id="agent-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- Metaverse Office Tab -->
+      <div id="tab-metaverse" class="tab-content" style="display:none">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.4rem">THE TEAM / Metaverse Office</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem">Metaverse office</div>
+          </div>
+          <button class="secondary-btn" style="margin:0;padding:0.5rem 1rem;font-size:0.65rem" onclick="loadMetaverse()">Refresh</button>
+        </div>
+
+        <div id="mv-office-container" class="mv-office-grid">
+          <!-- Rooms injected by JS -->
+        </div>
+
+        <!-- Data stream visualization -->
+        <div style="margin-top:1.5rem;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1.25rem">
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem">ACTIVE DATA STREAMS</div>
+          <div id="mv-streams" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);line-height:2">
+            <div style="opacity:0.4">No active streams. Agents are idle.</div>
           </div>
         </div>
       </div>
@@ -4316,6 +4492,7 @@
     }
     if (tabName === 'pipeline') loadPipeline();
     if (tabName === 'brain-diary') loadBrainDiary();
+    if (tabName === 'metaverse') loadMetaverse();
   }
 
   function showApp() {
@@ -5816,92 +5993,31 @@
     }
   }
 
-  // ─── AGENT ROOM ──────────────────────────────────────────────────────────────
+  // ─── AGENT CONFIGURATION ────────────────────────────────────────────────────
 
-  const AGENT_META = {
-    concept:  { label: 'Concept Agent',   desc: 'Generates new content ideas daily using your brand strategy and past performance patterns' },
-    scoring:  { label: 'Scoring Agent',   desc: 'Analyzes your analytics to discover what types of posts win or lose' },
-    feedback: { label: 'Feedback Agent',  desc: 'Synthesizes weekly patterns into actionable insights every Sunday' },
-    metrics:  { label: 'Metrics Agent',   desc: 'Pulls real engagement data from social platforms (Phase 4)' },
-    publishing:{ label: 'Publishing Agent', desc: 'Automatically publishes scheduled posts to LinkedIn (Phase 4)' },
+  const AGENT_CFG = {
+    concept:   { label: 'Atlas',     role: 'IDEA GENERATOR',   color: '#8B5CF6', grad: 'orb-violet', prompt: 'Reads brand strategy, viral trends, and brain diary wins → generates 7 specific post ideas per content pillar daily. Deduplicates against last 7 days.' },
+    scoring:   { label: 'Spark',     role: 'ANALYST',          color: '#10B981', grad: 'orb-green',  prompt: 'Pulls post analytics, splits into top/bottom 20% performers → calls GPT-4o to extract win/loss patterns → writes to brain diary.' },
+    feedback:  { label: 'Echo',      role: 'SYNTHESIZER',      color: '#F59E0B', grad: 'orb-orange', prompt: 'Every Sunday synthesizes the week\'s wins and losses into a coaching narrative → writes weekly_summary to brain diary.' },
+    metrics:   { label: 'Pulse',     role: 'METRICS AGENT',    color: '#3B82F6', grad: 'orb-blue',   prompt: 'Pulls live engagement data from LinkedIn API every 6h → updates engagement_score on published posts → feeds scoring agent.' },
+    publishing:{ label: 'Mira',      role: 'CONTENT BUILDER',  color: '#EC4899', grad: 'orb-magenta',prompt: 'Runs hourly → finds scheduled posts where publish time ≤ now → calls LinkedIn API → marks published → notifies metrics agent.' },
   };
 
-  const PIPELINE_NODES = [
-    { label: 'IDEAS',    agent: 'concept' },
-    { label: 'CONTENT',  agent: 'concept' },
-    { label: 'PUBLISH',  agent: 'publishing' },
-    { label: 'METRICS',  agent: 'metrics' },
-    { label: 'LEARN',    agent: 'scoring' },
+  const TOPO_POSITIONS = {
+    concept:   { x: 350, y: 60 },
+    scoring:   { x: 560, y: 160 },
+    feedback:  { x: 430, y: 220 },
+    metrics:   { x: 200, y: 180 },
+    publishing:{ x: 140, y: 80 },
+  };
+
+  const TOPO_EDGES = [
+    ['concept','publishing'], ['concept','scoring'], ['publishing','metrics'],
+    ['metrics','scoring'], ['scoring','feedback'], ['feedback','concept'],
   ];
 
   let agentPollInterval = null;
-
-  async function loadAgentStatus() {
-    try {
-      const data = await authFetch('/api/agents/status').then(r => r.json());
-      renderAgentCards(data.agents || []);
-    } catch (e) {
-      document.getElementById('agent-system-status').textContent = 'UNABLE TO CONNECT';
-    }
-  }
-
-  function renderAgentCards(agents) {
-    const grid = document.getElementById('agent-cards-grid');
-    const agentMap = {};
-    for (const a of agents) agentMap[a.agent_name] = a;
-
-    const allNames = ['concept', 'scoring', 'feedback', 'metrics', 'publishing'];
-    const activeCount = agents.filter(a => a.status === 'running').length;
-    document.getElementById('agent-system-status').textContent =
-      activeCount > 0 ? `SYSTEM ACTIVE — ${activeCount} AGENT${activeCount > 1 ? 'S' : ''} RUNNING` : `SYSTEM ACTIVE — ${allNames.length} AGENTS`;
-
-    grid.innerHTML = allNames.map(name => {
-      const a = agentMap[name] || { agent_name: name, status: 'idle', run_count: 0, last_action: null, finished_at: null };
-      const meta = AGENT_META[name] || { label: name, desc: '' };
-      const isBuilt = ['concept', 'scoring', 'feedback'].includes(name);
-
-      const statusColor = { running: 'var(--gold)', done: '#4ade80', error: '#f87171', idle: 'var(--text3)' }[a.status] || 'var(--text3)';
-      const statusLabel = { running: '◉ RUNNING', done: '● DONE', error: '✕ ERROR', idle: '○ IDLE' }[a.status] || '○ IDLE';
-      const lastRun = a.finished_at ? timeAgo(a.finished_at) : 'Never';
-
-      return `<div style="background:var(--surface);border:1px solid ${a.status === 'running' ? 'var(--gold)' : 'var(--border)'};border-radius:12px;padding:1.5rem;transition:border-color 0.3s${a.status === 'running' ? ';box-shadow:0 0 12px rgba(201,169,110,0.15)' : ''}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem">
-          <div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:${statusColor};letter-spacing:0.08em${a.status === 'running' ? ';animation:pulse 1.5s ease-in-out infinite' : ''}">${statusLabel}</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin-top:0.2rem">${meta.label}</div>
-          </div>
-          ${isBuilt ? `<button onclick="runAgentManual('${name}')" style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;padding:0.4rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">RUN NOW</button>` : '<div style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--text3);border:1px dashed var(--border);padding:0.3rem 0.6rem;border-radius:6px">PHASE 4</div>'}
-        </div>
-        <div style="color:var(--text3);font-size:0.82rem;line-height:1.5;margin-bottom:1rem">${meta.desc}</div>
-        <div style="display:flex;gap:1.5rem;font-size:0.78rem">
-          <div><span style="color:var(--text3)">Last run</span> <span style="color:var(--text2)">${lastRun}</span></div>
-          <div><span style="color:var(--text3)">Total</span> <span style="color:var(--text2)">${a.run_count || 0} runs</span></div>
-        </div>
-        ${a.last_action ? `<div style="margin-top:0.75rem;font-size:0.78rem;color:var(--text2);font-style:italic;border-top:1px solid var(--border);padding-top:0.75rem">"${a.last_action}"</div>` : ''}
-      </div>`;
-    }).join('');
-
-    // Pipeline flow
-    const flow = document.getElementById('agent-pipeline-flow');
-    flow.innerHTML = PIPELINE_NODES.map((node, i) => {
-      const a = agentMap[node.agent];
-      const active = a && a.finished_at && (Date.now() - new Date(a.finished_at).getTime()) < 86400000;
-      return `<div style="display:flex;align-items:center;gap:0.5rem">
-        <div style="padding:0.5rem 1rem;border-radius:8px;border:1px solid ${active ? 'var(--gold)' : 'var(--border)'};font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:${active ? 'var(--gold)' : 'var(--text3)'}${active ? ';box-shadow:0 0 8px rgba(201,169,110,0.2)' : ''}">${node.label}</div>
-        ${i < PIPELINE_NODES.length - 1 ? '<div style="color:var(--text3);font-size:0.8rem">→</div>' : '<div style="color:var(--gold);font-size:0.8rem">↻</div>'}
-      </div>`;
-    }).join('');
-  }
-
-  async function runAgentManual(name) {
-    try {
-      await authFetch(`/api/agents/${name}/run`, { method: 'POST' });
-      setTimeout(loadAgentStatus, 500);
-      setTimeout(loadAgentStatus, 3000);
-    } catch (e) {
-      alert('Failed to start agent. Try again.');
-    }
-  }
+  let _lastAgentData = [];
 
   function timeAgo(dateStr) {
     const diff = Date.now() - new Date(dateStr).getTime();
@@ -5913,164 +6029,477 @@
     return `${Math.floor(h / 24)}d ago`;
   }
 
-  // ─── PIPELINE KANBAN ──────────────────────────────────────────────────────────
+  async function runAgentManual(name) {
+    try {
+      await authFetch(`/api/agents/${name}/run`, { method: 'POST' });
+      setTimeout(loadAgentStatus, 600);
+      setTimeout(loadAgentStatus, 3500);
+    } catch { alert('Failed to start agent. Try again.'); }
+  }
 
-  const KANBAN_COLUMNS = [
-    { key: 'pending',    label: 'PENDING' },
-    { key: 'generating', label: 'GENERATING' },
-    { key: 'created',    label: 'CREATED' },
-    { key: 'scheduled',  label: 'SCHEDULED' },
-    { key: 'published',  label: 'PUBLISHED' },
-    { key: 'analyzed',   label: 'ANALYZED' },
+  // ─── THE TEAM VIEW ───────────────────────────────────────────────────────────
+
+  async function loadAgentStatus() {
+    try {
+      const data = await authFetch('/api/agents/status').then(r => r.json());
+      _lastAgentData = data.agents || [];
+      renderTeamView(_lastAgentData);
+    } catch {
+      const el = document.getElementById('agent-system-status');
+      if (el) el.textContent = 'UNABLE TO CONNECT';
+    }
+  }
+
+  function renderTeamView(agents) {
+    const agentMap = {};
+    for (const a of agents) agentMap[a.agent_name] = a;
+    const running = agents.filter(a => a.status === 'running');
+
+    const statusEl = document.getElementById('agent-system-status');
+    if (statusEl) statusEl.textContent = running.length
+      ? `◉ ${running.length} AGENT${running.length > 1 ? 'S' : ''} RUNNING — NETWORK ACTIVE`
+      : '● SYSTEM ACTIVE — ALL AGENTS STANDBY';
+
+    // KPI
+    const totalRuns = agents.reduce((s, a) => s + (a.run_count || 0), 0);
+    const kpiTasks = document.getElementById('team-kpi-tasks');
+    if (kpiTasks) kpiTasks.textContent = totalRuns || '—';
+    const kpiActive = document.getElementById('team-kpi-active');
+    if (kpiActive) kpiActive.textContent = running.length || '0';
+
+    renderTopology(agentMap);
+    renderAgentCards(agentMap);
+  }
+
+  function renderTopology(agentMap) {
+    const svg = document.getElementById('topology-svg');
+    if (!svg) return;
+
+    // Clear dynamic content (keep defs)
+    svg.querySelectorAll('.topo-dynamic').forEach(el => el.remove());
+
+    const names = Object.keys(AGENT_CFG);
+    const pos = TOPO_POSITIONS;
+
+    // Draw edges first
+    TOPO_EDGES.forEach(([a, b], i) => {
+      const pa = pos[a], pb = pos[b];
+      const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2 - 30;
+      const isActive = agentMap[a]?.status === 'running' || agentMap[b]?.status === 'running';
+      const colA = AGENT_CFG[a]?.color || '#555';
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M${pa.x},${pa.y} Q${mx},${my} ${pb.x},${pb.y}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', isActive ? colA : 'rgba(255,255,255,0.06)');
+      path.setAttribute('stroke-width', isActive ? '1.5' : '1');
+      path.setAttribute('id', `topo-path-${i}`);
+      path.classList.add('topo-dynamic');
+      svg.appendChild(path);
+
+      // Animated particle on active edges
+      if (isActive) {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('r', '3');
+        circle.setAttribute('fill', colA);
+        circle.style.filter = `drop-shadow(0 0 4px ${colA})`;
+        circle.classList.add('topo-dynamic');
+        const animate = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+        animate.setAttribute('dur', `${1.5 + i * 0.4}s`);
+        animate.setAttribute('repeatCount', 'indefinite');
+        const mpath = document.createElementNS('http://www.w3.org/2000/svg', 'mpath');
+        mpath.setAttribute('href', `#topo-path-${i}`);
+        animate.appendChild(mpath);
+        circle.appendChild(animate);
+        svg.appendChild(circle);
+      }
+    });
+
+    // Draw nodes
+    names.forEach(name => {
+      const cfg = AGENT_CFG[name];
+      const p = pos[name];
+      const agent = agentMap[name] || {};
+      const isRunning = agent.status === 'running';
+      const isDone = agent.status === 'done';
+      const col = cfg.color;
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.classList.add('topo-dynamic');
+      g.setAttribute('transform', `translate(${p.x},${p.y})`);
+
+      // Ring (pulse for running)
+      if (isRunning) {
+        const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        ring.setAttribute('r', '24');
+        ring.setAttribute('fill', 'none');
+        ring.setAttribute('stroke', col);
+        ring.setAttribute('stroke-width', '1');
+        ring.setAttribute('opacity', '0.4');
+        ring.classList.add('topo-node-ring');
+        g.appendChild(ring);
+      }
+
+      // Glow backdrop
+      const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      glow.setAttribute('r', '18');
+      glow.setAttribute('fill', col);
+      glow.setAttribute('opacity', '0.15');
+      glow.setAttribute('filter', 'url(#node-glow)');
+      g.appendChild(glow);
+
+      // Main orb
+      const orb = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      orb.setAttribute('r', '16');
+      orb.setAttribute('fill', `url(#${cfg.grad})`);
+      orb.setAttribute('stroke', col);
+      orb.setAttribute('stroke-width', isRunning ? '2' : '1');
+      orb.style.filter = isRunning ? `drop-shadow(0 0 6px ${col})` : '';
+      if (isRunning) orb.style.animation = 'orbPulse 1.5s ease-in-out infinite';
+      g.appendChild(orb);
+
+      // Status dot
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', '11'); dot.setAttribute('cy', '-11'); dot.setAttribute('r', '4');
+      dot.setAttribute('fill', isRunning ? '#10B981' : isDone ? '#6366f1' : '#374151');
+      dot.setAttribute('stroke', '#0a0a0c'); dot.setAttribute('stroke-width', '1.5');
+      g.appendChild(dot);
+
+      // Label
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('y', '32'); label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('font-family', 'DM Mono, monospace'); label.setAttribute('font-size', '9');
+      label.setAttribute('fill', col); label.setAttribute('letter-spacing', '0.5');
+      label.textContent = cfg.label.toUpperCase();
+      g.appendChild(label);
+
+      const role = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      role.setAttribute('y', '44'); role.setAttribute('text-anchor', 'middle');
+      role.setAttribute('font-family', 'DM Mono, monospace'); role.setAttribute('font-size', '7');
+      role.setAttribute('fill', 'rgba(255,255,255,0.3)'); role.setAttribute('letter-spacing', '0.3');
+      role.textContent = cfg.role;
+      g.appendChild(role);
+
+      svg.appendChild(g);
+    });
+  }
+
+  function renderAgentCards(agentMap) {
+    const grid = document.getElementById('agent-cards-grid');
+    if (!grid) return;
+
+    grid.innerHTML = Object.entries(AGENT_CFG).map(([name, cfg]) => {
+      const a = agentMap[name] || { status: 'idle', run_count: 0, last_action: null, finished_at: null };
+      const isRunning = a.status === 'running';
+      const isBuilt = ['concept', 'scoring', 'feedback'].includes(name);
+      const lastRun = a.finished_at ? timeAgo(a.finished_at) : 'Never';
+
+      return `<div class="agent-profile-card" style="border-color:${isRunning ? cfg.color + '55' : 'var(--glass-border)'};${isRunning ? `box-shadow:0 0 20px ${cfg.color}22` : ''}">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem">
+          <div class="agent-orb${isRunning ? ' running' : ''}" style="background:radial-gradient(circle at 35% 35%, ${cfg.color}88, ${cfg.color}22);box-shadow:0 0 16px ${cfg.color}44">
+            <svg width="52" height="52" viewBox="0 0 52 52"><defs><radialGradient id="og-${name}" cx="35%" cy="35%"><stop offset="0%" stop-color="white" stop-opacity="0.6"/><stop offset="100%" stop-color="${cfg.color}"/></radialGradient></defs><circle cx="26" cy="26" r="22" fill="url(#og-${name})"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;line-height:1">${cfg.label}</div>
+            <div class="agent-role-badge" style="background:${cfg.color}18;color:${cfg.color};border:1px solid ${cfg.color}44;display:inline-block;margin-top:0.3rem">${cfg.role}</div>
+          </div>
+          ${isBuilt
+            ? `<button onclick="runAgentManual('${name}')" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;padding:0.35rem 0.7rem;background:${cfg.color}18;border:1px solid ${cfg.color}44;color:${cfg.color};border-radius:6px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='${cfg.color}33'" onmouseout="this.style.background='${cfg.color}18'">RUN</button>`
+            : `<span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);border:1px dashed var(--glass-border);padding:0.3rem 0.5rem;border-radius:4px">PH.4</span>`}
+        </div>
+        <div class="agent-prompt-box">${cfg.prompt}</div>
+        <div style="display:flex;gap:1.5rem;font-size:0.72rem;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--glass-border)">
+          <div><span style="color:var(--text3)">Status </span><span style="color:${isRunning ? cfg.color : 'var(--text2)'}">${isRunning ? '◉ running' : a.status === 'done' ? '● done' : '○ idle'}</span></div>
+          <div><span style="color:var(--text3)">Last </span><span style="color:var(--text2)">${lastRun}</span></div>
+          <div><span style="color:var(--text3)">Runs </span><span style="color:var(--text2)">${a.run_count || 0}</span></div>
+        </div>
+        ${a.last_action ? `<div style="font-size:0.72rem;color:var(--text3);font-style:italic;margin-top:0.5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">"${a.last_action}"</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // ─── FEEDBACK LOOP PIPELINE ──────────────────────────────────────────────────
+
+  const FL_STAGES = [
+    { id: 'brain',     label: 'Brain Diary', icon: '◈', color: '#8B5CF6' },
+    { id: 'idea',      label: 'Idea',        icon: '◎', color: '#6366f1' },
+    { id: 'generate',  label: 'Generate',    icon: '⟡', color: '#3B82F6' },
+    { id: 'schedule',  label: 'Schedule',    icon: '◷', color: '#0EA5E9' },
+    { id: 'publish',   label: 'Publish',     icon: '◈', color: '#10B981' },
+    { id: 'metrics',   label: 'Metrics',     icon: '◉', color: '#F59E0B' },
+    { id: 'score',     label: 'Score',       icon: '◆', color: '#EF4444' },
+    { id: 'pattern',   label: 'Pattern',     icon: '◈', color: '#EC4899' },
+    { id: 'wins',      label: 'Wins/Losses', icon: '◎', color: '#A855F7' },
+    { id: 'decide',    label: 'Decide',      icon: '↻', color: '#8B5CF6' },
   ];
 
   async function loadPipeline() {
     try {
       const data = await authFetch('/api/ideas').then(r => r.json());
-      renderKanban(data.ideas || []);
+      const ideas = data.ideas || [];
+
+      // Update KPIs
+      const pending = ideas.filter(i => i.status === 'pending').length;
+      const inflight = ideas.filter(i => ['generating','created','scheduled'].includes(i.status)).length;
+      const published = ideas.filter(i => i.status === 'published').length;
+      const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+      el('fl-kpi-throughput', published || '0');
+      el('fl-kpi-inflight', inflight || '0');
+      el('fl-kpi-pending', pending || '0');
+
+      renderFeedbackLoopSVG(ideas);
+      renderStageGrid(ideas);
     } catch (e) {
       console.error('Failed to load pipeline', e);
     }
   }
 
-  function renderKanban(ideas) {
-    const kanban = document.getElementById('pipeline-kanban');
-    const byStatus = {};
-    for (const col of KANBAN_COLUMNS) byStatus[col.key] = [];
+  function renderFeedbackLoopSVG(ideas) {
+    const svg = document.getElementById('fl-pipeline-svg');
+    if (!svg) return;
+    svg.innerHTML = `<defs>
+      <filter id="glow-violet"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>`;
+
+    const n = FL_STAGES.length;
+    const w = 920, h = 120;
+    const nodeY = h / 2;
+    const step = (w - 80) / (n - 1);
+
+    // Draw connecting paths with particles
+    FL_STAGES.forEach((stage, i) => {
+      if (i >= n - 1) return;
+      const x1 = 40 + i * step, x2 = 40 + (i + 1) * step;
+      const mx = (x1 + x2) / 2, my = nodeY - 20;
+      const next = FL_STAGES[i + 1];
+      const pathId = `fl-path-${i}`;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('id', pathId);
+      path.setAttribute('d', `M${x1},${nodeY} Q${mx},${my} ${x2},${nodeY}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', stage.color + '44');
+      path.setAttribute('stroke-width', '1.5');
+      svg.appendChild(path);
+
+      // Particle
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('r', '2.5');
+      dot.setAttribute('fill', stage.color);
+      dot.style.filter = `drop-shadow(0 0 3px ${stage.color})`;
+      const am = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+      am.setAttribute('dur', `${2 + i * 0.3}s`);
+      am.setAttribute('repeatCount', 'indefinite');
+      const mp = document.createElementNS('http://www.w3.org/2000/svg', 'mpath');
+      mp.setAttribute('href', `#${pathId}`);
+      am.appendChild(mp);
+      dot.appendChild(am);
+      svg.appendChild(dot);
+    });
+
+    // Draw nodes
+    FL_STAGES.forEach((stage, i) => {
+      const x = 40 + i * step;
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('transform', `translate(${x},${nodeY})`);
+      g.style.cursor = 'pointer';
+
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('r', '14');
+      circle.setAttribute('fill', stage.color + '22');
+      circle.setAttribute('stroke', stage.color + '88');
+      circle.setAttribute('stroke-width', '1.5');
+      g.appendChild(circle);
+
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      icon.setAttribute('text-anchor', 'middle'); icon.setAttribute('dy', '4');
+      icon.setAttribute('font-size', '10'); icon.setAttribute('fill', stage.color);
+      icon.textContent = stage.icon;
+      g.appendChild(icon);
+
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('y', '26');
+      lbl.setAttribute('font-family', 'DM Mono, monospace'); lbl.setAttribute('font-size', '7');
+      lbl.setAttribute('fill', 'rgba(255,255,255,0.4)');
+      lbl.textContent = stage.label.toUpperCase();
+      g.appendChild(lbl);
+
+      svg.appendChild(g);
+    });
+  }
+
+  function renderStageGrid(ideas) {
+    const grid = document.getElementById('fl-stage-grid');
+    if (!grid) return;
+    const statusMap = { pending: 'brain', generating: 'generate', created: 'schedule', scheduled: 'publish', published: 'metrics', analyzed: 'score' };
+    const counts = {};
     for (const idea of ideas) {
-      if (byStatus[idea.status]) byStatus[idea.status].push(idea);
+      const s = statusMap[idea.status] || idea.status;
+      counts[s] = (counts[s] || 0) + 1;
     }
-
-    kanban.innerHTML = KANBAN_COLUMNS.map(col => {
-      const cards = byStatus[col.key] || [];
-      const colCards = cards.map(idea => `
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:0.75rem;cursor:pointer" onclick="expandIdea('${idea.id}')">
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
-            ${idea.pillar_name ? `<span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--gold);border:1px solid var(--gold);padding:0.15rem 0.4rem;border-radius:4px">${idea.pillar_name.slice(0,20)}</span>` : ''}
-            <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);border:1px solid var(--border);padding:0.15rem 0.4rem;border-radius:4px">${idea.platform}</span>
-            ${idea.source === 'agent' ? '<span style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:#6366f1;border:1px solid #6366f1;padding:0.15rem 0.4rem;border-radius:4px">AI</span>' : ''}
-          </div>
-          <div style="font-size:0.85rem;color:var(--text);line-height:1.4;margin-bottom:0.5rem">${(idea.hook || idea.topic || '').slice(0, 90)}</div>
-          ${idea.angle ? `<div style="font-size:0.75rem;color:var(--text3);line-height:1.3;margin-bottom:0.5rem;font-style:italic">${idea.angle.slice(0, 70)}</div>` : ''}
-          <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap">
-            ${col.key === 'pending' ? `<button onclick="event.stopPropagation();generateFromIdea('${idea.id}')" style="font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.3rem 0.6rem;background:var(--gold);color:#000;border:none;border-radius:4px;cursor:pointer">Generate post</button>` : ''}
-            ${idea.post_id && col.key !== 'pending' ? `<button onclick="event.stopPropagation();showTab('library')" style="font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.3rem 0.6rem;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:4px;cursor:pointer">View post</button>` : ''}
-            <button onclick="event.stopPropagation();deleteIdea('${idea.id}')" style="font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.3rem 0.6rem;background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:4px;cursor:pointer">Archive</button>
-          </div>
-        </div>
-      `).join('');
-
-      return `<div style="min-width:240px;flex:1">
-        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);letter-spacing:0.08em;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem">
-          <span>${col.label}</span>
-          <span style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.1rem 0.4rem;font-size:0.6rem">${cards.length}</span>
-        </div>
-        <div style="min-height:120px">${colCards || '<div style="color:var(--text3);font-size:0.8rem;text-align:center;padding:2rem 0">—</div>'}</div>
+    grid.innerHTML = FL_STAGES.map(stage => {
+      const count = counts[stage.id] || 0;
+      return `<div class="pipeline-node-card${count > 0 ? ' active-node' : ''}" style="${count > 0 ? `border-color:${stage.color}55;box-shadow:0 0 10px ${stage.color}22` : ''}">
+        <div style="font-size:1.1rem;margin-bottom:0.4rem;color:${stage.color}">${stage.icon}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.06em;margin-bottom:0.4rem">${stage.label.toUpperCase()}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:${count > 0 ? stage.color : 'var(--text3)'}">${count}</div>
       </div>`;
     }).join('');
   }
 
-  async function generateFromIdea(ideaId) {
-    try {
-      await authFetch(`/api/ideas/${ideaId}/generate`, { method: 'POST' });
-      await loadPipeline();
-    } catch (e) {
-      alert('Failed to generate post. Try again.');
-    }
-  }
-
-  async function deleteIdea(ideaId) {
-    try {
-      await authFetch(`/api/ideas/${ideaId}`, { method: 'DELETE' });
-      await loadPipeline();
-    } catch (e) { console.error(e); }
-  }
-
-  function expandIdea() { /* no-op: card already shows key info inline */ }
-
-  function addManualIdea() {
-    const modal = document.getElementById('add-idea-modal');
-    modal.style.display = 'flex';
-  }
-
+  // Idea modal helpers
+  function addManualIdea() { document.getElementById('add-idea-modal').style.display = 'flex'; }
   function closeAddIdeaModal() {
     document.getElementById('add-idea-modal').style.display = 'none';
-    ['topic','hook','angle'].forEach(f => document.getElementById(`new-idea-${f}`).value = '');
+    ['topic','hook','angle'].forEach(f => { const el = document.getElementById(`new-idea-${f}`); if(el) el.value = ''; });
   }
-
   async function submitNewIdea() {
     const topic = document.getElementById('new-idea-topic').value.trim();
     if (!topic) { alert('Topic is required'); return; }
     try {
       await authFetch('/api/ideas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic,
-          hook: document.getElementById('new-idea-hook').value.trim() || null,
-          angle: document.getElementById('new-idea-angle').value.trim() || null,
-          platform: document.getElementById('new-idea-platform').value,
-          session_id: appData.sessionId,
-        }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, hook: document.getElementById('new-idea-hook').value.trim() || null, angle: document.getElementById('new-idea-angle').value.trim() || null, platform: document.getElementById('new-idea-platform').value, session_id: appData.sessionId }),
       });
       closeAddIdeaModal();
       await loadPipeline();
-    } catch (e) {
-      alert('Failed to save idea. Try again.');
+    } catch { alert('Failed to save idea. Try again.'); }
+  }
+  async function generateFromIdea(ideaId) {
+    try { await authFetch(`/api/ideas/${ideaId}/generate`, { method: 'POST' }); await loadPipeline(); }
+    catch { alert('Failed to generate post.'); }
+  }
+  async function deleteIdea(ideaId) {
+    try { await authFetch(`/api/ideas/${ideaId}`, { method: 'DELETE' }); await loadPipeline(); }
+    catch { console.error('delete idea failed'); }
+  }
+
+  // ─── METAVERSE OFFICE ────────────────────────────────────────────────────────
+
+  const MV_AVATARS = {
+    running: ['🧑‍💻','⚡','🔥'],
+    done:    ['✅','😌','🎯'],
+    error:   ['⚠️','😵','🔴'],
+    idle:    ['💤','🪑','😴'],
+  };
+
+  const MV_ROOMS = [
+    { agent: 'concept',   name: 'Atlas',  desk: 'IDEAS LAB',    emoji: '🧠' },
+    { agent: 'scoring',   name: 'Spark',  desk: 'ANALYTICS HQ', emoji: '📊' },
+    { agent: 'feedback',  name: 'Echo',   desk: 'SYNTHESIS ROOM',emoji: '🔮' },
+    { agent: 'metrics',   name: 'Pulse',  desk: 'DATA CENTER',  emoji: '📡' },
+    { agent: 'publishing',name: 'Mira',   desk: 'BROADCAST STN',emoji: '📢' },
+  ];
+
+  async function loadMetaverse() {
+    try {
+      const data = await authFetch('/api/agents/status').then(r => r.json());
+      renderMetaverse(data.agents || []);
+    } catch { console.error('metaverse load failed'); }
+  }
+
+  function renderMetaverse(agents) {
+    const agentMap = {};
+    for (const a of agents) agentMap[a.agent_name] = a;
+    const container = document.getElementById('mv-office-container');
+    if (!container) return;
+
+    container.innerHTML = MV_ROOMS.map(room => {
+      const agent = agentMap[room.agent] || { status: 'idle', run_count: 0, last_action: null };
+      const cfg = AGENT_CFG[room.agent];
+      const status = agent.status || 'idle';
+      const avatarSet = MV_AVATARS[status] || MV_AVATARS.idle;
+      const avatar = avatarSet[Math.floor(Date.now() / 2000) % avatarSet.length];
+      const isActive = status === 'running';
+
+      return `<div class="mv-room" style="background:${cfg.color}08;border:1px solid ${cfg.color}${isActive ? '55' : '22'}${isActive ? `;box-shadow:0 0 20px ${cfg.color}18` : ''}">
+        <div class="mv-scanline" style="color:${cfg.color}"></div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:${cfg.color};letter-spacing:0.1em;margin-bottom:0.75rem">${room.desk}</div>
+        <div style="text-align:center;margin:1rem 0">
+          <div style="font-size:2.8rem;display:inline-block;${isActive ? 'animation:float 1.2s ease-in-out infinite' : 'opacity:0.5'}">${avatar}</div>
+          <div style="font-size:0.75rem;margin-top:0.5rem">${room.emoji} <span style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--text)">${room.name}</span></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:${isActive ? cfg.color : 'var(--text3)'};letter-spacing:0.06em;margin-bottom:0.4rem">
+          ${isActive ? '◉ ACTIVE' : status === 'done' ? '● DONE' : status === 'error' ? '✕ ERROR' : '○ IDLE'}
+        </div>
+        <div style="font-size:0.7rem;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
+          ${agent.last_action || 'Waiting for tasks...'}
+        </div>
+        <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid ${cfg.color}22;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3)">
+          ${agent.run_count || 0} cycles · ${agent.finished_at ? timeAgo(agent.finished_at) : 'never run'}
+        </div>
+      </div>`;
+    }).join('');
+
+    // Data streams
+    const streams = document.getElementById('mv-streams');
+    if (streams) {
+      const active = agents.filter(a => a.status === 'running');
+      if (active.length) {
+        streams.innerHTML = active.map(a => {
+          const cfg = AGENT_CFG[a.agent_name];
+          return `<div style="color:${cfg?.color || 'var(--text2)'}">
+            <span class="mv-data-stream">▶</span>
+            <span style="color:var(--text3)"> ${cfg?.label || a.agent_name} → </span>
+            ${a.last_action || 'processing...'}
+          </div>`;
+        }).join('');
+      } else {
+        streams.innerHTML = '<div style="opacity:0.35;font-size:0.72rem">No active streams. Agents are idle.</div>';
+      }
     }
   }
 
-  // ─── BRAIN DIARY ──────────────────────────────────────────────────────────────
+  // ─── BRAIN DIARY ─────────────────────────────────────────────────────────────
 
   async function loadBrainDiary() {
     try {
       const data = await authFetch('/api/brain-diary').then(r => r.json());
       renderBrainDiary(data.entries || []);
-    } catch (e) {
-      console.error('Failed to load brain diary', e);
-    }
+    } catch { console.error('Failed to load brain diary'); }
   }
 
   function renderBrainDiary(entries) {
     const wins = entries.filter(e => e.type === 'win');
     const losses = entries.filter(e => e.type === 'loss');
     const summaries = entries.filter(e => e.type === 'weekly_summary');
-
     const empty = !wins.length && !losses.length && !summaries.length;
-    document.getElementById('brain-diary-empty').style.display = empty ? 'block' : 'none';
-    document.getElementById('brain-diary-columns').style.display = empty ? 'none' : 'grid';
-
-    // Weekly summary
+    const emptyEl = document.getElementById('brain-diary-empty');
+    const colsEl = document.getElementById('brain-diary-columns');
+    if (emptyEl) emptyEl.style.display = empty ? 'block' : 'none';
+    if (colsEl) colsEl.style.display = empty ? 'none' : 'grid';
     if (summaries.length) {
       const latest = summaries[0];
-      document.getElementById('brain-diary-summary').style.display = 'block';
-      document.getElementById('brain-diary-summary-pattern').textContent = latest.pattern;
-      document.getElementById('brain-diary-summary-insight').textContent = latest.insight;
+      const sumEl = document.getElementById('brain-diary-summary');
+      if (sumEl) sumEl.style.display = 'block';
+      const pat = document.getElementById('brain-diary-summary-pattern');
+      const ins = document.getElementById('brain-diary-summary-insight');
+      if (pat) pat.textContent = latest.pattern;
+      if (ins) ins.textContent = latest.insight;
     }
-
-    document.getElementById('brain-diary-wins').innerHTML = wins.map(e => diaryCard(e, '#4ade80')).join('') || '<div style="color:var(--text3);font-size:0.82rem">No wins found yet.</div>';
-    document.getElementById('brain-diary-losses').innerHTML = losses.map(e => diaryCard(e, '#f87171')).join('') || '<div style="color:var(--text3);font-size:0.82rem">No losses found yet.</div>';
+    const winsEl = document.getElementById('brain-diary-wins');
+    const lossEl = document.getElementById('brain-diary-losses');
+    if (winsEl) winsEl.innerHTML = wins.map(e => diaryCard(e, 'var(--neon-green)')).join('') || '<div style="color:var(--text3);font-size:0.8rem;padding:1rem 0">No wins found yet.</div>';
+    if (lossEl) lossEl.innerHTML = losses.map(e => diaryCard(e, '#f87171')).join('') || '<div style="color:var(--text3);font-size:0.8rem;padding:1rem 0">No losses found yet.</div>';
   }
 
   function diaryCard(entry, accentColor) {
     const evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
-    return `<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid ${accentColor};border-radius:8px;padding:1rem;margin-bottom:0.75rem">
-      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:${accentColor};letter-spacing:0.08em;margin-bottom:0.4rem">${entry.type.toUpperCase()} · ${entry.platform || 'ALL PLATFORMS'}</div>
+    return `<div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-left:3px solid ${accentColor};border-radius:8px;padding:1rem;margin-bottom:0.75rem;transition:all 0.3s ease" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:${accentColor};letter-spacing:0.08em;margin-bottom:0.4rem">${entry.type.toUpperCase()} · ${entry.platform || 'ALL PLATFORMS'}</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;margin-bottom:0.5rem;line-height:1.3">${entry.pattern}</div>
-      <div style="font-size:0.8rem;color:var(--text2);line-height:1.5;margin-bottom:${evidence.length ? '0.75rem' : '0'}">${entry.insight}</div>
-      ${evidence.length ? `<div style="display:flex;flex-wrap:wrap;gap:0.4rem">${evidence.slice(0,3).map(e => `<span style="font-size:0.7rem;color:var(--text3);background:var(--bg);border:1px solid var(--border);padding:0.2rem 0.4rem;border-radius:4px">${String(e).slice(0,40)}…</span>`).join('')}</div>` : ''}
+      <div style="font-size:0.78rem;color:var(--text2);line-height:1.5">${entry.insight}</div>
+      ${evidence.length ? `<div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-top:0.6rem">${evidence.slice(0,3).map(e=>`<span style="font-size:0.68rem;color:var(--text3);background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);padding:0.15rem 0.4rem;border-radius:4px">${String(e).slice(0,40)}…</span>`).join('')}</div>` : ''}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem">
-        <div style="font-size:0.72rem;color:var(--text3)">${entry.created_at ? new Date(entry.created_at).toLocaleDateString() : ''}</div>
-        <button onclick="deleteDiaryEntry('${entry.id}')" style="font-size:0.65rem;background:transparent;border:none;color:var(--text3);cursor:pointer">Remove</button>
+        <div style="font-size:0.7rem;color:var(--text3)">${entry.created_at ? new Date(entry.created_at).toLocaleDateString() : ''}</div>
+        <button onclick="deleteDiaryEntry('${entry.id}')" style="font-size:0.65rem;background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0">Remove</button>
       </div>
     </div>`;
   }
 
   async function deleteDiaryEntry(id) {
-    try {
-      await authFetch(`/api/brain-diary/${id}`, { method: 'DELETE' });
-      await loadBrainDiary();
-    } catch (e) { console.error(e); }
+    try { await authFetch(`/api/brain-diary/${id}`, { method: 'DELETE' }); await loadBrainDiary(); }
+    catch { console.error('delete diary entry failed'); }
   }
 
 
