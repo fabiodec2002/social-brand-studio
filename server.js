@@ -2168,7 +2168,7 @@ async function runAgent(name, userId, fn) {
 async function runConceptAgent() {
   return runAgent('concept', null, async () => {
     const users = await sql`
-      SELECT DISTINCT s.user_id, s.id as session_id, s.personality_map, s.strategy, s.brand_context
+      SELECT s.user_id, s.id as session_id, s.personality_map, s.strategy, s.brand_context, s.created_at
       FROM sessions s
       WHERE s.user_id IS NOT NULL
       ORDER BY s.created_at DESC
@@ -2483,9 +2483,22 @@ app.post('/api/ideas', requireAuth, async (req, res) => {
   }
 });
 
+const VALID_IDEA_STATUSES = new Set(['pending','generating','created','scheduled','published','analyzed']);
+
+app.get('/api/ideas/:id', requireAuth, async (req, res) => {
+  try {
+    const [row] = await sql`SELECT * FROM idea_queue WHERE id=${req.params.id} AND user_id=${req.user.id}`;
+    if (!row) return res.status(404).json({ error: 'Idea not found' });
+    res.json({ idea: row });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
 app.patch('/api/ideas/:id', requireAuth, async (req, res) => {
   try {
     const { status, priority, platform } = req.body;
+    if (status !== undefined && !VALID_IDEA_STATUSES.has(status)) return res.status(400).json({ error: 'Invalid status' });
     if (status !== undefined) await sql`UPDATE idea_queue SET status=${status}, updated_at=NOW() WHERE id=${req.params.id} AND user_id=${req.user.id}`;
     if (priority !== undefined) await sql`UPDATE idea_queue SET priority=${priority}, updated_at=NOW() WHERE id=${req.params.id} AND user_id=${req.user.id}`;
     if (platform !== undefined) await sql`UPDATE idea_queue SET platform=${platform}, updated_at=NOW() WHERE id=${req.params.id} AND user_id=${req.user.id}`;
