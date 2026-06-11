@@ -270,6 +270,7 @@
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
     .loading-text {
       font-family: 'DM Mono', monospace;
@@ -551,6 +552,8 @@
 
     .generate-btn:hover { background: var(--gold2); }
     .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .secondary-btn { font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.75rem 1.5rem; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: border-color 0.2s, color 0.2s; margin-top: 1rem; }
+    .secondary-btn:hover { border-color: var(--gold); color: var(--gold); }
 
     /* Post output */
     .post-output { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -2679,6 +2682,15 @@
         <div class="nav-item" onclick="showTab('ideas')" id="nav-ideas">
           <div class="nav-dot"></div>Idea bank
         </div>
+        <div class="nav-item" onclick="showTab('pipeline')" id="nav-pipeline">
+          <div class="nav-dot"></div>Pipeline
+        </div>
+        <div class="nav-item" onclick="showTab('brain-diary')" id="nav-brain-diary">
+          <div class="nav-dot"></div>Brain diary
+        </div>
+        <div class="nav-item" onclick="showTab('agents')" id="nav-agents">
+          <div class="nav-dot"></div>Agent room
+        </div>
       </div>
       <div class="sidebar-section" id="sidebar-expertise">
         <div class="sidebar-label">Expertise</div>
@@ -3162,6 +3174,93 @@
         </div>
 
         <div id="ideas-results"></div>
+      </div>
+
+      <!-- Pipeline Tab -->
+      <div id="tab-pipeline" class="tab-content" style="display:none">
+        <div class="section-title">Content pipeline</div>
+        <div class="section-subtitle">Ideas move through stages: Pending → Generating → Created → Scheduled → Published → Analyzed</div>
+
+        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
+          <button class="generate-btn" onclick="addManualIdea()" style="margin:0">+ Add idea</button>
+          <button class="secondary-btn" onclick="loadPipeline()" style="margin:0">Refresh</button>
+        </div>
+
+        <div id="pipeline-kanban" style="display:flex;gap:1rem;overflow-x:auto;padding-bottom:1rem">
+          <!-- Columns injected by JS -->
+        </div>
+
+        <!-- Add idea modal -->
+        <div id="add-idea-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:none;align-items:center;justify-content:center">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;width:min(480px,90vw);max-height:80vh;overflow-y:auto">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:1.5rem">New idea</div>
+            <div class="control-group"><label>Topic *</label><input type="text" id="new-idea-topic" placeholder="What is this post about?"></div>
+            <div class="control-group"><label>Opening hook</label><input type="text" id="new-idea-hook" placeholder="First line that grabs attention"></div>
+            <div class="control-group"><label>Unique angle</label><input type="text" id="new-idea-angle" placeholder="What makes this contrarian or surprising?"></div>
+            <div class="control-group"><label>Platform</label>
+              <select id="new-idea-platform">
+                <option value="linkedin">LinkedIn</option>
+                <option value="instagram">Instagram</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:1rem;margin-top:1rem">
+              <button class="generate-btn" onclick="submitNewIdea()" style="flex:1">Save idea</button>
+              <button class="secondary-btn" onclick="closeAddIdeaModal()" style="flex:1">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brain Diary Tab -->
+      <div id="tab-brain-diary" class="tab-content" style="display:none">
+        <div class="section-title">Brain diary</div>
+        <div class="section-subtitle">Patterns discovered from your analytics — what works, what doesn't, and weekly summaries</div>
+
+        <div style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
+          <button class="secondary-btn" onclick="loadBrainDiary()" style="margin:0">Refresh</button>
+          <button class="generate-btn" onclick="runAgentManual('scoring')" style="margin:0">Run scoring agent</button>
+        </div>
+
+        <!-- Weekly summary card -->
+        <div id="brain-diary-summary" style="display:none;border:1px solid var(--gold);border-radius:12px;padding:1.5rem;margin-bottom:2rem;background:rgba(201,169,110,0.05)">
+          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:0.5rem">WEEKLY SUMMARY</div>
+          <div id="brain-diary-summary-pattern" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;margin-bottom:0.75rem"></div>
+          <div id="brain-diary-summary-insight" style="color:var(--text2);line-height:1.6;font-size:0.9rem"></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem" id="brain-diary-columns">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:#4ade80;letter-spacing:0.1em;margin-bottom:1rem">WIN PATTERNS</div>
+            <div id="brain-diary-wins"></div>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:#f87171;letter-spacing:0.1em;margin-bottom:1rem">LOSS PATTERNS</div>
+            <div id="brain-diary-losses"></div>
+          </div>
+        </div>
+
+        <div id="brain-diary-empty" style="display:none;text-align:center;padding:3rem;color:var(--text3)">
+          <div style="font-size:2rem;margin-bottom:1rem">📊</div>
+          <div>No patterns yet. Import analytics data and run the scoring agent to discover what works.</div>
+        </div>
+      </div>
+
+      <!-- Agent Room Tab -->
+      <div id="tab-agents" class="tab-content" style="display:none">
+        <div class="section-title">Agent room</div>
+        <div id="agent-system-status" style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gold);letter-spacing:0.1em;margin-bottom:2rem">LOADING...</div>
+
+        <div id="agent-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;margin-bottom:2.5rem">
+          <!-- Agent cards injected by JS -->
+        </div>
+
+        <!-- Pipeline flow diagram -->
+        <div style="margin-top:2rem;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:12px">
+          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1.25rem">CONTENT FEEDBACK LOOP</div>
+          <div id="agent-pipeline-flow" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <!-- Nodes injected by JS -->
+          </div>
+        </div>
       </div>
 
     </div>
@@ -4204,10 +4303,19 @@
     document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
     document.getElementById(`tab-${tabName}`).style.display = 'block';
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(`nav-${tabName}`).classList.add('active');
+    const navEl = document.getElementById(`nav-${tabName}`);
+    if (navEl) navEl.classList.add('active');
     if (tabName === 'carousel' && typeof carouselInit === 'function') carouselInit();
     if (tabName === 'library') loadLibrary();
     if (tabName === 'ideas') populateIdeasPillarSelect();
+    if (tabName === 'agents') {
+      loadAgentStatus();
+      if (!agentPollInterval) agentPollInterval = setInterval(loadAgentStatus, 10000);
+    } else {
+      if (agentPollInterval) { clearInterval(agentPollInterval); agentPollInterval = null; }
+    }
+    if (tabName === 'pipeline') loadPipeline();
+    if (tabName === 'brain-diary') loadBrainDiary();
   }
 
   function showApp() {
@@ -5707,6 +5815,264 @@
       authFetch('/api/extract-style', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ posts: [], sessionId: appData.sessionId }) }).catch(() => {});
     }
   }
+
+  // ─── AGENT ROOM ──────────────────────────────────────────────────────────────
+
+  const AGENT_META = {
+    concept:  { label: 'Concept Agent',   desc: 'Generates new content ideas daily using your brand strategy and past performance patterns' },
+    scoring:  { label: 'Scoring Agent',   desc: 'Analyzes your analytics to discover what types of posts win or lose' },
+    feedback: { label: 'Feedback Agent',  desc: 'Synthesizes weekly patterns into actionable insights every Sunday' },
+    metrics:  { label: 'Metrics Agent',   desc: 'Pulls real engagement data from social platforms (Phase 4)' },
+    publishing:{ label: 'Publishing Agent', desc: 'Automatically publishes scheduled posts to LinkedIn (Phase 4)' },
+  };
+
+  const PIPELINE_NODES = [
+    { label: 'IDEAS',    agent: 'concept' },
+    { label: 'CONTENT',  agent: 'concept' },
+    { label: 'PUBLISH',  agent: 'publishing' },
+    { label: 'METRICS',  agent: 'metrics' },
+    { label: 'LEARN',    agent: 'scoring' },
+  ];
+
+  let agentPollInterval = null;
+
+  async function loadAgentStatus() {
+    try {
+      const data = await authFetch('/api/agents/status').then(r => r.json());
+      renderAgentCards(data.agents || []);
+    } catch (e) {
+      document.getElementById('agent-system-status').textContent = 'UNABLE TO CONNECT';
+    }
+  }
+
+  function renderAgentCards(agents) {
+    const grid = document.getElementById('agent-cards-grid');
+    const agentMap = {};
+    for (const a of agents) agentMap[a.agent_name] = a;
+
+    const allNames = ['concept', 'scoring', 'feedback', 'metrics', 'publishing'];
+    const activeCount = agents.filter(a => a.status === 'running').length;
+    document.getElementById('agent-system-status').textContent =
+      activeCount > 0 ? `SYSTEM ACTIVE — ${activeCount} AGENT${activeCount > 1 ? 'S' : ''} RUNNING` : `SYSTEM ACTIVE — ${allNames.length} AGENTS`;
+
+    grid.innerHTML = allNames.map(name => {
+      const a = agentMap[name] || { agent_name: name, status: 'idle', run_count: 0, last_action: null, finished_at: null };
+      const meta = AGENT_META[name] || { label: name, desc: '' };
+      const isBuilt = ['concept', 'scoring', 'feedback'].includes(name);
+
+      const statusColor = { running: 'var(--gold)', done: '#4ade80', error: '#f87171', idle: 'var(--text3)' }[a.status] || 'var(--text3)';
+      const statusLabel = { running: '◉ RUNNING', done: '● DONE', error: '✕ ERROR', idle: '○ IDLE' }[a.status] || '○ IDLE';
+      const lastRun = a.finished_at ? timeAgo(a.finished_at) : 'Never';
+
+      return `<div style="background:var(--surface);border:1px solid ${a.status === 'running' ? 'var(--gold)' : 'var(--border)'};border-radius:12px;padding:1.5rem;transition:border-color 0.3s${a.status === 'running' ? ';box-shadow:0 0 12px rgba(201,169,110,0.15)' : ''}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:${statusColor};letter-spacing:0.08em${a.status === 'running' ? ';animation:pulse 1.5s ease-in-out infinite' : ''}">${statusLabel}</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;margin-top:0.2rem">${meta.label}</div>
+          </div>
+          ${isBuilt ? `<button onclick="runAgentManual('${name}')" style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;padding:0.4rem 0.8rem;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">RUN NOW</button>` : '<div style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--text3);border:1px dashed var(--border);padding:0.3rem 0.6rem;border-radius:6px">PHASE 4</div>'}
+        </div>
+        <div style="color:var(--text3);font-size:0.82rem;line-height:1.5;margin-bottom:1rem">${meta.desc}</div>
+        <div style="display:flex;gap:1.5rem;font-size:0.78rem">
+          <div><span style="color:var(--text3)">Last run</span> <span style="color:var(--text2)">${lastRun}</span></div>
+          <div><span style="color:var(--text3)">Total</span> <span style="color:var(--text2)">${a.run_count || 0} runs</span></div>
+        </div>
+        ${a.last_action ? `<div style="margin-top:0.75rem;font-size:0.78rem;color:var(--text2);font-style:italic;border-top:1px solid var(--border);padding-top:0.75rem">"${a.last_action}"</div>` : ''}
+      </div>`;
+    }).join('');
+
+    // Pipeline flow
+    const flow = document.getElementById('agent-pipeline-flow');
+    flow.innerHTML = PIPELINE_NODES.map((node, i) => {
+      const a = agentMap[node.agent];
+      const active = a && a.finished_at && (Date.now() - new Date(a.finished_at).getTime()) < 86400000;
+      return `<div style="display:flex;align-items:center;gap:0.5rem">
+        <div style="padding:0.5rem 1rem;border-radius:8px;border:1px solid ${active ? 'var(--gold)' : 'var(--border)'};font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;color:${active ? 'var(--gold)' : 'var(--text3)'}${active ? ';box-shadow:0 0 8px rgba(201,169,110,0.2)' : ''}">${node.label}</div>
+        ${i < PIPELINE_NODES.length - 1 ? '<div style="color:var(--text3);font-size:0.8rem">→</div>' : '<div style="color:var(--gold);font-size:0.8rem">↻</div>'}
+      </div>`;
+    }).join('');
+  }
+
+  async function runAgentManual(name) {
+    try {
+      await authFetch(`/api/agents/${name}/run`, { method: 'POST' });
+      setTimeout(loadAgentStatus, 500);
+      setTimeout(loadAgentStatus, 3000);
+    } catch (e) {
+      alert('Failed to start agent. Try again.');
+    }
+  }
+
+  function timeAgo(dateStr) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
+
+  // ─── PIPELINE KANBAN ──────────────────────────────────────────────────────────
+
+  const KANBAN_COLUMNS = [
+    { key: 'pending',    label: 'PENDING' },
+    { key: 'generating', label: 'GENERATING' },
+    { key: 'created',    label: 'CREATED' },
+    { key: 'scheduled',  label: 'SCHEDULED' },
+    { key: 'published',  label: 'PUBLISHED' },
+    { key: 'analyzed',   label: 'ANALYZED' },
+  ];
+
+  async function loadPipeline() {
+    try {
+      const data = await authFetch('/api/ideas').then(r => r.json());
+      renderKanban(data.ideas || []);
+    } catch (e) {
+      console.error('Failed to load pipeline', e);
+    }
+  }
+
+  function renderKanban(ideas) {
+    const kanban = document.getElementById('pipeline-kanban');
+    const byStatus = {};
+    for (const col of KANBAN_COLUMNS) byStatus[col.key] = [];
+    for (const idea of ideas) {
+      if (byStatus[idea.status]) byStatus[idea.status].push(idea);
+    }
+
+    kanban.innerHTML = KANBAN_COLUMNS.map(col => {
+      const cards = byStatus[col.key] || [];
+      const colCards = cards.map(idea => `
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:0.75rem;cursor:pointer" onclick="expandIdea('${idea.id}')">
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+            ${idea.pillar_name ? `<span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--gold);border:1px solid var(--gold);padding:0.15rem 0.4rem;border-radius:4px">${idea.pillar_name.slice(0,20)}</span>` : ''}
+            <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);border:1px solid var(--border);padding:0.15rem 0.4rem;border-radius:4px">${idea.platform}</span>
+            ${idea.source === 'agent' ? '<span style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:#6366f1;border:1px solid #6366f1;padding:0.15rem 0.4rem;border-radius:4px">AI</span>' : ''}
+          </div>
+          <div style="font-size:0.85rem;color:var(--text);line-height:1.4;margin-bottom:0.5rem">${(idea.hook || idea.topic || '').slice(0, 90)}</div>
+          ${idea.angle ? `<div style="font-size:0.75rem;color:var(--text3);line-height:1.3;margin-bottom:0.5rem;font-style:italic">${idea.angle.slice(0, 70)}</div>` : ''}
+          <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap">
+            ${col.key === 'pending' ? `<button onclick="event.stopPropagation();generateFromIdea('${idea.id}')" style="font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.3rem 0.6rem;background:var(--gold);color:#000;border:none;border-radius:4px;cursor:pointer">Generate post</button>` : ''}
+            ${idea.post_id && col.key !== 'pending' ? `<button onclick="event.stopPropagation();showTab('library')" style="font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.3rem 0.6rem;background:transparent;border:1px solid var(--border);color:var(--text2);border-radius:4px;cursor:pointer">View post</button>` : ''}
+            <button onclick="event.stopPropagation();deleteIdea('${idea.id}')" style="font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.3rem 0.6rem;background:transparent;border:1px solid var(--border);color:var(--text3);border-radius:4px;cursor:pointer">Archive</button>
+          </div>
+        </div>
+      `).join('');
+
+      return `<div style="min-width:240px;flex:1">
+        <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3);letter-spacing:0.08em;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem">
+          <span>${col.label}</span>
+          <span style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.1rem 0.4rem;font-size:0.6rem">${cards.length}</span>
+        </div>
+        <div style="min-height:120px">${colCards || '<div style="color:var(--text3);font-size:0.8rem;text-align:center;padding:2rem 0">—</div>'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function generateFromIdea(ideaId) {
+    try {
+      await authFetch(`/api/ideas/${ideaId}/generate`, { method: 'POST' });
+      await loadPipeline();
+    } catch (e) {
+      alert('Failed to generate post. Try again.');
+    }
+  }
+
+  async function deleteIdea(ideaId) {
+    try {
+      await authFetch(`/api/ideas/${ideaId}`, { method: 'DELETE' });
+      await loadPipeline();
+    } catch (e) { console.error(e); }
+  }
+
+  function expandIdea() { /* no-op: card already shows key info inline */ }
+
+  function addManualIdea() {
+    const modal = document.getElementById('add-idea-modal');
+    modal.style.display = 'flex';
+  }
+
+  function closeAddIdeaModal() {
+    document.getElementById('add-idea-modal').style.display = 'none';
+    ['topic','hook','angle'].forEach(f => document.getElementById(`new-idea-${f}`).value = '');
+  }
+
+  async function submitNewIdea() {
+    const topic = document.getElementById('new-idea-topic').value.trim();
+    if (!topic) { alert('Topic is required'); return; }
+    try {
+      await authFetch('/api/ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic,
+          hook: document.getElementById('new-idea-hook').value.trim() || null,
+          angle: document.getElementById('new-idea-angle').value.trim() || null,
+          platform: document.getElementById('new-idea-platform').value,
+          session_id: appData.sessionId,
+        }),
+      });
+      closeAddIdeaModal();
+      await loadPipeline();
+    } catch (e) {
+      alert('Failed to save idea. Try again.');
+    }
+  }
+
+  // ─── BRAIN DIARY ──────────────────────────────────────────────────────────────
+
+  async function loadBrainDiary() {
+    try {
+      const data = await authFetch('/api/brain-diary').then(r => r.json());
+      renderBrainDiary(data.entries || []);
+    } catch (e) {
+      console.error('Failed to load brain diary', e);
+    }
+  }
+
+  function renderBrainDiary(entries) {
+    const wins = entries.filter(e => e.type === 'win');
+    const losses = entries.filter(e => e.type === 'loss');
+    const summaries = entries.filter(e => e.type === 'weekly_summary');
+
+    const empty = !wins.length && !losses.length && !summaries.length;
+    document.getElementById('brain-diary-empty').style.display = empty ? 'block' : 'none';
+    document.getElementById('brain-diary-columns').style.display = empty ? 'none' : 'grid';
+
+    // Weekly summary
+    if (summaries.length) {
+      const latest = summaries[0];
+      document.getElementById('brain-diary-summary').style.display = 'block';
+      document.getElementById('brain-diary-summary-pattern').textContent = latest.pattern;
+      document.getElementById('brain-diary-summary-insight').textContent = latest.insight;
+    }
+
+    document.getElementById('brain-diary-wins').innerHTML = wins.map(e => diaryCard(e, '#4ade80')).join('') || '<div style="color:var(--text3);font-size:0.82rem">No wins found yet.</div>';
+    document.getElementById('brain-diary-losses').innerHTML = losses.map(e => diaryCard(e, '#f87171')).join('') || '<div style="color:var(--text3);font-size:0.82rem">No losses found yet.</div>';
+  }
+
+  function diaryCard(entry, accentColor) {
+    const evidence = Array.isArray(entry.evidence) ? entry.evidence : [];
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid ${accentColor};border-radius:8px;padding:1rem;margin-bottom:0.75rem">
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:${accentColor};letter-spacing:0.08em;margin-bottom:0.4rem">${entry.type.toUpperCase()} · ${entry.platform || 'ALL PLATFORMS'}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;margin-bottom:0.5rem;line-height:1.3">${entry.pattern}</div>
+      <div style="font-size:0.8rem;color:var(--text2);line-height:1.5;margin-bottom:${evidence.length ? '0.75rem' : '0'}">${entry.insight}</div>
+      ${evidence.length ? `<div style="display:flex;flex-wrap:wrap;gap:0.4rem">${evidence.slice(0,3).map(e => `<span style="font-size:0.7rem;color:var(--text3);background:var(--bg);border:1px solid var(--border);padding:0.2rem 0.4rem;border-radius:4px">${String(e).slice(0,40)}…</span>`).join('')}</div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem">
+        <div style="font-size:0.72rem;color:var(--text3)">${entry.created_at ? new Date(entry.created_at).toLocaleDateString() : ''}</div>
+        <button onclick="deleteDiaryEntry('${entry.id}')" style="font-size:0.65rem;background:transparent;border:none;color:var(--text3);cursor:pointer">Remove</button>
+      </div>
+    </div>`;
+  }
+
+  async function deleteDiaryEntry(id) {
+    try {
+      await authFetch(`/api/brain-diary/${id}`, { method: 'DELETE' });
+      await loadBrainDiary();
+    } catch (e) { console.error(e); }
+  }
+
 
 </script>
 <script src="carousel.js"></script>
