@@ -2508,7 +2508,8 @@
     }
     .lib-post-card:hover { border-color: var(--border2); }
     .lib-post-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
-    .lib-post-preview { font-size: 0.88rem; line-height: 1.6; color: var(--text2); white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .lib-post-preview { font-size: 0.88rem; line-height: 1.6; color: var(--text2); white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+    .lib-post-preview.expanded { -webkit-line-clamp: unset; overflow: visible; }
     .lib-post-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
     .lib-status-badge {
       font-family: 'DM Mono', monospace;
@@ -5811,7 +5812,8 @@
             <span class="lib-status-badge ${p.status}">${p.status}</span>
             <span class="post-meta" style="margin-left:auto">${date}</span>
           </div>
-          <div class="lib-post-preview">${_escHtml(p.content)}</div>
+          <div class="lib-post-preview" id="lib-preview-${p.id}" onclick="libToggleExpand('${p.id}')">${_escHtml(p.content)}</div>
+          <button id="lib-expand-btn-${p.id}" onclick="libToggleExpand('${p.id}')" style="background:none;border:none;color:var(--text3);font-size:0.75rem;cursor:pointer;padding:0.35rem 0;text-align:left;font-family:'DM Mono',monospace">↓ Read full post</button>
           <div class="lib-post-actions">
             <button class="post-action-btn" onclick="libCopyPost('${p.id}', this)">Copy</button>
             <button class="post-action-btn" onclick="libSetStatus('${p.id}', 'approved', this)" ${p.status === 'approved' ? 'style="color:var(--gold)"' : ''}>Approve</button>
@@ -5820,6 +5822,14 @@
           </div>
         </div>`;
     }).join('');
+  }
+
+  function libToggleExpand(id) {
+    const preview = document.getElementById(`lib-preview-${id}`);
+    const btn = document.getElementById(`lib-expand-btn-${id}`);
+    if (!preview) return;
+    const expanded = preview.classList.toggle('expanded');
+    if (btn) btn.textContent = expanded ? '↑ Collapse' : '↓ Read full post';
   }
 
   function libCopyPost(id, btn) {
@@ -6389,16 +6399,19 @@
           const color = STATUS_COLOR[idea.status] || 'var(--text3)';
           const label = STATUS_LABEL[idea.status] || idea.status;
           const isPending = idea.status === 'pending';
-          return `<div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;padding:0.9rem 1rem;display:flex;align-items:flex-start;gap:1rem">
+          const isReady = idea.status === 'created';
+          const isGenerating = idea.status === 'generating';
+          return `<div style="background:var(--glass-bg);border:1px solid ${isReady ? 'rgba(16,185,129,0.3)' : 'var(--glass-border)'};border-radius:10px;padding:0.9rem 1rem;display:flex;align-items:flex-start;gap:1rem">
             <div style="flex:1;min-width:0">
               <div style="font-size:0.88rem;font-weight:500;margin-bottom:0.2rem;line-height:1.4">${_escHtml(idea.hook || idea.topic)}</div>
               ${idea.angle ? `<div style="font-size:0.78rem;color:var(--text2);margin-bottom:0.3rem">${_escHtml(idea.angle)}</div>` : ''}
               <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">${_escHtml(idea.pillar_name || '')}${idea.pillar_name && idea.platform ? ' · ' : ''}${_escHtml(idea.platform || '')}</div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;flex-shrink:0">
-              <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:${color};letter-spacing:0.05em">${label.toUpperCase()}</div>
+              <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:${color};letter-spacing:0.05em">${isGenerating ? '⟳ ' : ''}${label.toUpperCase()}</div>
               <div style="display:flex;gap:0.4rem">
                 ${isPending ? `<button onclick="generateQueuedIdea('${_escHtml(idea.id)}')" style="background:var(--gold);color:#0c0c0b;border:none;border-radius:6px;padding:0.3rem 0.75rem;font-size:0.7rem;cursor:pointer;font-family:'DM Mono',monospace">→ Generate</button>` : ''}
+                ${isReady ? `<button onclick="showTab('library')" style="background:rgba(16,185,129,0.15);color:#10B981;border:1px solid rgba(16,185,129,0.4);border-radius:6px;padding:0.3rem 0.75rem;font-size:0.7rem;cursor:pointer;font-family:'DM Mono',monospace">→ View post</button>` : ''}
                 <button onclick="deleteIdea('${_escHtml(idea.id)}')" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:6px;padding:0.3rem 0.6rem;font-size:0.7rem;cursor:pointer">✕</button>
               </div>
             </div>
@@ -6425,8 +6438,19 @@
       await loadPipeline();
     } catch { alert('Failed to save idea. Try again.'); }
   }
+  let _pipelinePollTimer = null;
+  function startPipelinePoll() {
+    if (_pipelinePollTimer) return;
+    _pipelinePollTimer = setInterval(async () => {
+      await loadPipeline();
+      const data = await authFetch('/api/ideas').then(r => r.json()).catch(() => ({ ideas: [] }));
+      const stillGenerating = (data.ideas || []).some(i => i.status === 'generating');
+      if (!stillGenerating) { clearInterval(_pipelinePollTimer); _pipelinePollTimer = null; }
+    }, 3000);
+  }
+
   async function generateQueuedIdea(ideaId) {
-    try { await authFetch(`/api/ideas/${ideaId}/generate`, { method: 'POST' }); await loadPipeline(); }
+    try { await authFetch(`/api/ideas/${ideaId}/generate`, { method: 'POST' }); await loadPipeline(); startPipelinePoll(); }
     catch { alert('Failed to generate post.'); }
   }
   async function deleteIdea(ideaId) {
