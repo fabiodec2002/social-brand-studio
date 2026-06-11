@@ -3291,6 +3291,9 @@
           </div>
         </div>
 
+        <!-- Idea cards list — shown first so they're immediately visible -->
+        <div id="fl-idea-list" style="margin-bottom:2rem"></div>
+
         <!-- SVG Pipeline canvas -->
         <div style="position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;margin-bottom:2rem;overflow:hidden">
           <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem">PIPELINE FLOW</div>
@@ -5899,6 +5902,28 @@
     if (!sel || !appData.strategy?.content_pillars) return;
     sel.innerHTML = '<option value="">All pillars</option>' +
       appData.strategy.content_pillars.map(p => `<option value="${p.id}">${_escHtml(p.name)}</option>`).join('');
+    loadQueuedIdeasIntoBank();
+  }
+
+  async function loadQueuedIdeasIntoBank() {
+    const resultsEl = document.getElementById('ideas-results');
+    if (!resultsEl) return;
+    try {
+      const data = await authFetch('/api/ideas?status=pending').then(r => r.json());
+      const queued = data.ideas || [];
+      if (!queued.length) return;
+      currentIdeas = queued.map(idea => ({ hook: idea.hook || idea.topic, angle: idea.angle, pillar: idea.pillar_name, platform: idea.platform, _queueId: idea.id, topic: idea.topic }));
+      resultsEl.innerHTML = `
+        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.75rem">${queued.length} idea${queued.length > 1 ? 's' : ''} ready from your concept agent — click any to generate the full post</div>
+        <div class="ideas-grid">
+          ${currentIdeas.map((idea, i) => `
+            <div class="idea-card" onclick="generateFromIdea(${i})">
+              <div class="idea-meta">${_escHtml(idea.pillar || 'General')} · ${_escHtml(idea.platform || 'linkedin')}</div>
+              <div class="idea-hook">${_escHtml(idea.hook)}</div>
+              ${idea.angle ? `<div class="idea-angle">${_escHtml(idea.angle)}</div>` : ''}
+            </div>`).join('')}
+        </div>`;
+    } catch { /* silently skip if API unavailable */ }
   }
 
   async function runIdeaGenerator() {
@@ -6331,7 +6356,7 @@
   function renderStageGrid(ideas) {
     const grid = document.getElementById('fl-stage-grid');
     if (!grid) return;
-    const statusMap = { pending: 'brain', generating: 'generate', created: 'schedule', scheduled: 'publish', published: 'metrics', analyzed: 'score' };
+    const statusMap = { pending: 'idea', generating: 'generate', created: 'schedule', scheduled: 'publish', published: 'metrics', analyzed: 'score' };
     const counts = {};
     for (const idea of ideas) {
       const s = statusMap[idea.status] || idea.status;
@@ -6345,6 +6370,41 @@
         <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:${count > 0 ? stage.color : 'var(--text3)'}">${count}</div>
       </div>`;
     }).join('');
+    renderIdeaList(ideas);
+  }
+
+  function renderIdeaList(ideas) {
+    const el = document.getElementById('fl-idea-list');
+    if (!el) return;
+    if (!ideas.length) {
+      el.innerHTML = `<div style="text-align:center;padding:2.5rem;color:var(--text3);font-size:0.85rem">No ideas in the queue yet. Click <strong style="color:var(--text2)">+ Add idea</strong> above, or wait for the concept agent to run at 07:00.</div>`;
+      return;
+    }
+    const STATUS_LABEL = { pending:'Pending', generating:'Generating…', created:'Draft ready', scheduled:'Scheduled', published:'Published', analyzed:'Analyzed' };
+    const STATUS_COLOR = { pending:'var(--neon-violet)', generating:'var(--neon-blue)', created:'var(--neon-green)', scheduled:'var(--neon-orange)', published:'var(--gold)', analyzed:'var(--text3)' };
+    el.innerHTML = `
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.75rem">ALL IDEAS (${ideas.length})</div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem">
+        ${ideas.map(idea => {
+          const color = STATUS_COLOR[idea.status] || 'var(--text3)';
+          const label = STATUS_LABEL[idea.status] || idea.status;
+          const isPending = idea.status === 'pending';
+          return `<div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:10px;padding:0.9rem 1rem;display:flex;align-items:flex-start;gap:1rem">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.88rem;font-weight:500;margin-bottom:0.2rem;line-height:1.4">${_escHtml(idea.hook || idea.topic)}</div>
+              ${idea.angle ? `<div style="font-size:0.78rem;color:var(--text2);margin-bottom:0.3rem">${_escHtml(idea.angle)}</div>` : ''}
+              <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text3)">${_escHtml(idea.pillar_name || '')}${idea.pillar_name && idea.platform ? ' · ' : ''}${_escHtml(idea.platform || '')}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.4rem;flex-shrink:0">
+              <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:${color};letter-spacing:0.05em">${label.toUpperCase()}</div>
+              <div style="display:flex;gap:0.4rem">
+                ${isPending ? `<button onclick="generateQueuedIdea('${_escHtml(idea.id)}')" style="background:var(--gold);color:#0c0c0b;border:none;border-radius:6px;padding:0.3rem 0.75rem;font-size:0.7rem;cursor:pointer;font-family:'DM Mono',monospace">→ Generate</button>` : ''}
+                <button onclick="deleteIdea('${_escHtml(idea.id)}')" style="background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:6px;padding:0.3rem 0.6rem;font-size:0.7rem;cursor:pointer">✕</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
   }
 
   // Idea modal helpers
@@ -6365,7 +6425,7 @@
       await loadPipeline();
     } catch { alert('Failed to save idea. Try again.'); }
   }
-  async function generateFromIdea(ideaId) {
+  async function generateQueuedIdea(ideaId) {
     try { await authFetch(`/api/ideas/${ideaId}/generate`, { method: 'POST' }); await loadPipeline(); }
     catch { alert('Failed to generate post.'); }
   }
