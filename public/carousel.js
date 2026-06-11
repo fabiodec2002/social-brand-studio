@@ -97,6 +97,10 @@ function _esc(str) {
     .replace(/"/g, '&quot;');
 }
 
+function _escMultiline(str) {
+  return _esc(str).replace(/\n/g, '<br>');
+}
+
 function _carouselBuildSlideHTML(slide, idx) {
   const total = carouselState.slides.length;
   if (carouselState.slideStyle === 'light') {
@@ -172,7 +176,7 @@ function _carouselBuildLightContentHTML(slide, idx, total) {
     : '';
 
   const descHtml = slide.description
-    ? `<div style="font-size:14px;font-weight:400;color:#333;line-height:1.6;">${_esc(slide.description)}</div>`
+    ? `<div style="font-size:14px;font-weight:400;color:#333;line-height:1.6;">${_escMultiline(slide.description)}</div>`
     : '';
 
   const siteHtml = site
@@ -187,7 +191,7 @@ function _carouselBuildLightContentHTML(slide, idx, total) {
     <div style="width:2px;height:48px;background:${accentColor};border-radius:1px;"></div>
     <div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid ${accentColor};"></div>
   </div>
-  <div style="position:absolute;left:50px;right:28px;top:95px;bottom:60px;display:flex;flex-direction:column;justify-content:center;">
+  <div style="position:absolute;left:50px;right:28px;top:95px;bottom:60px;display:flex;flex-direction:column;justify-content:center;gap:10px;">
     ${headingHtml}
     ${highlightHtml}
     ${descHtml}
@@ -284,11 +288,11 @@ function _carouselBuildContentHTML(slide, idx, total) {
 
   return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;position:relative;overflow:hidden;font-family:${SLIDE_FONT};background:${bgColor};">
   <div style="position:absolute;top:22px;right:28px;font-size:11px;color:rgba(255,255,255,0.18);letter-spacing:0.08em;">${counter}</div>
-  <div style="position:absolute;left:40px;right:40px;top:72px;bottom:100px;display:flex;flex-direction:column;">
+  <div style="position:absolute;left:40px;right:40px;top:72px;bottom:100px;display:flex;flex-direction:column;justify-content:center;">
     <div style="font-size:12px;font-weight:700;color:${accentColor};letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">${_esc(slide.number || '')}</div>
     <h2 style="font-size:28px;font-weight:800;color:#fff;line-height:1.25;margin:0 0 16px;letter-spacing:-0.3px;">${_esc(slide.heading || '')}</h2>
     ${imgHtml}
-    <p style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.65;margin:0;">${_esc(slide.description || '')}</p>
+    <p style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.65;margin:0;">${_escMultiline(slide.description || '')}</p>
     ${highlightHtml}
   </div>
   <div style="position:absolute;bottom:28px;left:40px;right:40px;display:flex;align-items:center;gap:8px;">${_carouselAvatarHTML(30)}<span style="font-size:12px;color:rgba(255,255,255,0.7);">${_esc(username)}</span><span style="color:#1d9bf0;font-size:14px;font-weight:bold;">✓</span></div>

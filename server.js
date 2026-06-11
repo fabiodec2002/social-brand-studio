@@ -31,6 +31,8 @@ const serverErr = (res, err) => {
   res.status(500).json({ error: IS_PROD ? 'Internal server error' : err.message });
 };
 
+app.set('trust proxy', 1);
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -154,14 +156,15 @@ async function initDb() {
 
 initDb().catch(err => console.error('DB init failed:', err));
 
-const PRIVATE_IP_RE = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1$|fc00:|fd)/i;
+const PRIVATE_IP_RE = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1$|::ffff:|fc00:|fd)/i;
 
 function isSafeUrl(rawUrl) {
   try {
     const u = new URL(rawUrl);
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
-    const host = u.hostname;
-    if (host === 'localhost' || PRIVATE_IP_RE.test(host)) return false;
+    // Strip IPv6 brackets so [::1] and [::ffff:127.0.0.1] are correctly tested
+    const host = u.hostname.replace(/^\[|\]$/g, '');
+    if (host === 'localhost' || host === '0.0.0.0' || PRIVATE_IP_RE.test(host)) return false;
     return true;
   } catch {
     return false;
@@ -553,8 +556,8 @@ Proven structures:
 - "Here's what most [specific role] get wrong about [specific thing]"
 - "Stop [doing specific thing]. Here's what to do instead."
 
-[Slides 2–6 — Body]: 1–3 short sentences per slide. Vary lengths — never all slides identical.
-At least one slide must contain a specific number, name, or concrete example.
+[Slides 2–6 — Body]: 3–5 sentences per slide. Each slide must fully develop one point — hook the idea in sentence 1, expand with a concrete detail or example in sentences 2–3, and close with the implication or "why this matters" in the final sentence. Vary lengths across slides — never all identical.
+At least two slides must contain a specific number, name, or concrete example.
 Use odd total item counts (5 or 7 items feel more authentic than 4 or 6).
 
 [Last Slide — CTA]: Optimize for SAVES — highest-value engagement signal on Instagram.
@@ -567,6 +570,14 @@ ${categoryNotes[subType] || categoryNotes.educational}
 Caption (after last slide): 2–4 sentences. Add context, vulnerability, or a personal detail not in the slides.
 Embed the primary keyword naturally in the first sentence (Instagram indexes captions for search).
 HASHTAGS: 3–5 specific hashtags after two blank lines. Maximum 5 — hard platform limit since December 2025.
+
+PROBLEM-FIRST RULE — mandatory for every slide:
+Start from what the reader already feels or struggles with — never from your solution, method, or product.
+Use their language, not yours. If the reader would say "I keep losing deals I should win", write that — not "ineffective sales process".
+When you introduce a contrast (what to do vs. what not to do), use this structure:
+  "Tired of manual follow-ups?"
+  Not: "Buy our automation software"
+The reader's problem in their words first. Your solution only after — and stated as an outcome, never a feature.
 
 BANNED in slides and caption: Moreover, Furthermore, That being said, tapestry, resonate, delve, pivotal, showcase, passive voice, "It goes without saying", "As you can see".`;
 }
@@ -1072,12 +1083,15 @@ const APIFY_BASE = 'https://api.apify.com/v2';
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const dream100 = JSON.parse(fs.readFileSync(path.join(__dirname, 'dream100.json')));
 
+function apifyHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.APIFY_API_TOKEN}` };
+}
+
 async function apifyStartRun(actorId, input) {
-  const token = process.env.APIFY_API_TOKEN;
   const slug = actorId.replace('/', '~');
-  const res = await fetch(`${APIFY_BASE}/acts/${slug}/runs?token=${token}`, {
+  const res = await fetch(`${APIFY_BASE}/acts/${slug}/runs`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: apifyHeaders(),
     body: JSON.stringify(input),
   });
   const { data: run } = await res.json();
@@ -1086,15 +1100,13 @@ async function apifyStartRun(actorId, input) {
 }
 
 async function apifyCheckRun(runId) {
-  const token = process.env.APIFY_API_TOKEN;
-  const res = await fetch(`${APIFY_BASE}/actor-runs/${runId}?token=${token}`);
+  const res = await fetch(`${APIFY_BASE}/actor-runs/${runId}`, { headers: apifyHeaders() });
   const { data } = await res.json();
   return data;
 }
 
 async function apifyFetchDataset(datasetId) {
-  const token = process.env.APIFY_API_TOKEN;
-  const res = await fetch(`${APIFY_BASE}/datasets/${datasetId}/items?token=${token}&limit=500`);
+  const res = await fetch(`${APIFY_BASE}/datasets/${datasetId}/items?limit=500`, { headers: apifyHeaders() });
   return res.json();
 }
 
@@ -1532,8 +1544,7 @@ app.get('/api/viral-trends', requireAuth, async (req, res) => {
       if (!datasetId) {
         const actorId = platform === 'linkedin' ? 'harvestapi/linkedin-profile-posts' : 'apify/instagram-scraper';
         const slug = actorId.replace('/', '~');
-        const token = process.env.APIFY_API_TOKEN;
-        const runsRes = await fetch(`${APIFY_BASE}/acts/${slug}/runs?token=${token}&status=SUCCEEDED&desc=1&limit=1`);
+        const runsRes = await fetch(`${APIFY_BASE}/acts/${slug}/runs?status=SUCCEEDED&desc=1&limit=1`, { headers: apifyHeaders() });
         const runsJson = await runsRes.json();
         datasetId = runsJson?.data?.items?.[0]?.defaultDatasetId ?? null;
       }
@@ -1654,6 +1665,8 @@ app.post('/api/analytics/import', requireAuth, async (req, res) => {
     if (!['linkedin', 'instagram'].includes(platform)) {
       return res.status(400).json({ error: 'platform must be linkedin or instagram' });
     }
+    const [session] = await sql`SELECT id FROM sessions WHERE id = ${sessionId} AND user_id = ${req.user.id}`;
+    if (!session) return res.status(404).json({ error: 'Session not found' });
     await sql`
       INSERT INTO post_analytics (session_id, platform, posts, imported_at, user_id)
       VALUES (${sessionId}, ${platform}, ${JSON.stringify(posts)}, NOW(), ${req.user.id})
@@ -1707,7 +1720,7 @@ Return this exact JSON structure:
       "type": "content",
       "number": "01",
       "heading": "slide point heading (max 6 words)",
-      "description": "1–2 sentence explanation of this point",
+      "description": "3–5 sentences that fully develop this point — include a concrete detail, example, or 'why this matters' expansion. Never leave a slide with only 1 sentence.",
       "highlight": "single most memorable phrase from this slide",
       "image": null
     }
