@@ -1405,6 +1405,18 @@ function requireAuth(req, res, next) {
   }
 }
 
+// OAuth initiation routes are browser navigations — can't set headers, so accept token from query param
+function requireAuthOrQueryToken(req, res, next) {
+  const token = req.query.token || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -2147,7 +2159,7 @@ app.get('/api/oauth/status', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/oauth/linkedin', requireAuth, (req, res) => {
+app.get('/api/oauth/linkedin', requireAuthOrQueryToken, (req, res) => {
   const clientId = process.env.LINKEDIN_CLIENT_ID;
   if (!clientId) return res.status(503).json({ error: 'LinkedIn OAuth not configured' });
   const state = jwt.sign({ userId: req.user.id }, JWT_SECRET, { expiresIn: '10m' });
@@ -2204,7 +2216,7 @@ app.get('/api/oauth/linkedin/callback', async (req, res) => {
   }
 });
 
-app.get('/api/oauth/instagram', requireAuth, (req, res) => {
+app.get('/api/oauth/instagram', requireAuthOrQueryToken, (req, res) => {
   const appId = process.env.FACEBOOK_APP_ID;
   if (!appId) return res.status(503).json({ error: 'Instagram OAuth not configured' });
   const state = jwt.sign({ userId: req.user.id }, JWT_SECRET, { expiresIn: '10m' });

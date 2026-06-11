@@ -3523,12 +3523,12 @@
             <div id="oauth-linkedin-card" style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.25rem">
               <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.5rem">LINKEDIN</div>
               <div id="oauth-linkedin-status" style="font-size:0.82rem;color:var(--text2);margin-bottom:0.75rem">Not connected</div>
-              <a href="/api/oauth/linkedin" style="display:inline-block;padding:0.5rem 1rem;background:rgba(10,102,194,0.15);border:1px solid rgba(10,102,194,0.4);color:#0a66c2;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;border-radius:5px;text-decoration:none;cursor:pointer">Connect LinkedIn</a>
+              <a href="#" onclick="oauthConnect('linkedin');return false;" style="display:inline-block;padding:0.5rem 1rem;background:rgba(10,102,194,0.15);border:1px solid rgba(10,102,194,0.4);color:#0a66c2;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;border-radius:5px;text-decoration:none;cursor:pointer">Connect LinkedIn</a>
             </div>
             <div id="oauth-instagram-card" style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.25rem">
               <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.5rem">INSTAGRAM</div>
               <div id="oauth-instagram-status" style="font-size:0.82rem;color:var(--text2);margin-bottom:0.75rem">Not connected</div>
-              <a href="/api/oauth/instagram" style="display:inline-block;padding:0.5rem 1rem;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.35);color:#e1306c;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;border-radius:5px;text-decoration:none;cursor:pointer">Connect Instagram</a>
+              <a href="#" onclick="oauthConnect('instagram');return false;" style="display:inline-block;padding:0.5rem 1rem;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.35);color:#e1306c;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;border-radius:5px;text-decoration:none;cursor:pointer">Connect Instagram</a>
             </div>
           </div>
           <div style="margin-top:0.75rem;font-size:0.75rem;color:var(--text3)">LinkedIn requires Marketing Developer Program approval. Instagram requires a Business/Creator account linked to a Facebook Page.</div>
@@ -7047,6 +7047,12 @@
     } catch (err) {
       alert('Failed to reject post: ' + err.message);
     }
+  }
+
+  function oauthConnect(platform) {
+    const token = localStorage.getItem('token');
+    if (!token) { showToast('Please log in first'); return; }
+    window.location.href = `/api/oauth/${platform}?token=${encodeURIComponent(token)}`;
   }
 
   async function loadOAuthStatus() {
