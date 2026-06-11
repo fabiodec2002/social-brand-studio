@@ -1332,6 +1332,10 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
 app.post('/api/upload', requireAuth, upload.single('pdf'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    if (!req.file.mimetype.includes('pdf') && !req.file.originalname.toLowerCase().endsWith('.pdf')) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'Only PDF files are accepted' });
+    }
 
     const text = await extractPdfText(req.file.path);
     fs.unlinkSync(req.file.path);
@@ -2426,7 +2430,7 @@ Return JSON: { "pattern": "one-line headline", "insight": "3-5 sentence summary"
 
 app.get('/api/agents/status', requireAuth, async (req, res) => {
   try {
-    const rows = await sql`SELECT * FROM agent_runs ORDER BY agent_name`;
+    const rows = await sql`SELECT * FROM agent_runs WHERE user_id=${req.user.id} OR user_id IS NULL ORDER BY agent_name`;
     res.json({ agents: rows });
   } catch (err) {
     serverErr(res, err);
@@ -2486,7 +2490,7 @@ app.patch('/api/ideas/:id', requireAuth, async (req, res) => {
     if (priority !== undefined) await sql`UPDATE idea_queue SET priority=${priority}, updated_at=NOW() WHERE id=${req.params.id} AND user_id=${req.user.id}`;
     if (platform !== undefined) await sql`UPDATE idea_queue SET platform=${platform}, updated_at=NOW() WHERE id=${req.params.id} AND user_id=${req.user.id}`;
     if (status === undefined && priority === undefined && platform === undefined) return res.status(400).json({ error: 'Nothing to update' });
-    const [row] = await sql`SELECT * FROM idea_queue WHERE id=${req.params.id}`;
+    const [row] = await sql`SELECT * FROM idea_queue WHERE id=${req.params.id} AND user_id=${req.user.id}`;
     res.json({ idea: row });
   } catch (err) {
     serverErr(res, err);
