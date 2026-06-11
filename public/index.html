@@ -72,13 +72,38 @@
     /* Node overlay panel */
     .node-overlay { display:none; position:absolute; background:#0e0e10; border:1px solid rgba(139,92,246,0.4); border-radius:12px; padding:1.25rem; width:260px; z-index:10; box-shadow:0 8px 32px rgba(0,0,0,0.6); }
 
-    /* Metaverse office */
-    .mv-office-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    /* Metaverse office — gamified */
+    .mv-office-grid { display:block; }
+    .mv-office-floor {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+      gap:1rem;
+      background:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size:32px 32px;
+      border-radius:16px;
+      padding:1.5rem;
+      border:1px solid rgba(255,255,255,0.06);
+      min-height:360px;
+    }
+    .mv-desk-station {
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:14px;
+      padding:1rem;
+      cursor:pointer;
+      transition:all 0.25s ease;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .mv-desk-station:hover { transform:translateY(-3px); border-color:rgba(255,255,255,0.18); }
+    .mv-desk-station::before { content:''; position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);pointer-events:none; }
+    .mv-character { transition:all 0.3s ease; flex-shrink:0; }
+    .mv-character-active { animation:orbPulse 1.5s ease-in-out infinite; }
+    .mv-ticker-inner { font-family:'DM Mono',monospace; font-size:0.68rem; line-height:1.8; color:var(--text3); }
+    /* Legacy — kept for backwards compat */
     .mv-room { border-radius:12px; padding:1.25rem; min-height:180px; position:relative; overflow:hidden; }
-    .mv-room::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at center, currentColor 0%, transparent 60%); opacity:0.03; pointer-events:none; }
-    .mv-pixel-avatar { font-size:1.8rem; display:inline-block; line-height:1; transition:all 0.3s ease; }
-    .mv-pixel-avatar.working { animation:float 1s ease-in-out infinite; }
-    .mv-pixel-avatar.idle { opacity:0.5; }
     .mv-scanline { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, currentColor, transparent); opacity:0.15; animation:scanline 3s linear infinite; pointer-events:none; }
     .mv-data-stream { display:inline-block; font-family:'DM Mono',monospace; font-size:0.6rem; animation:dataStream 2s ease-in-out infinite; }
 
@@ -2746,6 +2771,10 @@
         <div class="nav-item" onclick="showTab('ideas')" id="nav-ideas">
           <div class="nav-dot"></div>Idea bank
         </div>
+        <div class="nav-item" onclick="showTab('review')" id="nav-review" style="position:relative">
+          <div class="nav-dot"></div>Review queue
+          <span id="review-badge" style="display:none;position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--gold);color:#0c0c0b;font-family:'DM Mono',monospace;font-size:0.55rem;font-weight:700;border-radius:20px;padding:0.1rem 0.4rem;min-width:18px;text-align:center;line-height:1.4">0</span>
+        </div>
       </div>
       <div class="sidebar-section">
         <div class="sidebar-label nav-group-label">THE TEAM</div>
@@ -3296,16 +3325,42 @@
         <div id="fl-idea-list" style="margin-bottom:2rem"></div>
 
         <!-- SVG Pipeline canvas -->
-        <div style="position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;margin-bottom:2rem;overflow:hidden">
-          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem">PIPELINE FLOW</div>
+        <div style="position:relative;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;margin-bottom:1rem;overflow:hidden">
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.75rem">AGENT LOOP — DRAG TO EXPLORE</div>
           <div style="overflow-x:auto">
-            <svg id="fl-pipeline-svg" viewBox="0 0 920 120" style="min-width:700px;width:100%;height:120px">
+            <svg id="fl-pipeline-svg" viewBox="0 0 820 280" style="min-width:660px;width:100%;height:280px">
               <defs>
-                <filter id="glow-violet"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                <filter id="glow-green"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="fl-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <marker id="fl-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="rgba(255,255,255,0.2)"/></marker>
               </defs>
-              <!-- Paths drawn by JS -->
+              <!-- Paths and nodes drawn by JS -->
             </svg>
+          </div>
+        </div>
+
+        <!-- Node detail card (shown on click) -->
+        <div id="fl-node-detail" style="display:none;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem;position:relative">
+          <button onclick="document.getElementById('fl-node-detail').style.display='none'" style="position:absolute;top:0.75rem;right:0.75rem;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:1rem">✕</button>
+          <div style="display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.25rem" id="fl-nd-label">WHAT IT DOES</div>
+              <div style="font-size:0.85rem;color:var(--text2);line-height:1.6" id="fl-nd-does"></div>
+              <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--gold);margin-top:0.75rem" id="fl-nd-impact"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0.5rem;min-width:160px">
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.25rem">INPUT</div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--neon-blue)" id="fl-nd-input"></div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.25rem">OUTPUT</div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--neon-green)" id="fl-nd-output"></div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.25rem">AGENT</div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text2)" id="fl-nd-runs"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -3368,6 +3423,118 @@
         </div>
       </div>
 
+      <!-- Review Queue Tab -->
+      <div id="tab-review" class="tab-content" style="display:none">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+          <div>
+            <div class="section-title">Review queue</div>
+            <div class="section-subtitle" id="review-subtitle">Posts generated by the team, waiting for your approval</div>
+          </div>
+          <div style="display:flex;gap:0.75rem;align-items:center">
+            <span id="review-counter-label" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)"></span>
+            <button class="post-action-btn" onclick="loadReviewQueue()" style="font-size:0.7rem">Refresh</button>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="review-empty" style="display:none;text-align:center;padding:5rem;color:var(--text3)">
+          <div style="font-size:3rem;margin-bottom:1rem;opacity:0.3">✓</div>
+          <div style="font-size:1rem;margin-bottom:0.5rem">Queue is clear</div>
+          <div style="font-size:0.82rem">New posts will appear here after the auto-generation agent runs every 4 hours.</div>
+        </div>
+
+        <!-- Single post focus card -->
+        <div id="review-card" style="display:none;max-width:720px;margin:0 auto">
+
+          <!-- Nav between posts -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+            <button class="post-action-btn" id="review-prev-btn" onclick="reviewNavigate(-1)" style="font-size:0.7rem">← Previous</button>
+            <span id="review-nav-label" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)"></span>
+            <button class="post-action-btn" id="review-next-btn" onclick="reviewNavigate(1)" style="font-size:0.7rem">Next →</button>
+          </div>
+
+          <!-- Post metadata -->
+          <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap">
+            <span id="review-platform-badge" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.25rem 0.6rem;border-radius:4px;background:rgba(201,169,110,0.12);color:var(--gold);border:1px solid rgba(201,169,110,0.25)"></span>
+            <span id="review-format-badge" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.25rem 0.6rem;border-radius:4px;background:rgba(255,255,255,0.04);color:var(--text3);border:1px solid rgba(255,255,255,0.08)"></span>
+            <span id="review-voice-badge" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;padding:0.25rem 0.6rem;border-radius:4px;border:1px solid transparent"></span>
+            <span id="review-pillar-label" style="font-size:0.75rem;color:var(--text3)"></span>
+          </div>
+
+          <!-- Idea context -->
+          <div id="review-idea-context" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.78rem;color:var(--text2)">
+            <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.4rem">SOURCE IDEA</div>
+            <div id="review-idea-topic" style="font-weight:500;margin-bottom:0.2rem"></div>
+            <div id="review-idea-hook" style="color:var(--text3);font-style:italic"></div>
+          </div>
+
+          <!-- Post content -->
+          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;position:relative">
+            <pre id="review-post-content" style="white-space:pre-wrap;font-family:'Outfit',sans-serif;font-size:0.9rem;line-height:1.7;color:var(--text);margin:0"></pre>
+            <button onclick="reviewCopyPost()" style="position:absolute;top:0.75rem;right:0.75rem;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.25rem 0.5rem;border-radius:4px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(201,169,110,0.4)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--text3)'">COPY</button>
+          </div>
+
+          <!-- Actions -->
+          <div style="display:flex;gap:1rem;justify-content:center">
+            <button onclick="reviewReject()" style="flex:1;max-width:220px;padding:0.85rem 1.5rem;background:transparent;border:1px solid rgba(248,113,113,0.35);color:#f87171;font-family:'DM Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;border-radius:6px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(248,113,113,0.08)'" onmouseout="this.style.background='transparent'">REJECT</button>
+            <button onclick="reviewApprove()" style="flex:1;max-width:220px;padding:0.85rem 1.5rem;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.5);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.75rem;letter-spacing:0.08em;border-radius:6px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background='rgba(201,169,110,0.2)'" onmouseout="this.style.background='rgba(201,169,110,0.12)'">APPROVE &amp; SCHEDULE</button>
+          </div>
+        </div>
+
+        <!-- Approve modal -->
+        <div id="review-approve-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center">
+          <div style="background:#1a1a18;border:1px solid rgba(201,169,110,0.25);border-radius:12px;padding:2rem;max-width:440px;width:90%;position:relative">
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:1rem">SCHEDULE POST</div>
+            <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem">Confirm the scheduled time for this post. You can adjust it below.</div>
+            <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--text3);display:block;margin-bottom:0.4rem">PUBLISH AT</label>
+            <input type="datetime-local" id="review-schedule-input" style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box;margin-bottom:1.5rem">
+            <div style="display:flex;gap:0.75rem">
+              <button onclick="reviewApproveConfirm()" style="flex:1;padding:0.75rem;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.5);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;border-radius:6px;cursor:pointer">CONFIRM SCHEDULE</button>
+              <button onclick="closeReviewApproveModal()" style="padding:0.75rem 1rem;background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.72rem;border-radius:6px;cursor:pointer">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reject modal -->
+        <div id="review-reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center">
+          <div style="background:#1a1a18;border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:2rem;max-width:440px;width:90%;position:relative">
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:#f87171;margin-bottom:1rem">REJECT POST</div>
+            <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1.25rem">Your rejection reason teaches the AI what not to create. Choose the best reason:</div>
+            <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.25rem" id="review-reject-reasons">
+              <label style="display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;cursor:pointer"><input type="radio" name="reject-reason" value="Too promotional" style="accent-color:var(--gold)"> Too promotional</label>
+              <label style="display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;cursor:pointer"><input type="radio" name="reject-reason" value="Off-brand" style="accent-color:var(--gold)"> Off-brand</label>
+              <label style="display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;cursor:pointer"><input type="radio" name="reject-reason" value="Not relevant to audience" style="accent-color:var(--gold)"> Not relevant to audience</label>
+              <label style="display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;cursor:pointer"><input type="radio" name="reject-reason" value="Topic already covered" style="accent-color:var(--gold)"> Topic already covered</label>
+              <label style="display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;cursor:pointer"><input type="radio" name="reject-reason" value="Quality too low" style="accent-color:var(--gold)"> Quality too low</label>
+              <label style="display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;cursor:pointer"><input type="radio" name="reject-reason" value="Other"> Other</label>
+            </div>
+            <textarea id="review-reject-note" placeholder="Optional note (helps the AI learn more specifically)..." style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'Outfit',sans-serif;font-size:0.8rem;padding:0.6rem 0.75rem;border-radius:6px;resize:vertical;min-height:60px;box-sizing:border-box;margin-bottom:1.25rem"></textarea>
+            <div style="display:flex;gap:0.75rem">
+              <button onclick="reviewRejectConfirm()" style="flex:1;padding:0.75rem;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.4);color:#f87171;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;border-radius:6px;cursor:pointer">CONFIRM REJECT</button>
+              <button onclick="closeReviewRejectModal()" style="padding:0.75rem 1rem;background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.72rem;border-radius:6px;cursor:pointer">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- OAuth connect section -->
+        <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text3);margin-bottom:1.25rem">CONNECT PLATFORMS TO ENABLE AUTO-PUBLISHING</div>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div id="oauth-linkedin-card" style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.25rem">
+              <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.5rem">LINKEDIN</div>
+              <div id="oauth-linkedin-status" style="font-size:0.82rem;color:var(--text2);margin-bottom:0.75rem">Not connected</div>
+              <a href="/api/oauth/linkedin" style="display:inline-block;padding:0.5rem 1rem;background:rgba(10,102,194,0.15);border:1px solid rgba(10,102,194,0.4);color:#0a66c2;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;border-radius:5px;text-decoration:none;cursor:pointer">Connect LinkedIn</a>
+            </div>
+            <div id="oauth-instagram-card" style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.25rem">
+              <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.5rem">INSTAGRAM</div>
+              <div id="oauth-instagram-status" style="font-size:0.82rem;color:var(--text2);margin-bottom:0.75rem">Not connected</div>
+              <a href="/api/oauth/instagram" style="display:inline-block;padding:0.5rem 1rem;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.35);color:#e1306c;font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.08em;border-radius:5px;text-decoration:none;cursor:pointer">Connect Instagram</a>
+            </div>
+          </div>
+          <div style="margin-top:0.75rem;font-size:0.75rem;color:var(--text3)">LinkedIn requires Marketing Developer Program approval. Instagram requires a Business/Creator account linked to a Facebook Page.</div>
+        </div>
+      </div>
+
       <!-- The Team Tab (replaces Agent Room) -->
       <div id="tab-agents" class="tab-content" style="display:none">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
@@ -3422,23 +3589,24 @@
 
       <!-- Metaverse Office Tab -->
       <div id="tab-metaverse" class="tab-content" style="display:none">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
           <div>
-            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.4rem">THE TEAM / Metaverse Office</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem">Metaverse office</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.4rem">THE TEAM / Agent Office</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin-bottom:0.25rem">Agent office</div>
+            <div style="font-size:0.82rem;color:var(--text3)">A birds-eye view of your AI team. Click any agent to see their network.</div>
           </div>
           <button class="secondary-btn" style="margin:0;padding:0.5rem 1rem;font-size:0.65rem" onclick="loadMetaverse()">Refresh</button>
         </div>
 
         <div id="mv-office-container" class="mv-office-grid">
-          <!-- Rooms injected by JS -->
+          <!-- Injected by JS -->
         </div>
 
-        <!-- Data stream visualization -->
-        <div style="margin-top:1.5rem;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1.25rem">
-          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:1rem">ACTIVE DATA STREAMS</div>
-          <div id="mv-streams" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3);line-height:2">
-            <div style="opacity:0.4">No active streams. Agents are idle.</div>
+        <!-- Event log ticker -->
+        <div style="margin-top:1.25rem;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:1rem 1.25rem">
+          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.75rem">EVENT LOG — LATEST AGENT ACTIONS</div>
+          <div id="mv-streams" style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--text3)">
+            <div style="opacity:0.4">All agents on standby.</div>
           </div>
         </div>
       </div>
@@ -4494,9 +4662,12 @@
     } else {
       if (agentPollInterval) { clearInterval(agentPollInterval); agentPollInterval = null; }
     }
-    if (tabName === 'pipeline') loadPipeline();
+    if (tabName === 'pipeline') { loadPipeline(); if (!_pipelineStatsTimer) _pipelineStatsTimer = setInterval(loadPipeline, 15000); }
+    else { if (_pipelineStatsTimer) { clearInterval(_pipelineStatsTimer); _pipelineStatsTimer = null; } }
     if (tabName === 'brain-diary') loadBrainDiary();
-    if (tabName === 'metaverse') loadMetaverse();
+    if (tabName === 'metaverse') { loadMetaverse(); if (!_metaverseTimer) _metaverseTimer = setInterval(loadMetaverse, 10000); }
+    else { if (_metaverseTimer) { clearInterval(_metaverseTimer); _metaverseTimer = null; } }
+    if (tabName === 'review') { loadReviewQueue(); loadOAuthStatus(); }
   }
 
   function showApp() {
@@ -4506,6 +4677,25 @@
     document.getElementById('app-screen').classList.add('active');
     document.getElementById('upload-new-btn').style.display = 'block';
     setTimeout(bindAppEditing, 50);
+    // Handle OAuth redirect result
+    const oauthParam = new URLSearchParams(window.location.search).get('oauth');
+    if (oauthParam) {
+      const msgs = {
+        linkedin_connected: 'LinkedIn connected. Auto-publishing is active.',
+        instagram_connected: 'Instagram connected. Auto-publishing is active.',
+        linkedin_denied: 'LinkedIn connection cancelled.',
+        instagram_denied: 'Instagram connection cancelled.',
+        linkedin_failed: 'LinkedIn connection failed. Try again.',
+        instagram_failed: 'Instagram connection failed. Try again.',
+      };
+      const msg = msgs[oauthParam] || oauthParam;
+      const isError = oauthParam.endsWith('_failed') || oauthParam.endsWith('_denied');
+      alert(msg);
+      window.history.replaceState({}, '', window.location.pathname);
+      if (!isError) { showTab('review'); loadOAuthStatus(); }
+    }
+    // Load initial review badge count
+    authFetch('/api/notifications/count').then(r => r.json()).then(d => updateReviewBadge(d.pending || 0)).catch(() => {});
   }
 
   function resetToUpload() {
@@ -6036,6 +6226,22 @@
     feedback:  { label: 'Echo',      role: 'SYNTHESIZER',      color: '#F59E0B', grad: 'orb-orange', prompt: 'Every Sunday synthesizes the week\'s wins and losses into a coaching narrative → writes weekly_summary to brain diary.' },
     metrics:   { label: 'Pulse',     role: 'METRICS AGENT',    color: '#3B82F6', grad: 'orb-blue',   prompt: 'Pulls live engagement data from LinkedIn API every 6h → updates engagement_score on published posts → feeds scoring agent.' },
     publishing:{ label: 'Mira',      role: 'CONTENT BUILDER',  color: '#EC4899', grad: 'orb-magenta',prompt: 'Runs hourly → finds scheduled posts where publish time ≤ now → calls LinkedIn API → marks published → notifies metrics agent.' },
+    autogen:   { label: 'Mira',      role: 'CONTENT BUILDER',  color: '#3B82F6', grad: 'orb-blue',   prompt: 'Picks pending ideas from queue → runs 4-stage generation pipeline → stores drafts for review. Caps at 10 unreviewed drafts.' },
+    decide:    { label: 'Oracle',    role: 'STRATEGIST',       color: '#EC4899', grad: 'orb-magenta', prompt: 'Every Monday: reads 30 days of brain diary → boosts winning ideas to priority 9 → archives ideas matching loss patterns.' },
+    evolution: { label: 'Echo',      role: 'SYNTHESIZER',      color: '#A855F7', grad: 'orb-violet',  prompt: 'Every Sunday: distils 60 days of wins/losses into 3–5 learned prompt rules → injected into every future post generation.' },
+    publish:   { label: 'Nova',      role: 'PUBLISHER',        color: '#10B981', grad: 'orb-green',   prompt: 'Every 15 minutes: finds approved posts where scheduled_for ≤ now → posts to LinkedIn/Instagram → marks as published.' },
+    instagram_metrics: { label: 'Glow', role: 'IG METRICS',   color: '#EC4899', grad: 'orb-magenta', prompt: 'Instagram metrics equivalent: scrapes IG profiles, matches posts, scores engagement.' },
+  };
+
+  const AGENT_META = {
+    concept:   { label:'Atlas',  role:'Idea Generator',  does:'Reads brand context, prior wins and viral trends. Generates 7 fresh ideas each day — tagged with hook, angle, emotion and KPI target.',        impact:'Sets the ceiling for the entire cycle. Better ideas = better everything downstream.', input:'Brain Diary + Strategy', output:'Idea Queue',   agentKey:'concept'  },
+    autogen:   { label:'Mira',   role:'Content Builder', does:'Turns pending ideas into full posts via the 4-stage AI pipeline: draft → critique → fact-check → voice score. Capped at 10 drafts per user.', impact:'Bottleneck-aware — skips if review queue is full.',                                    input:'Idea + Brand DNA',       output:'Draft Posts',  agentKey:'autogen'  },
+    publish:   { label:'Nova',   role:'Publisher',       does:'Runs every 15 minutes. Finds approved posts where scheduled_for ≤ now → publishes to LinkedIn or Instagram → marks published.',                 impact:'Zero-touch publishing. Auto-notifies when live.',                                          input:'Approved Post',          output:'Live Post',    agentKey:'publish'  },
+    metrics:   { label:'Pulse',  role:'Metrics Agent',   does:'Scrapes LinkedIn and Instagram profiles via Apify every 6h. AI-matches published posts to drafts and calculates engagement scores.',             impact:'Closes the feedback loop with real performance data.',                                     input:'Profile URL',            output:'Eng. Scores',  agentKey:'metrics'  },
+    scoring:   { label:'Spark',  role:'Analyst',         does:'Compares top 20% vs bottom 20% posts by engagement. Extracts 2–3 win patterns and 2–3 loss patterns with post evidence.',                      impact:'Feeds the Evolution loop. Every pattern shapes the next batch of ideas.',                  input:'Post Library',           output:'Brain Diary',  agentKey:'scoring'  },
+    winloss:   { label:'Brain',  role:'Pattern Store',   does:'Stores every win, loss, weekly summary and strategic decision as a diary entry. The institutional memory of your brand.',                       impact:'All agents read from here. More data = smarter decisions.',                               input:'Patterns + Feedback',    output:'Win/Loss Log', agentKey:'scoring'  },
+    decide:    { label:'Oracle', role:'Strategist',      does:'Reviews 30 days of brain diary entries every Monday. Boosts ideas matching win patterns to priority 9, archives ideas matching losses.',         impact:'Directs the next cycle focus. Cuts waste, amplifies signal.',                              input:'Brain Diary',            output:'Boosted Queue',agentKey:'decide'   },
+    evolution: { label:'Echo',   role:'Synthesizer',     does:'Every Sunday distils 60 days of wins and losses into 3–5 learned prompt rules. These rules are injected into every future post generation.',    impact:'Makes the AI smarter each week — compounding improvement.',                               input:'Brain Diary (60 days)',  output:'Prompt Rules', agentKey:'evolution' },
   };
 
   const TOPO_POSITIONS = {
@@ -6268,119 +6474,228 @@
     { id: 'decide',    label: 'Decide',      icon: '↻', color: '#8B5CF6' },
   ];
 
+  let _loopStats = null;
+
   async function loadPipeline() {
     try {
-      const data = await authFetch('/api/ideas').then(r => r.json());
-      const ideas = data.ideas || [];
+      const [statsData, ideasData] = await Promise.all([
+        authFetch('/api/agents/loop-stats').then(r => r.json()),
+        authFetch('/api/ideas').then(r => r.json()),
+      ]);
+      _loopStats = statsData;
+      const ideas = ideasData.ideas || [];
 
-      // Update KPIs
-      const pending = ideas.filter(i => i.status === 'pending').length;
-      const inflight = ideas.filter(i => ['generating','created','scheduled'].includes(i.status)).length;
-      const published = ideas.filter(i => i.status === 'published').length;
       const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
-      el('fl-kpi-throughput', published || '0');
-      el('fl-kpi-inflight', inflight || '0');
-      el('fl-kpi-pending', pending || '0');
+      el('fl-kpi-throughput', statsData.cyclesCompleted ?? '—');
+      el('fl-kpi-inflight', statsData.inFlight ?? '—');
+      el('fl-kpi-integrity', (statsData.loopIntegrity ?? 100) + '%');
+      el('fl-kpi-pending', ideas.filter(i => i.status === 'pending').length || '0');
 
-      renderFeedbackLoopSVG(ideas);
-      renderStageGrid(ideas);
+      renderFeedbackLoopSVG(statsData);
+      renderStageGrid(statsData, ideas);
+      renderIdeaList(ideas);
     } catch (e) {
       console.error('Failed to load pipeline', e);
     }
   }
 
-  function renderFeedbackLoopSVG(ideas) {
+  const FL_LOOP_NODES = [
+    { id: 'concept',   label: 'Cycle',    name: 'Atlas',  color: '#8B5CF6', x: 80,  y: 85,  row: 'top' },
+    { id: 'concept',   label: 'Idea',     name: 'Atlas',  color: '#6366f1', x: 205, y: 85,  row: 'top', metaKey: 'concept' },
+    { id: 'autogen',   label: 'Generate', name: 'Mira',   color: '#3B82F6', x: 335, y: 85,  row: 'top', metaKey: 'autogen' },
+    { id: 'publish',   label: 'Publish',  name: 'Nova',   color: '#10B981', x: 460, y: 85,  row: 'top', metaKey: 'publish' },
+    { id: 'metrics',   label: 'Metrics',  name: 'Pulse',  color: '#F59E0B', x: 585, y: 85,  row: 'top', metaKey: 'metrics' },
+    { id: 'scoring',   label: 'Score',    name: 'Spark',  color: '#EF4444', x: 715, y: 85,  row: 'top', metaKey: 'scoring' },
+    { id: 'scoring',   label: 'WinLoss',  name: 'Brain',  color: '#A855F7', x: 585, y: 210, row: 'bot', metaKey: 'winloss' },
+    { id: 'decide',    label: 'Decide',   name: 'Oracle', color: '#EC4899', x: 350, y: 210, row: 'bot', metaKey: 'decide'  },
+  ];
+
+  const FL_LOOP_EDGES = [
+    [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],
+  ];
+
+  function _svgEl(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+
+  function _flParticle(svg, pathId, color, dur) {
+    const dot = _svgEl('circle');
+    dot.setAttribute('r', '3');
+    dot.setAttribute('fill', color);
+    dot.style.filter = `drop-shadow(0 0 4px ${color})`;
+    const am = _svgEl('animateMotion');
+    am.setAttribute('dur', dur + 's');
+    am.setAttribute('repeatCount', 'indefinite');
+    const mp = _svgEl('mpath');
+    mp.setAttribute('href', '#' + pathId);
+    am.appendChild(mp);
+    dot.appendChild(am);
+    svg.appendChild(dot);
+  }
+
+  function showNodeDetail(metaKey, agentId, throughput) {
+    const meta = AGENT_META[metaKey];
+    if (!meta) return;
+    const d = id => document.getElementById(id);
+    d('fl-nd-label').textContent = meta.label.toUpperCase() + ' — ' + meta.role;
+    d('fl-nd-does').textContent = meta.does;
+    d('fl-nd-impact').textContent = '⟡ ' + meta.impact;
+    d('fl-nd-input').textContent = meta.input;
+    d('fl-nd-output').textContent = meta.output;
+    const t = throughput?.[agentId];
+    d('fl-nd-runs').textContent = t ? `${t.total} runs · ${t.rate}/h · ${t.status}` : 'No data yet';
+    d('fl-nd-label').style.color = AGENT_META[metaKey] ? '#c9a96e' : 'var(--text3)';
+    document.getElementById('fl-node-detail').style.display = 'block';
+  }
+
+  function renderFeedbackLoopSVG(statsData) {
     const svg = document.getElementById('fl-pipeline-svg');
     if (!svg) return;
     svg.innerHTML = `<defs>
-      <filter id="glow-violet"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="fl-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <marker id="fl-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="rgba(255,255,255,0.18)"/></marker>
     </defs>`;
 
-    const n = FL_STAGES.length;
-    const w = 920, h = 120;
-    const nodeY = h / 2;
-    const step = (w - 80) / (n - 1);
+    const throughput = statsData?.throughput || {};
 
-    // Draw connecting paths with particles
-    FL_STAGES.forEach((stage, i) => {
-      if (i >= n - 1) return;
-      const x1 = 40 + i * step, x2 = 40 + (i + 1) * step;
-      const mx = (x1 + x2) / 2, my = nodeY - 20;
-      const next = FL_STAGES[i + 1];
-      const pathId = `fl-path-${i}`;
+    // Draw edges
+    FL_LOOP_EDGES.forEach(([ai, bi], i) => {
+      const a = FL_LOOP_NODES[ai], b = FL_LOOP_NODES[bi];
+      const pathId = `fl-lp-${i}`;
+      const col = a.color;
 
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      let d;
+      if (ai === 6 && bi === 7) {
+        // WinLoss → Decide: straight left
+        d = `M${a.x},${a.y} L${b.x},${b.y}`;
+      } else if (a.row === 'top' && b.row === 'top') {
+        // Straight right along top
+        d = `M${a.x},${a.y} L${b.x},${b.y}`;
+      } else if (a.row === 'top' && b.row === 'bot') {
+        // Score → WinLoss: drop down
+        d = `M${a.x},${a.y} Q${a.x+30},${(a.y+b.y)/2} ${b.x},${b.y}`;
+      } else {
+        d = `M${a.x},${a.y} L${b.x},${b.y}`;
+      }
+
+      const path = _svgEl('path');
       path.setAttribute('id', pathId);
-      path.setAttribute('d', `M${x1},${nodeY} Q${mx},${my} ${x2},${nodeY}`);
+      path.setAttribute('d', d);
       path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', stage.color + '44');
+      path.setAttribute('stroke', col + '55');
       path.setAttribute('stroke-width', '1.5');
+      path.setAttribute('marker-end', 'url(#fl-arrow)');
       svg.appendChild(path);
-
-      // Particle
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('r', '2.5');
-      dot.setAttribute('fill', stage.color);
-      dot.style.filter = `drop-shadow(0 0 3px ${stage.color})`;
-      const am = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
-      am.setAttribute('dur', `${2 + i * 0.3}s`);
-      am.setAttribute('repeatCount', 'indefinite');
-      const mp = document.createElementNS('http://www.w3.org/2000/svg', 'mpath');
-      mp.setAttribute('href', `#${pathId}`);
-      am.appendChild(mp);
-      dot.appendChild(am);
-      svg.appendChild(dot);
+      _flParticle(svg, pathId, col, 2 + i * 0.35);
     });
 
-    // Draw nodes
-    FL_STAGES.forEach((stage, i) => {
-      const x = 40 + i * step;
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('transform', `translate(${x},${nodeY})`);
-      g.style.cursor = 'pointer';
+    // Return-to-cycle curved path (Decide → Cycle, long curve on the left)
+    const decideNode = FL_LOOP_NODES[7], cycleNode = FL_LOOP_NODES[0];
+    const retPathId = 'fl-lp-ret';
+    const retPath = _svgEl('path');
+    retPath.setAttribute('id', retPathId);
+    retPath.setAttribute('d', `M${decideNode.x},${decideNode.y} C${decideNode.x-100},${decideNode.y} ${cycleNode.x-60},${cycleNode.y+80} ${cycleNode.x},${cycleNode.y}`);
+    retPath.setAttribute('fill', 'none');
+    retPath.setAttribute('stroke', '#8B5CF655');
+    retPath.setAttribute('stroke-width', '1.5');
+    retPath.setAttribute('stroke-dasharray', '4 3');
+    retPath.setAttribute('marker-end', 'url(#fl-arrow)');
+    svg.appendChild(retPath);
+    _flParticle(svg, retPathId, '#8B5CF6', 3.5);
 
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('r', '14');
-      circle.setAttribute('fill', stage.color + '22');
-      circle.setAttribute('stroke', stage.color + '88');
-      circle.setAttribute('stroke-width', '1.5');
+    // Draw nodes
+    FL_LOOP_NODES.forEach((node, i) => {
+      const agentStatus = throughput[node.id]?.status || 'idle';
+      const isRunning = agentStatus === 'running';
+      const rate = throughput[node.id]?.rate || 0;
+      const metaKey = node.metaKey || node.id;
+
+      const g = _svgEl('g');
+      g.setAttribute('transform', `translate(${node.x},${node.y})`);
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', () => showNodeDetail(metaKey, node.id, throughput));
+
+      // Glow backdrop
+      const glow = _svgEl('circle');
+      glow.setAttribute('r', '22');
+      glow.setAttribute('fill', node.color + (isRunning ? '25' : '12'));
+      glow.setAttribute('filter', 'url(#fl-glow)');
+      g.appendChild(glow);
+
+      // Main circle
+      const circle = _svgEl('circle');
+      circle.setAttribute('r', '18');
+      circle.setAttribute('fill', node.color + '1a');
+      circle.setAttribute('stroke', node.color + (isRunning ? 'cc' : '66'));
+      circle.setAttribute('stroke-width', isRunning ? '2' : '1.5');
+      if (isRunning) circle.style.animation = 'orbPulse 1.5s ease-in-out infinite';
       g.appendChild(circle);
 
-      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      icon.setAttribute('text-anchor', 'middle'); icon.setAttribute('dy', '4');
-      icon.setAttribute('font-size', '10'); icon.setAttribute('fill', stage.color);
-      icon.textContent = stage.icon;
-      g.appendChild(icon);
+      // Running ring
+      if (isRunning) {
+        const ring = _svgEl('circle');
+        ring.setAttribute('r', '26');
+        ring.setAttribute('fill', 'none');
+        ring.setAttribute('stroke', node.color);
+        ring.setAttribute('stroke-width', '1');
+        ring.setAttribute('opacity', '0.35');
+        ring.classList.add('topo-node-ring');
+        g.appendChild(ring);
+      }
 
-      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('y', '26');
-      lbl.setAttribute('font-family', 'DM Mono, monospace'); lbl.setAttribute('font-size', '7');
-      lbl.setAttribute('fill', 'rgba(255,255,255,0.4)');
-      lbl.textContent = stage.label.toUpperCase();
+      // Label initial
+      const init = _svgEl('text');
+      init.setAttribute('text-anchor', 'middle'); init.setAttribute('dy', '5');
+      init.setAttribute('font-family', 'DM Mono, monospace'); init.setAttribute('font-size', '10');
+      init.setAttribute('font-weight', '500'); init.setAttribute('fill', node.color);
+      init.textContent = node.name.slice(0, 2).toUpperCase();
+      g.appendChild(init);
+
+      // Node label below
+      const lbl = _svgEl('text');
+      lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('y', '34');
+      lbl.setAttribute('font-family', 'DM Mono, monospace'); lbl.setAttribute('font-size', '8');
+      lbl.setAttribute('fill', node.color + 'cc');
+      lbl.textContent = node.label.toUpperCase();
       g.appendChild(lbl);
+
+      // Throughput rate badge
+      if (rate > 0) {
+        const badge = _svgEl('text');
+        badge.setAttribute('text-anchor', 'middle'); badge.setAttribute('y', '46');
+        badge.setAttribute('font-family', 'DM Mono, monospace'); badge.setAttribute('font-size', '7');
+        badge.setAttribute('fill', 'rgba(255,255,255,0.35)');
+        badge.textContent = `+${rate}/h`;
+        g.appendChild(badge);
+      }
 
       svg.appendChild(g);
     });
   }
 
-  function renderStageGrid(ideas) {
+  function renderStageGrid(statsData, ideas) {
     const grid = document.getElementById('fl-stage-grid');
     if (!grid) return;
-    const statusMap = { pending: 'idea', generating: 'generate', created: 'schedule', scheduled: 'publish', published: 'metrics', analyzed: 'score' };
-    const counts = {};
-    for (const idea of ideas) {
-      const s = statusMap[idea.status] || idea.status;
-      counts[s] = (counts[s] || 0) + 1;
-    }
-    grid.innerHTML = FL_STAGES.map(stage => {
-      const count = counts[stage.id] || 0;
-      return `<div class="pipeline-node-card${count > 0 ? ' active-node' : ''}" style="${count > 0 ? `border-color:${stage.color}55;box-shadow:0 0 10px ${stage.color}22` : ''}">
-        <div style="font-size:1.1rem;margin-bottom:0.4rem;color:${stage.color}">${stage.icon}</div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.06em;margin-bottom:0.4rem">${stage.label.toUpperCase()}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:${count > 0 ? stage.color : 'var(--text3)'}">${count}</div>
+    const throughput = statsData?.throughput || {};
+    const stageMap = [
+      { key: 'concept',   label: 'Idea Gen',   color: '#8B5CF6', icon: '◎' },
+      { key: 'autogen',   label: 'Generate',   color: '#3B82F6', icon: '⟡' },
+      { key: 'publish',   label: 'Publish',    color: '#10B981', icon: '◈' },
+      { key: 'metrics',   label: 'Metrics',    color: '#F59E0B', icon: '◉' },
+      { key: 'scoring',   label: 'Score',      color: '#EF4444', icon: '◆' },
+      { key: 'decide',    label: 'Decide',     color: '#EC4899', icon: '↻' },
+      { key: 'evolution', label: 'Evolve',     color: '#A855F7', icon: '◈' },
+      { key: 'feedback',  label: 'Feedback',   color: '#F59E0B', icon: '◎' },
+    ];
+
+    grid.innerHTML = stageMap.map(s => {
+      const t = throughput[s.key] || { total: 0, rate: 0, status: 'idle' };
+      const isActive = t.status === 'running';
+      return `<div class="pipeline-node-card${isActive ? ' active-node' : ''}" style="${isActive ? `border-color:${s.color}55;box-shadow:0 0 10px ${s.color}22` : ''}" onclick="showNodeDetail('${s.key}','${s.key}',_loopStats&&_loopStats.throughput)">
+        <div style="font-size:1rem;margin-bottom:0.3rem;color:${s.color}">${s.icon}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--text3);letter-spacing:0.06em;margin-bottom:0.35rem">${s.label}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:${isActive ? s.color : 'var(--text2)'}">${t.total}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);margin-top:0.2rem">${t.rate > 0 ? t.rate + '/h' : isActive ? 'running' : 'idle'}</div>
       </div>`;
     }).join('');
-    renderIdeaList(ideas);
   }
 
   function renderIdeaList(ideas) {
@@ -6439,6 +6754,8 @@
     } catch { alert('Failed to save idea. Try again.'); }
   }
   let _pipelinePollTimer = null;
+  let _pipelineStatsTimer = null;
+  let _metaverseTimer = null;
   function startPipelinePoll() {
     if (_pipelinePollTimer) return;
     _pipelinePollTimer = setInterval(async () => {
@@ -6460,19 +6777,15 @@
 
   // ─── METAVERSE OFFICE ────────────────────────────────────────────────────────
 
-  const MV_AVATARS = {
-    running: ['🧑‍💻','⚡','🔥'],
-    done:    ['✅','😌','🎯'],
-    error:   ['⚠️','😵','🔴'],
-    idle:    ['💤','🪑','😴'],
-  };
-
-  const MV_ROOMS = [
-    { agent: 'concept',   name: 'Atlas',  desk: 'IDEAS LAB',    emoji: '🧠' },
-    { agent: 'scoring',   name: 'Spark',  desk: 'ANALYTICS HQ', emoji: '📊' },
-    { agent: 'feedback',  name: 'Echo',   desk: 'SYNTHESIS ROOM',emoji: '🔮' },
-    { agent: 'metrics',   name: 'Pulse',  desk: 'DATA CENTER',  emoji: '📡' },
-    { agent: 'publishing',name: 'Mira',   desk: 'BROADCAST STN',emoji: '📢' },
+  const MV_DESKS = [
+    { agent: 'concept',   meta: AGENT_META.concept,   floor: 'IDEAS LAB',      x: 0 },
+    { agent: 'autogen',   meta: AGENT_META.autogen,   floor: 'CONTENT STUDIO', x: 1 },
+    { agent: 'publish',   meta: AGENT_META.publish,   floor: 'BROADCAST',      x: 2 },
+    { agent: 'metrics',   meta: AGENT_META.metrics,   floor: 'DATA CENTER',    x: 3 },
+    { agent: 'scoring',   meta: AGENT_META.scoring,   floor: 'ANALYTICS HQ',   x: 4 },
+    { agent: 'decide',    meta: AGENT_META.decide,    floor: 'WAR ROOM',       x: 5 },
+    { agent: 'evolution', meta: AGENT_META.evolution, floor: 'SYNTHESIS LAB',  x: 6 },
+    { agent: 'feedback',  meta: { label:'Echo', role:'Synthesizer', does:'Weekly coaching summaries from win/loss patterns.', impact:'Closes the learning loop.', input:'Brain Diary', output:'Summary' }, floor: 'DEBRIEF ROOM', x: 7 },
   ];
 
   async function loadMetaverse() {
@@ -6488,51 +6801,282 @@
     const container = document.getElementById('mv-office-container');
     if (!container) return;
 
-    container.innerHTML = MV_ROOMS.map(room => {
-      const agent = agentMap[room.agent] || { status: 'idle', run_count: 0, last_action: null };
-      const cfg = AGENT_CFG[room.agent];
-      const status = agent.status || 'idle';
-      const avatarSet = MV_AVATARS[status] || MV_AVATARS.idle;
-      const avatar = avatarSet[Math.floor(Date.now() / 2000) % avatarSet.length];
-      const isActive = status === 'running';
+    // Build character cells
+    const cells = MV_DESKS.map(desk => {
+      const a = agentMap[desk.agent] || { status: 'idle', run_count: 0, last_action: null, finished_at: null };
+      const meta = desk.meta;
+      const col = AGENT_CFG[desk.agent]?.color || AGENT_CFG.concept.color;
+      const status = a.status || 'idle';
+      const isRunning = status === 'running';
+      const isError = status === 'error';
+      const isDone = status === 'done';
 
-      return `<div class="mv-room" style="background:${cfg.color}08;border:1px solid ${cfg.color}${isActive ? '55' : '22'}${isActive ? `;box-shadow:0 0 20px ${cfg.color}18` : ''}">
-        <div class="mv-scanline" style="color:${cfg.color}"></div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:${cfg.color};letter-spacing:0.1em;margin-bottom:0.75rem">${room.desk}</div>
-        <div style="text-align:center;margin:1rem 0">
-          <div style="font-size:2.8rem;display:inline-block;${isActive ? 'animation:float 1.2s ease-in-out infinite' : 'opacity:0.5'}">${avatar}</div>
-          <div style="font-size:0.75rem;margin-top:0.5rem">${room.emoji} <span style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--text)">${room.name}</span></div>
-        </div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:${isActive ? cfg.color : 'var(--text3)'};letter-spacing:0.06em;margin-bottom:0.4rem">
-          ${isActive ? '◉ ACTIVE' : status === 'done' ? '● DONE' : status === 'error' ? '✕ ERROR' : '○ IDLE'}
-        </div>
-        <div style="font-size:0.7rem;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
-          ${agent.last_action || 'Waiting for tasks...'}
-        </div>
-        <div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid ${cfg.color}22;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3)">
-          ${agent.run_count || 0} cycles · ${agent.finished_at ? timeAgo(agent.finished_at) : 'never run'}
-        </div>
-      </div>`;
+      const statusDot = isRunning ? `<span style="color:${col};animation:orbPulse 1.5s infinite">◉</span> ACTIVE`
+        : isError ? '<span style="color:#f87171">✕</span> ERROR'
+        : isDone  ? '<span style="color:#6366f1">●</span> DONE'
+        : '<span style="color:#374151">○</span> IDLE';
+
+      return `
+        <div class="mv-desk-station" style="border-color:${isRunning ? col+'66' : 'rgba(255,255,255,0.07)'};${isRunning ? `box-shadow:0 0 28px ${col}22;` : ''}background:${col}08" onclick="showTab('agents')">
+          <!-- Desk label -->
+          <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:${col};letter-spacing:0.12em;margin-bottom:0.75rem;opacity:0.8">${desk.floor}</div>
+
+          <!-- Character sprite -->
+          <div style="display:flex;justify-content:center;margin-bottom:0.75rem">
+            <div class="mv-character${isRunning ? ' mv-character-active' : ''}" style="
+              width:52px;height:52px;border-radius:50%;
+              background:radial-gradient(circle at 35% 30%, ${col}66, ${col}22);
+              border:2px solid ${isRunning ? col : col+'44'};
+              display:flex;align-items:center;justify-content:center;
+              font-family:'DM Mono',monospace;font-size:1rem;font-weight:700;color:${col};
+              ${isRunning ? `box-shadow:0 0 18px ${col}55;animation:orbPulse 1.5s ease-in-out infinite;` : ''}
+              ${isError ? 'border-color:#f87171;filter:grayscale(0.6);' : ''}
+              position:relative;
+            ">
+              ${meta.label.slice(0,2).toUpperCase()}
+              ${isRunning ? `<span style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#10B981;border:1.5px solid #0a0a14;animation:orbPulse 1s infinite"></span>` : ''}
+            </div>
+          </div>
+
+          <!-- Desk surface (decorative) -->
+          <div style="background:rgba(255,255,255,0.04);border:1px solid ${col}22;border-radius:8px;padding:0.6rem 0.75rem;margin-bottom:0.6rem;min-height:40px">
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
+              ${a.last_action ? a.last_action.slice(0, 60) + (a.last_action.length > 60 ? '…' : '') : 'Waiting for tasks…'}
+            </div>
+          </div>
+
+          <!-- Agent name + status -->
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;margin-bottom:0.2rem">${meta.label}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);letter-spacing:0.08em;margin-bottom:0.5rem">${meta.role}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.06em">${statusDot}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--text3);margin-top:0.4rem">${a.run_count || 0} runs · ${a.finished_at ? timeAgo(a.finished_at) : 'never'}</div>
+        </div>`;
     }).join('');
 
-    // Data streams
+    container.innerHTML = `<div class="mv-office-floor">${cells}</div>`;
+
+    // Event log ticker
     const streams = document.getElementById('mv-streams');
     if (streams) {
-      const active = agents.filter(a => a.status === 'running');
-      if (active.length) {
-        streams.innerHTML = active.map(a => {
-          const cfg = AGENT_CFG[a.agent_name];
-          return `<div style="color:${cfg?.color || 'var(--text2)'}">
-            <span class="mv-data-stream">▶</span>
-            <span style="color:var(--text3)"> ${cfg?.label || a.agent_name} → </span>
-            ${a.last_action || 'processing...'}
-          </div>`;
-        }).join('');
+      const active = agents.filter(a => a.status === 'running' || a.last_action);
+      const logs = active.slice(0, 6).map(a => {
+        const col = AGENT_CFG[a.agent_name]?.color || 'var(--text2)';
+        const lbl = AGENT_CFG[a.agent_name]?.label || a.agent_name;
+        return `<span style="color:${col}">[${lbl}]</span> <span style="color:var(--text3)">${a.last_action || 'standby'}</span>`;
+      });
+      if (logs.length) {
+        streams.innerHTML = `<div class="mv-ticker-inner">${logs.join(' &nbsp;·&nbsp; &nbsp;·&nbsp; ')}</div>`;
       } else {
-        streams.innerHTML = '<div style="opacity:0.35;font-size:0.72rem">No active streams. Agents are idle.</div>';
+        streams.innerHTML = '<div style="opacity:0.35;font-size:0.72rem">All agents on standby. Loop runs automatically on schedule.</div>';
       }
     }
   }
+
+  // ─── REVIEW QUEUE ────────────────────────────────────────────────────────────
+
+  let reviewQueue = [];
+  let reviewIndex = 0;
+
+  async function loadReviewQueue() {
+    try {
+      const data = await authFetch('/api/posts/review-queue').then(r => r.json());
+      reviewQueue = data.posts || [];
+      reviewIndex = 0;
+      renderReviewCard();
+      updateReviewBadge(reviewQueue.length);
+    } catch (err) {
+      console.error('Failed to load review queue:', err);
+    }
+  }
+
+  function updateReviewBadge(count) {
+    const badge = document.getElementById('review-badge');
+    const counterLabel = document.getElementById('review-counter-label');
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'inline-block' : 'none';
+    }
+    if (counterLabel) {
+      counterLabel.textContent = count > 0 ? `${count} post${count !== 1 ? 's' : ''} awaiting review` : 'Queue is clear';
+    }
+  }
+
+  function renderReviewCard() {
+    const card = document.getElementById('review-card');
+    const empty = document.getElementById('review-empty');
+    if (!reviewQueue.length) {
+      card.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    card.style.display = 'block';
+
+    const post = reviewQueue[reviewIndex];
+    const total = reviewQueue.length;
+
+    document.getElementById('review-nav-label').textContent = `Post ${reviewIndex + 1} of ${total}`;
+    document.getElementById('review-prev-btn').disabled = reviewIndex === 0;
+    document.getElementById('review-next-btn').disabled = reviewIndex === total - 1;
+
+    // Platform badge
+    const platBadge = document.getElementById('review-platform-badge');
+    platBadge.textContent = post.platform || 'unknown';
+
+    // Format badge
+    const fmtBadge = document.getElementById('review-format-badge');
+    fmtBadge.textContent = [post.format, post.subtype].filter(Boolean).join(' · ') || post.tone || '';
+    fmtBadge.style.display = fmtBadge.textContent ? 'inline-block' : 'none';
+
+    // Voice score badge
+    const vBadge = document.getElementById('review-voice-badge');
+    const score = post.voice_score;
+    if (score) {
+      vBadge.textContent = `Voice ${score}/10`;
+      vBadge.title = post.voice_note || '';
+      if (score >= 7) { vBadge.style.background = 'rgba(74,222,128,0.1)'; vBadge.style.borderColor = 'rgba(74,222,128,0.4)'; vBadge.style.color = '#4ade80'; }
+      else if (score >= 5) { vBadge.style.background = 'rgba(251,191,36,0.1)'; vBadge.style.borderColor = 'rgba(251,191,36,0.4)'; vBadge.style.color = '#fbbf24'; }
+      else { vBadge.style.background = 'rgba(248,113,113,0.1)'; vBadge.style.borderColor = 'rgba(248,113,113,0.4)'; vBadge.style.color = '#f87171'; }
+      vBadge.style.display = 'inline-block';
+    } else {
+      vBadge.style.display = 'none';
+    }
+
+    // Pillar
+    document.getElementById('review-pillar-label').textContent = post.pillar_name ? `Pillar: ${post.pillar_name}` : '';
+
+    // Idea context
+    const ideaCtx = document.getElementById('review-idea-context');
+    if (post.idea_topic) {
+      ideaCtx.style.display = 'block';
+      document.getElementById('review-idea-topic').textContent = post.idea_topic;
+      document.getElementById('review-idea-hook').textContent = post.idea_hook || '';
+    } else {
+      ideaCtx.style.display = 'none';
+    }
+
+    // Post content
+    document.getElementById('review-post-content').textContent = post.content || '';
+  }
+
+  function reviewNavigate(dir) {
+    reviewIndex = Math.max(0, Math.min(reviewQueue.length - 1, reviewIndex + dir));
+    renderReviewCard();
+  }
+
+  function reviewCopyPost() {
+    const post = reviewQueue[reviewIndex];
+    if (!post) return;
+    navigator.clipboard.writeText(post.content || '').then(() => {
+      const btn = event.target;
+      btn.textContent = 'COPIED';
+      setTimeout(() => { btn.textContent = 'COPY'; }, 1500);
+    });
+  }
+
+  function reviewApprove() {
+    const post = reviewQueue[reviewIndex];
+    if (!post) return;
+    // Pre-fill optimal time: next weekday at 10:00 local
+    const d = new Date();
+    d.setHours(d.getHours() + 2, 0, 0, 0);
+    // Advance to a weekday if needed
+    while ([0, 6].includes(d.getDay())) d.setDate(d.getDate() + 1);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('review-schedule-input').value = local;
+    const modal = document.getElementById('review-approve-modal');
+    modal.style.display = 'flex';
+  }
+
+  function closeReviewApproveModal() {
+    document.getElementById('review-approve-modal').style.display = 'none';
+  }
+
+  async function reviewApproveConfirm() {
+    const post = reviewQueue[reviewIndex];
+    if (!post) return;
+    const scheduledFor = document.getElementById('review-schedule-input').value;
+    try {
+      const res = await authFetch(`/api/posts/${post.id}/approve`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduled_for: scheduledFor ? new Date(scheduledFor).toISOString() : null }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      closeReviewApproveModal();
+      reviewQueue.splice(reviewIndex, 1);
+      reviewIndex = Math.min(reviewIndex, Math.max(0, reviewQueue.length - 1));
+      renderReviewCard();
+      updateReviewBadge(reviewQueue.length);
+    } catch (err) {
+      alert('Failed to approve post: ' + err.message);
+    }
+  }
+
+  function reviewReject() {
+    // Reset reason selection
+    document.querySelectorAll('input[name="reject-reason"]').forEach(r => r.checked = false);
+    document.getElementById('review-reject-note').value = '';
+    const modal = document.getElementById('review-reject-modal');
+    modal.style.display = 'flex';
+  }
+
+  function closeReviewRejectModal() {
+    document.getElementById('review-reject-modal').style.display = 'none';
+  }
+
+  async function reviewRejectConfirm() {
+    const post = reviewQueue[reviewIndex];
+    if (!post) return;
+    const reason = document.querySelector('input[name="reject-reason"]:checked')?.value || 'Unspecified';
+    const note = document.getElementById('review-reject-note').value.trim();
+    try {
+      const res = await authFetch(`/api/posts/${post.id}/reject`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, note }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      closeReviewRejectModal();
+      reviewQueue.splice(reviewIndex, 1);
+      reviewIndex = Math.min(reviewIndex, Math.max(0, reviewQueue.length - 1));
+      renderReviewCard();
+      updateReviewBadge(reviewQueue.length);
+    } catch (err) {
+      alert('Failed to reject post: ' + err.message);
+    }
+  }
+
+  async function loadOAuthStatus() {
+    try {
+      const data = await authFetch('/api/oauth/status').then(r => r.json());
+      const oauth = data.oauth || {};
+      for (const platform of ['linkedin', 'instagram']) {
+        const el = document.getElementById(`oauth-${platform}-status`);
+        if (!el) continue;
+        const s = oauth[platform];
+        if (s?.connected) {
+          el.textContent = `Connected as ${s.username || 'unknown'}${s.expiring_soon ? ' (expires soon — reconnect)' : ''}`;
+          el.style.color = s.expiring_soon ? '#fbbf24' : '#4ade80';
+        } else {
+          el.textContent = 'Not connected';
+          el.style.color = 'var(--text3)';
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Poll review badge every 2 minutes when app is active
+  setInterval(async () => {
+    if (!document.hidden) {
+      try {
+        const data = await authFetch('/api/notifications/count').then(r => r.json());
+        updateReviewBadge(data.pending || 0);
+      } catch (_) {}
+    }
+  }, 120000);
 
   // ─── BRAIN DIARY ─────────────────────────────────────────────────────────────
 

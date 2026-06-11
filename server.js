@@ -234,9 +234,110 @@ async function initDb() {
       created_at   TIMESTAMPTZ DEFAULT NOW()
     )
   `;
+
+  // Autonomous loop: OAuth, publish pipeline, notifications
+  await sql`
+    CREATE TABLE IF NOT EXISTS oauth_tokens (
+      id               TEXT PRIMARY KEY,
+      user_id          TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      platform         TEXT NOT NULL,
+      access_token     TEXT NOT NULL,
+      refresh_token    TEXT,
+      expires_at       TIMESTAMPTZ,
+      scope            TEXT,
+      platform_user_id TEXT,
+      platform_username TEXT,
+      created_at       TIMESTAMPTZ DEFAULT NOW(),
+      updated_at       TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE (user_id, platform)
+    )
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS publish_log (
+      id               TEXT PRIMARY KEY,
+      post_id          TEXT NOT NULL REFERENCES generated_posts(id),
+      user_id          TEXT NOT NULL,
+      platform         TEXT NOT NULL,
+      attempt_at       TIMESTAMPTZ DEFAULT NOW(),
+      status           TEXT NOT NULL,
+      platform_post_id TEXT,
+      error_msg        TEXT,
+      response_body    JSONB
+    )
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS notification_queue (
+      id         TEXT PRIMARY KEY,
+      user_id    TEXT NOT NULL,
+      type       TEXT NOT NULL,
+      payload    JSONB DEFAULT '{}',
+      sent_at    TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+  await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS scheduled_for TIMESTAMPTZ`;
+  await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS rejection_reason TEXT`;
+  await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS rejection_note TEXT`;
+  await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram_profile_url TEXT`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_timezone TEXT DEFAULT 'UTC'`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_email TEXT`;
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
+
+// ─── TOKEN ENCRYPTION (AES-256-GCM) ──────────────────────────────────────────
+
+const OAUTH_KEY = process.env.OAUTH_ENCRYPTION_KEY
+  ? Buffer.from(process.env.OAUTH_ENCRYPTION_KEY, 'hex')
+  : crypto.randomBytes(32); // fallback for dev; set OAUTH_ENCRYPTION_KEY in prod
+
+function encryptToken(plaintext) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', OAUTH_KEY, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return JSON.stringify({ iv: iv.toString('hex'), tag: tag.toString('hex'), ct: encrypted.toString('hex') });
+}
+
+function decryptToken(stored) {
+  const { iv, tag, ct } = JSON.parse(stored);
+  const decipher = crypto.createDecipheriv('aes-256-gcm', OAUTH_KEY, Buffer.from(iv, 'hex'));
+  decipher.setAuthTag(Buffer.from(tag, 'hex'));
+  return Buffer.concat([decipher.update(Buffer.from(ct, 'hex')), decipher.final()]).toString('utf8');
+}
+
+// ─── OPTIMAL SCHEDULING ──────────────────────────────────────────────────────
+
+function getOptimalScheduleTime(platform, timezone = 'UTC') {
+  const now = new Date();
+  const candidate = new Date(now);
+  candidate.setMinutes(0, 0, 0);
+  candidate.setHours(candidate.getHours() + 1); // start looking from next hour
+
+  // LinkedIn: Tue(2), Wed(3), Thu(4) — 09:00–12:00 UTC
+  // Instagram: Mon(1)–Fri(5) — 11:00–13:00 UTC
+  const isLinkedIn = platform === 'linkedin';
+  const validDays = isLinkedIn ? new Set([2, 3, 4]) : new Set([1, 2, 3, 4, 5]);
+  const targetHour = isLinkedIn ? 10 : 11; // mid-range of optimal window
+
+  for (let i = 0; i < 14; i++) { // look up to 14 days ahead
+    if (validDays.has(candidate.getUTCDay())) {
+      const slot = new Date(candidate);
+      slot.setUTCHours(targetHour, 0, 0, 0);
+      if (slot > now) return slot;
+    }
+    candidate.setDate(candidate.getDate() + 1);
+    candidate.setUTCHours(0, 0, 0, 0);
+  }
+
+  // Fallback: next weekday at 10:00 UTC
+  const fallback = new Date(now);
+  fallback.setUTCHours(10, 0, 0, 0);
+  fallback.setDate(fallback.getDate() + 1);
+  return fallback;
+}
 
 const PRIVATE_IP_RE = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1$|::ffff:|fc00:|fd)/i;
 
@@ -1926,6 +2027,258 @@ app.patch('/api/posts/:id/feedback', requireAuth, async (req, res) => {
   }
 });
 
+// ─── APPROVAL QUEUE ROUTES ───────────────────────────────────────────────────
+
+app.get('/api/posts/review-queue', requireAuth, async (req, res) => {
+  try {
+    const posts = await sql`
+      SELECT gp.id, gp.platform, gp.format, gp.subtype, gp.pillar_name, gp.tone,
+             gp.content, gp.voice_score, gp.voice_note, gp.status, gp.created_at,
+             iq.topic as idea_topic, iq.hook as idea_hook, iq.angle as idea_angle
+      FROM generated_posts gp
+      LEFT JOIN idea_queue iq ON iq.post_id = gp.id
+      WHERE gp.user_id = ${req.user.id} AND gp.status = 'draft'
+      ORDER BY gp.created_at DESC
+      LIMIT 50
+    `;
+    res.json({ posts, count: posts.length });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
+app.patch('/api/posts/:id/approve', requireAuth, async (req, res) => {
+  try {
+    const [post] = await sql`SELECT id, platform FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    const [user] = await sql`SELECT preferred_timezone FROM users WHERE id = ${req.user.id}`;
+    const { scheduled_for } = req.body;
+    const scheduledAt = scheduled_for
+      ? new Date(scheduled_for)
+      : getOptimalScheduleTime(post.platform, user?.preferred_timezone || 'UTC');
+
+    await sql`
+      UPDATE generated_posts
+      SET status = 'approved', approved_at = NOW(), scheduled_for = ${scheduledAt.toISOString()}
+      WHERE id = ${req.params.id} AND user_id = ${req.user.id}
+    `;
+
+    await sql`
+      INSERT INTO notification_queue (id, user_id, type, payload)
+      VALUES (${crypto.randomUUID()}, ${req.user.id}, 'post_approved', ${JSON.stringify({ post_id: post.id, scheduled_for: scheduledAt.toISOString() })})
+    `;
+
+    res.json({ success: true, scheduled_for: scheduledAt.toISOString() });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
+app.patch('/api/posts/:id/reject', requireAuth, async (req, res) => {
+  try {
+    const [post] = await sql`SELECT id, platform, pillar_name, tone FROM generated_posts WHERE id = ${req.params.id} AND user_id = ${req.user.id}`;
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    const { reason, note } = req.body;
+    await sql`
+      UPDATE generated_posts
+      SET status = 'rejected', rejection_reason = ${reason || null}, rejection_note = ${note || null}
+      WHERE id = ${req.params.id} AND user_id = ${req.user.id}
+    `;
+
+    // Feed rejection into brain_diary so Evolution Agent learns from it
+    await sql`
+      INSERT INTO brain_diary (id, user_id, type, pattern, insight, platform, pillar_name)
+      VALUES (
+        ${crypto.randomUUID()}, ${req.user.id}, 'rejection',
+        ${`${post.platform} — ${post.tone || 'unknown'} tone on ${post.pillar_name || 'unknown'} pillar rejected`},
+        ${`Reason: ${reason || 'unspecified'}. ${note ? 'Note: ' + note : ''}`},
+        ${post.platform}, ${post.pillar_name || null}
+      )
+    `;
+
+    res.json({ success: true });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
+// ─── NOTIFICATION ROUTES ─────────────────────────────────────────────────────
+
+app.get('/api/notifications/count', requireAuth, async (req, res) => {
+  try {
+    const [row] = await sql`
+      SELECT COUNT(*) as count FROM notification_queue
+      WHERE user_id = ${req.user.id} AND sent_at IS NULL AND type = 'review_ready'
+    `;
+    const [drafts] = await sql`
+      SELECT COUNT(*) as count FROM generated_posts
+      WHERE user_id = ${req.user.id} AND status = 'draft'
+    `;
+    res.json({ pending: parseInt(drafts?.count || 0) });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
+// ─── OAUTH ROUTES ─────────────────────────────────────────────────────────────
+
+app.get('/api/oauth/status', requireAuth, async (req, res) => {
+  try {
+    const tokens = await sql`
+      SELECT platform, platform_username, expires_at, updated_at
+      FROM oauth_tokens WHERE user_id = ${req.user.id}
+    `;
+    const status = {};
+    for (const t of tokens) {
+      const expired = t.expires_at && new Date(t.expires_at) < new Date();
+      const expiringSoon = t.expires_at && new Date(t.expires_at) < new Date(Date.now() + 7 * 24 * 3600 * 1000);
+      status[t.platform] = {
+        connected: !expired,
+        username: t.platform_username,
+        expires_at: t.expires_at,
+        expiring_soon: !expired && expiringSoon,
+      };
+    }
+    res.json({ oauth: status });
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
+app.get('/api/oauth/linkedin', requireAuth, (req, res) => {
+  const clientId = process.env.LINKEDIN_CLIENT_ID;
+  if (!clientId) return res.status(503).json({ error: 'LinkedIn OAuth not configured' });
+  const state = jwt.sign({ userId: req.user.id }, JWT_SECRET, { expiresIn: '10m' });
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: clientId,
+    redirect_uri: process.env.LINKEDIN_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/oauth/linkedin/callback`,
+    scope: 'openid profile email w_member_social',
+    state,
+  });
+  res.redirect(`https://www.linkedin.com/oauth/v2/authorization?${params}`);
+});
+
+app.get('/api/oauth/linkedin/callback', async (req, res) => {
+  try {
+    const { code, state, error } = req.query;
+    if (error) return res.redirect('/?oauth=linkedin_denied');
+    const { userId } = jwt.verify(state, JWT_SECRET);
+
+    const redirectUri = process.env.LINKEDIN_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/oauth/linkedin/callback`;
+    const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        client_id: process.env.LINKEDIN_CLIENT_ID,
+        client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+      }),
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) return res.redirect('/?oauth=linkedin_failed');
+
+    // Get the user's LinkedIn URN and display name
+    const profileRes = await fetch('https://api.linkedin.com/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const profile = await profileRes.json();
+
+    const expiresAt = new Date(Date.now() + (tokenData.expires_in || 5184000) * 1000);
+    await sql`
+      INSERT INTO oauth_tokens (id, user_id, platform, access_token, expires_at, scope, platform_user_id, platform_username, updated_at)
+      VALUES (${crypto.randomUUID()}, ${userId}, 'linkedin', ${encryptToken(tokenData.access_token)}, ${expiresAt.toISOString()}, ${tokenData.scope || ''}, ${profile.sub || ''}, ${profile.name || profile.email || ''}, NOW())
+      ON CONFLICT (user_id, platform) DO UPDATE
+        SET access_token = EXCLUDED.access_token, expires_at = EXCLUDED.expires_at,
+            scope = EXCLUDED.scope, platform_user_id = EXCLUDED.platform_user_id,
+            platform_username = EXCLUDED.platform_username, updated_at = NOW()
+    `;
+    res.redirect('/?oauth=linkedin_connected');
+  } catch (err) {
+    console.error('LinkedIn OAuth callback error:', err.message);
+    res.redirect('/?oauth=linkedin_failed');
+  }
+});
+
+app.get('/api/oauth/instagram', requireAuth, (req, res) => {
+  const appId = process.env.FACEBOOK_APP_ID;
+  if (!appId) return res.status(503).json({ error: 'Instagram OAuth not configured' });
+  const state = jwt.sign({ userId: req.user.id }, JWT_SECRET, { expiresIn: '10m' });
+  const params = new URLSearchParams({
+    client_id: appId,
+    redirect_uri: process.env.INSTAGRAM_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/oauth/instagram/callback`,
+    scope: 'instagram_basic,instagram_content_publish,pages_read_engagement',
+    response_type: 'code',
+    state,
+  });
+  res.redirect(`https://www.facebook.com/v20.0/dialog/oauth?${params}`);
+});
+
+app.get('/api/oauth/instagram/callback', async (req, res) => {
+  try {
+    const { code, state, error } = req.query;
+    if (error) return res.redirect('/?oauth=instagram_denied');
+    const { userId } = jwt.verify(state, JWT_SECRET);
+
+    const redirectUri = process.env.INSTAGRAM_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/oauth/instagram/callback`;
+
+    // Exchange code for short-lived token
+    const tokenRes = await fetch(`https://graph.facebook.com/v20.0/oauth/access_token?` + new URLSearchParams({
+      client_id: process.env.FACEBOOK_APP_ID,
+      client_secret: process.env.FACEBOOK_APP_SECRET,
+      redirect_uri: redirectUri,
+      code,
+    }));
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) return res.redirect('/?oauth=instagram_failed');
+
+    // Exchange for long-lived token (60 days)
+    const llRes = await fetch(`https://graph.facebook.com/v20.0/oauth/access_token?` + new URLSearchParams({
+      grant_type: 'fb_exchange_token',
+      client_id: process.env.FACEBOOK_APP_ID,
+      client_secret: process.env.FACEBOOK_APP_SECRET,
+      fb_exchange_token: tokenData.access_token,
+    }));
+    const llData = await llRes.json();
+    const longLivedToken = llData.access_token || tokenData.access_token;
+    const expiresIn = llData.expires_in || 5184000;
+
+    // Get Instagram Business Account ID
+    const pagesRes = await fetch(`https://graph.facebook.com/v20.0/me/accounts?access_token=${longLivedToken}`);
+    const pagesData = await pagesRes.json();
+    const page = (pagesData.data || [])[0];
+    let igUserId = null;
+    let igUsername = null;
+    if (page?.id) {
+      const igRes = await fetch(`https://graph.facebook.com/v20.0/${page.id}?fields=instagram_business_account&access_token=${longLivedToken}`);
+      const igData = await igRes.json();
+      igUserId = igData.instagram_business_account?.id || null;
+      if (igUserId) {
+        const nameRes = await fetch(`https://graph.facebook.com/v20.0/${igUserId}?fields=username&access_token=${longLivedToken}`);
+        const nameData = await nameRes.json();
+        igUsername = nameData.username || null;
+      }
+    }
+
+    const expiresAt = new Date(Date.now() + expiresIn * 1000);
+    await sql`
+      INSERT INTO oauth_tokens (id, user_id, platform, access_token, expires_at, scope, platform_user_id, platform_username, updated_at)
+      VALUES (${crypto.randomUUID()}, ${userId}, 'instagram', ${encryptToken(longLivedToken)}, ${expiresAt.toISOString()}, 'instagram_content_publish', ${igUserId || ''}, ${igUsername || ''}, NOW())
+      ON CONFLICT (user_id, platform) DO UPDATE
+        SET access_token = EXCLUDED.access_token, expires_at = EXCLUDED.expires_at,
+            platform_user_id = EXCLUDED.platform_user_id, platform_username = EXCLUDED.platform_username, updated_at = NOW()
+    `;
+    res.redirect('/?oauth=instagram_connected');
+  } catch (err) {
+    console.error('Instagram OAuth callback error:', err.message);
+    res.redirect('/?oauth=instagram_failed');
+  }
+});
+
 // ─── Post Variations ──────────────────────────────────────────────────────────
 
 app.post('/api/generate-variations', requireAuth, async (req, res) => {
@@ -2722,6 +3075,481 @@ async function runMetricsAgent() {
   });
 }
 
+// ─── AUTO-GENERATION AGENT ───────────────────────────────────────────────────
+// Picks up pending ideas from idea_queue and runs the full 4-stage post pipeline.
+// Runs every 4 hours. Skips users with >10 unreviewed drafts to avoid queue flood.
+
+async function runAutoGenAgent() {
+  return runAgent('autogen', null, async () => {
+    const users = await sql`
+      SELECT s.user_id, s.id as session_id, s.personality_map, s.strategy,
+             s.brand_context, s.brand_type, s.style_fingerprint
+      FROM sessions s
+      WHERE s.user_id IS NOT NULL
+      ORDER BY s.created_at DESC
+    `;
+
+    const seen = new Set();
+    const uniqueUsers = [];
+    for (const u of users) {
+      if (!seen.has(u.user_id)) { seen.add(u.user_id); uniqueUsers.push(u); }
+    }
+
+    let totalGenerated = 0;
+
+    for (const u of uniqueUsers) {
+      try {
+        // Skip users who already have too many unreviewed drafts
+        const [draftCount] = await sql`
+          SELECT COUNT(*) as count FROM generated_posts
+          WHERE user_id = ${u.user_id} AND status = 'draft'
+        `;
+        if (parseInt(draftCount?.count || 0) >= 10) continue;
+
+        // Fetch up to 3 pending ideas (highest priority first)
+        const ideas = await sql`
+          SELECT * FROM idea_queue
+          WHERE user_id = ${u.user_id} AND status = 'pending'
+          ORDER BY priority DESC, created_at ASC
+          LIMIT 3
+        `;
+        if (!ideas.length) continue;
+
+        // Load learned rules for this user
+        const [rulesRow] = await sql`SELECT rules FROM prompt_rules WHERE user_id = ${u.user_id}`;
+        const learnedRules = rulesRow?.rules || null;
+
+        const strategy = u.strategy;
+        const pm = u.personality_map || {};
+
+        for (const idea of ideas) {
+          try {
+            // Mark as generating to prevent double-picks
+            await sql`UPDATE idea_queue SET status = 'generating', updated_at = NOW() WHERE id = ${idea.id}`;
+
+            const pillar = (strategy?.content_pillars || []).find(p => p.name === idea.pillar_name);
+            const platform = idea.platform || 'linkedin';
+
+            const { post, voiceScore, voiceNote } = await generatePost(
+              pm,
+              strategy,
+              platform,
+              pillar?.id || null,
+              'authentic',
+              idea.topic + (idea.hook ? `\nHook: ${idea.hook}` : '') + (idea.angle ? `\nAngle: ${idea.angle}` : ''),
+              {},
+              [],
+              u.brand_type || 'personal',
+              null,
+              null,
+              u.style_fingerprint || null,
+              u.brand_context || null,
+              learnedRules,
+            );
+
+            const postId = crypto.randomUUID();
+            await sql`
+              INSERT INTO generated_posts (id, session_id, user_id, platform, pillar_name, tone, content, voice_score, voice_note, status)
+              VALUES (${postId}, ${u.session_id}, ${u.user_id}, ${platform}, ${idea.pillar_name || null}, 'authentic', ${post}, ${voiceScore || null}, ${voiceNote || null}, 'draft')
+            `;
+            await sql`UPDATE idea_queue SET status = 'created', post_id = ${postId}, updated_at = NOW() WHERE id = ${idea.id}`;
+
+            // Enqueue review notification
+            await sql`
+              INSERT INTO notification_queue (id, user_id, type, payload)
+              VALUES (${crypto.randomUUID()}, ${u.user_id}, 'review_ready', ${JSON.stringify({ post_id: postId, platform })})
+            `;
+
+            totalGenerated++;
+            // Respect OpenAI rate limits
+            await new Promise(r => setTimeout(r, 2000));
+          } catch (err) {
+            console.error(`AutoGen failed for idea ${idea.id}:`, err.message);
+            await sql`UPDATE idea_queue SET status = 'pending', updated_at = NOW() WHERE id = ${idea.id}`;
+          }
+        }
+      } catch (err) {
+        console.error(`AutoGen agent failed for user ${u.user_id}:`, err.message);
+      }
+    }
+
+    return { action: `Generated ${totalGenerated} posts from idea queue` };
+  });
+}
+
+// ─── DECIDE AGENT ─────────────────────────────────────────────────────────────
+// Runs Monday 10:00 UTC (after Evolution on Sunday). Reads brain_diary + idea_queue,
+// boosts high-priority ideas, creates net-new ideas from winning patterns,
+// and archives stale low-priority ideas.
+
+async function runDecideAgent() {
+  return runAgent('decide', null, async () => {
+    const users = await sql`SELECT DISTINCT user_id FROM brain_diary WHERE user_id IS NOT NULL`;
+    let decisionsTotal = 0;
+
+    for (const { user_id } of users) {
+      try {
+        // Load last 30 days of brain diary
+        const diaryEntries = await sql`
+          SELECT type, pattern, insight, platform, pillar_name
+          FROM brain_diary
+          WHERE user_id = ${user_id} AND type IN ('win', 'loss', 'weekly_summary', 'rejection')
+          AND created_at > NOW() - INTERVAL '30 days'
+          ORDER BY created_at DESC LIMIT 40
+        `;
+        if (diaryEntries.length < 3) continue;
+
+        const pendingIdeas = await sql`
+          SELECT id, topic, pillar_name, priority, created_at
+          FROM idea_queue WHERE user_id = ${user_id} AND status = 'pending'
+        `;
+
+        const diaryText = diaryEntries.map(e => `[${e.type.toUpperCase()}] ${e.platform || 'all'} — ${e.pattern}: ${e.insight}`).join('\n');
+        const ideasText = pendingIdeas.map((i, idx) => `[${idx}] priority:${i.priority} pillar:${i.pillar_name || 'none'} — ${i.topic}`).join('\n');
+
+        const response = await openai.chat.completions.create({
+          model: MODEL,
+          response_format: { type: 'json_object' },
+          messages: [{
+            role: 'user',
+            content: `You are a content strategist making weekly decisions about what to create next.
+
+BRAIN DIARY (last 30 days of performance data):
+${diaryText}
+
+CURRENT PENDING IDEAS:
+${ideasText || 'None'}
+
+Based on the data, make strategic decisions:
+1. Which pending ideas match winning patterns and should be prioritized? (boost their priority to 9)
+2. What 2-3 net-new ideas should be created based on winning patterns that aren't covered yet?
+3. Are there any ideas that look like losing patterns and should be archived?
+
+Return JSON:
+{
+  "boost_indices": [0, 2],
+  "new_ideas": [
+    { "topic": "...", "hook": "...", "angle": "...", "pillar_name": "...", "platform": "linkedin" }
+  ],
+  "archive_indices": [1],
+  "summary": "one sentence on strategic direction this week"
+}`,
+          }],
+        });
+
+        const decisions = JSON.parse(response.choices[0].message.content);
+
+        // Boost matching ideas
+        for (const idx of (decisions.boost_indices || [])) {
+          const idea = pendingIdeas[idx];
+          if (idea) {
+            await sql`UPDATE idea_queue SET priority = 9, updated_at = NOW() WHERE id = ${idea.id}`;
+          }
+        }
+
+        // Archive low-value ideas
+        for (const idx of (decisions.archive_indices || [])) {
+          const idea = pendingIdeas[idx];
+          if (idea) {
+            await sql`UPDATE idea_queue SET status = 'archived', updated_at = NOW() WHERE id = ${idea.id}`;
+          }
+        }
+
+        // Load session for net-new ideas
+        const [session] = await sql`SELECT id FROM sessions WHERE user_id = ${user_id} ORDER BY created_at DESC LIMIT 1`;
+
+        // Create net-new ideas
+        for (const newIdea of (decisions.new_ideas || []).slice(0, 3)) {
+          const id = crypto.randomUUID();
+          await sql`
+            INSERT INTO idea_queue (id, user_id, session_id, topic, hook, angle, pillar_name, platform, source, priority)
+            VALUES (${id}, ${user_id}, ${session?.id || null}, ${newIdea.topic || ''}, ${newIdea.hook || null}, ${newIdea.angle || null}, ${newIdea.pillar_name || null}, ${newIdea.platform || 'linkedin'}, 'decide', 8)
+          `;
+        }
+
+        // Write brain_diary decision entry
+        await sql`
+          INSERT INTO brain_diary (id, user_id, type, pattern, insight)
+          VALUES (${crypto.randomUUID()}, ${user_id}, 'decide', 'Weekly strategy decision', ${decisions.summary || 'Strategy updated based on performance patterns'})
+        `;
+
+        decisionsTotal++;
+      } catch (err) {
+        console.error(`Decide agent failed for user ${user_id}:`, err.message);
+      }
+    }
+
+    return { action: `Made strategic decisions for ${decisionsTotal} users` };
+  });
+}
+
+// ─── INSTAGRAM METRICS AGENT ─────────────────────────────────────────────────
+// Mirror of the LinkedIn metrics agent but for Instagram profile posts.
+
+async function processInstagramMetricsResults(userId, sessionId, raw) {
+  const scraped = raw
+    .filter(p => (p.caption || p.text || '').length > 5)
+    .map(p => ({
+      platform: 'instagram',
+      text: p.caption ?? p.text ?? '',
+      url: p.url ?? p.permalink ?? '',
+      likes: p.likesCount ?? p.likes ?? 0,
+      comments: p.commentsCount ?? p.comments ?? 0,
+      saves: p.savesCount ?? p.saves ?? 0,
+      impressions: p.impressionsCount ?? p.impressions ?? Math.max((p.likesCount ?? 0) * 30, 1),
+    }));
+
+  if (!scraped.length) return 0;
+
+  const genPosts = await sql`
+    SELECT id, content FROM generated_posts
+    WHERE user_id = ${userId} AND platform = 'instagram' AND engagement_score IS NULL
+    ORDER BY created_at DESC LIMIT 40
+  `;
+  if (!genPosts.length) return scraped.length;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      response_format: { type: 'json_object' },
+      messages: [{
+        role: 'user',
+        content: `Match AI-generated draft posts to actual Instagram published posts.
+A match means the published post was clearly derived from the draft (same topic, angle, or similar language).
+
+GENERATED DRAFTS:
+${genPosts.map((p, i) => `[G${i}]\n${p.content.slice(0, 300)}`).join('\n\n---\n\n')}
+
+PUBLISHED POSTS:
+${scraped.map((p, i) => `[P${i}] likes:${p.likes} comments:${p.comments}\n${p.text.slice(0, 300)}`).join('\n\n---\n\n')}
+
+Return JSON: { "matches": [{ "generated_index": 0, "published_index": 1, "confidence": 0.9 }] }
+Only include pairs with confidence >= 0.75.`,
+      }],
+    });
+
+    const { matches } = JSON.parse(response.choices[0].message.content);
+    for (const m of (matches || [])) {
+      const gen = genPosts[m.generated_index];
+      const pub = scraped[m.published_index];
+      if (!gen || !pub) continue;
+
+      const impressions = pub.impressions || Math.max(pub.likes * 30, 1);
+      const engScore = Math.min(100, Math.round(
+        (pub.likes * 1 + pub.comments * 3 + pub.saves * 4) / impressions * 100,
+      ));
+
+      await sql`
+        UPDATE generated_posts
+        SET engagement_score = ${engScore}, platform_post_id = ${pub.url || null}
+        WHERE id = ${gen.id}
+      `;
+    }
+  } catch (err) {
+    console.error('Instagram metrics: AI matching failed:', err.message);
+  }
+
+  return scraped.length;
+}
+
+async function runInstagramMetricsAgent() {
+  return runAgent('instagram_metrics', null, async () => {
+    const users = await sql`
+      SELECT u.id as user_id, u.instagram_profile_url,
+        (SELECT id FROM sessions WHERE user_id = u.id ORDER BY created_at DESC LIMIT 1) as session_id
+      FROM users u
+      WHERE u.instagram_profile_url IS NOT NULL AND u.instagram_profile_url != ''
+    `;
+
+    let started = 0;
+    let imported = 0;
+
+    for (const u of users) {
+      try {
+        const runId = await apifyStartRun('apify/instagram-profile-scraper', {
+          usernames: [u.instagram_profile_url.replace('https://www.instagram.com/', '').replace('/', '')],
+          resultsLimit: 30,
+        });
+
+        // Poll once on next tick (metrics agent runs every 6h so we'll poll next run)
+        await sql`
+          INSERT INTO metrics_runs (user_id, run_id, run_status, linkedin_url)
+          VALUES (${u.user_id + '_ig'}, ${runId}, 'processing', ${u.instagram_profile_url})
+          ON CONFLICT (user_id) DO UPDATE
+            SET run_id = ${runId}, run_status = 'processing', updated_at = NOW()
+        `;
+        started++;
+      } catch (err) {
+        // Check if a previous run is done
+        try {
+          const [run] = await sql`SELECT * FROM metrics_runs WHERE user_id = ${u.user_id + '_ig'}`;
+          if (run?.run_status === 'processing' && run.run_id) {
+            const runData = await apifyCheckRun(run.run_id);
+            if (runData?.status === 'SUCCEEDED') {
+              const raw = await apifyFetchDataset(runData.defaultDatasetId);
+              const count = await processInstagramMetricsResults(u.user_id, u.session_id, Array.isArray(raw) ? raw : (raw.items || []));
+              await sql`UPDATE metrics_runs SET run_status = 'done', processed_at = NOW(), updated_at = NOW() WHERE user_id = ${u.user_id + '_ig'}`;
+              imported += count;
+            }
+          }
+        } catch (innerErr) {
+          console.error(`Instagram metrics failed for user ${u.user_id}:`, innerErr.message);
+        }
+      }
+    }
+
+    return { action: `Started ${started} Instagram profile scrapes, imported ${imported} posts with metrics` };
+  });
+}
+
+// ─── PUBLISH AGENT ────────────────────────────────────────────────────────────
+// Runs every 15 minutes. Posts approved content when scheduled_for <= NOW().
+
+const publishingUsers = new Set(); // idempotency guard
+
+async function publishToLinkedIn(accessToken, platformUserId, content) {
+  const res = await fetch('https://api.linkedin.com/v2/ugcPosts', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'X-Restli-Protocol-Version': '2.0.0',
+    },
+    body: JSON.stringify({
+      author: `urn:li:person:${platformUserId}`,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: { text: content },
+          shareMediaCategory: 'NONE',
+        },
+      },
+      visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' },
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`LinkedIn API error: ${JSON.stringify(data)}`);
+  // LinkedIn returns the post URN in X-RestLi-Id header or in the response body
+  return data.id || res.headers.get('x-restli-id') || null;
+}
+
+async function publishToInstagram(accessToken, platformUserId, content, imageUrl) {
+  if (!imageUrl) throw new Error('Instagram requires an image URL');
+
+  // Step 1: Create media container
+  const containerRes = await fetch(`https://graph.facebook.com/v20.0/${platformUserId}/media`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image_url: imageUrl, caption: content, access_token: accessToken }),
+  });
+  const container = await containerRes.json();
+  if (!container.id) throw new Error(`Instagram container error: ${JSON.stringify(container)}`);
+
+  // Step 2: Publish the container
+  const publishRes = await fetch(`https://graph.facebook.com/v20.0/${platformUserId}/media_publish`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ creation_id: container.id, access_token: accessToken }),
+  });
+  const published = await publishRes.json();
+  if (!published.id) throw new Error(`Instagram publish error: ${JSON.stringify(published)}`);
+  return published.id;
+}
+
+async function runPublishAgent() {
+  return runAgent('publish', null, async () => {
+    const due = await sql`
+      SELECT gp.id, gp.user_id, gp.platform, gp.content, gp.format
+      FROM generated_posts gp
+      WHERE gp.status = 'approved'
+        AND gp.scheduled_for IS NOT NULL
+        AND gp.scheduled_for <= NOW()
+      ORDER BY gp.scheduled_for ASC
+      LIMIT 20
+    `;
+
+    let published = 0;
+    let failed = 0;
+
+    for (const post of due) {
+      if (publishingUsers.has(post.user_id + ':' + post.platform)) continue;
+      publishingUsers.add(post.user_id + ':' + post.platform);
+
+      try {
+        const [token] = await sql`
+          SELECT access_token, platform_user_id, expires_at
+          FROM oauth_tokens
+          WHERE user_id = ${post.user_id} AND platform = ${post.platform}
+        `;
+
+        if (!token) {
+          await sql`
+            INSERT INTO publish_log (id, post_id, user_id, platform, status, error_msg)
+            VALUES (${crypto.randomUUID()}, ${post.id}, ${post.user_id}, ${post.platform}, 'failed', 'No OAuth token found')
+          `;
+          failed++;
+          continue;
+        }
+
+        if (token.expires_at && new Date(token.expires_at) < new Date()) {
+          await sql`
+            INSERT INTO publish_log (id, post_id, user_id, platform, status, error_msg)
+            VALUES (${crypto.randomUUID()}, ${post.id}, ${post.user_id}, ${post.platform}, 'failed', 'OAuth token expired — re-authenticate required')
+          `;
+          await sql`
+            INSERT INTO notification_queue (id, user_id, type, payload)
+            VALUES (${crypto.randomUUID()}, ${post.user_id}, 'auth_expired', ${JSON.stringify({ platform: post.platform })})
+          `;
+          failed++;
+          continue;
+        }
+
+        const plainToken = decryptToken(token.access_token);
+        let platformPostId = null;
+
+        if (post.platform === 'linkedin') {
+          platformPostId = await publishToLinkedIn(plainToken, token.platform_user_id, post.content);
+        } else if (post.platform === 'instagram') {
+          // Instagram requires a hosted image — skip text-only posts until image hosting is set up
+          throw new Error('Instagram publishing requires a hosted image URL. Set up image hosting (Cloudinary/Vercel Blob) first.');
+        } else {
+          throw new Error(`Unsupported platform: ${post.platform}`);
+        }
+
+        await sql`
+          UPDATE generated_posts
+          SET status = 'published', published_at = NOW(), platform_post_id = ${platformPostId}
+          WHERE id = ${post.id}
+        `;
+        await sql`
+          INSERT INTO publish_log (id, post_id, user_id, platform, status, platform_post_id)
+          VALUES (${crypto.randomUUID()}, ${post.id}, ${post.user_id}, ${post.platform}, 'success', ${platformPostId})
+        `;
+        await sql`
+          INSERT INTO notification_queue (id, user_id, type, payload)
+          VALUES (${crypto.randomUUID()}, ${post.user_id}, 'publish_success', ${JSON.stringify({ post_id: post.id, platform: post.platform })})
+        `;
+        published++;
+      } catch (err) {
+        console.error(`Publish agent failed for post ${post.id}:`, err.message);
+        await sql`
+          INSERT INTO publish_log (id, post_id, user_id, platform, status, error_msg)
+          VALUES (${crypto.randomUUID()}, ${post.id}, ${post.user_id}, ${post.platform}, 'failed', ${err.message})
+        `;
+        await sql`
+          INSERT INTO notification_queue (id, user_id, type, payload)
+          VALUES (${crypto.randomUUID()}, ${post.user_id}, 'publish_failed', ${JSON.stringify({ post_id: post.id, platform: post.platform, error: err.message })})
+        `;
+        failed++;
+      } finally {
+        publishingUsers.delete(post.user_id + ':' + post.platform);
+      }
+    }
+
+    return { action: `Published ${published} posts, ${failed} failed` };
+  });
+}
+
 // ─── AGENT API ROUTES ─────────────────────────────────────────────────────────
 
 app.get('/api/agents/status', requireAuth, async (req, res) => {
@@ -2736,16 +3564,81 @@ app.get('/api/agents/status', requireAuth, async (req, res) => {
 app.post('/api/agents/:name/run', requireAuth, async (req, res) => {
   const { name } = req.params;
   const agentMap = {
-    concept:   runConceptAgent,
-    scoring:   runScoringAgent,
-    feedback:  runFeedbackAgent,
-    metrics:   runMetricsAgent,
-    evolution: runEvolutionAgent,
+    concept:            runConceptAgent,
+    scoring:            runScoringAgent,
+    feedback:           runFeedbackAgent,
+    metrics:            runMetricsAgent,
+    evolution:          runEvolutionAgent,
+    autogen:            runAutoGenAgent,
+    decide:             runDecideAgent,
+    instagram_metrics:  runInstagramMetricsAgent,
+    publish:            runPublishAgent,
   };
   if (!agentMap[name]) return res.status(404).json({ error: 'Unknown agent' });
   try {
     res.json({ ok: true, message: `Agent ${name} started` });
     agentMap[name]().catch(err => console.error(`Manual agent run ${name} failed:`, err.message));
+  } catch (err) {
+    serverErr(res, err);
+  }
+});
+
+app.get('/api/agents/loop-stats', requireAuth, async (req, res) => {
+  try {
+    const [agentRows, inFlightRow, brainDiaryRows, postsRow] = await Promise.all([
+      sql`SELECT agent_name, status, run_count, started_at, created_at FROM agent_runs`,
+      sql`SELECT COUNT(*)::int AS count FROM idea_queue WHERE user_id=${req.user.id} AND status IN ('pending','generating')`,
+      sql`SELECT COUNT(*)::int AS count FROM brain_diary WHERE user_id=${req.user.id}`,
+      sql`SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE status='published')::int AS published FROM generated_posts WHERE user_id=${req.user.id}`,
+    ]);
+
+    const agentMap = {};
+    for (const r of agentRows) {
+      agentMap[r.agent_name] = r;
+    }
+
+    const KNOWN_AGENTS = ['concept','autogen','scoring','decide','metrics','evolution','feedback','publish'];
+    const errorCount = KNOWN_AGENTS.filter(n => agentMap[n]?.status === 'error').length;
+    const loopIntegrity = Math.round(((KNOWN_AGENTS.length - errorCount) / KNOWN_AGENTS.length) * 100);
+
+    const throughput = {};
+    for (const name of KNOWN_AGENTS) {
+      const r = agentMap[name];
+      if (!r) { throughput[name] = { total: 0, rate: 0 }; continue; }
+      const hoursRunning = r.created_at
+        ? Math.max(1, (Date.now() - new Date(r.created_at).getTime()) / 3600000)
+        : 24;
+      throughput[name] = {
+        total: r.run_count || 0,
+        rate: Math.round((r.run_count || 0) / hoursRunning * 10) / 10,
+        status: r.status || 'idle',
+        last_action: r.last_action || null,
+        started_at: r.started_at || null,
+      };
+    }
+
+    const decideAgent = agentMap['decide'];
+    const cyclesCompleted = decideAgent?.run_count || 0;
+
+    res.json({
+      loopIntegrity,
+      inFlight: inFlightRow[0]?.count || 0,
+      cyclesCompleted,
+      totalPosts: postsRow[0]?.total || 0,
+      publishedPosts: postsRow[0]?.published || 0,
+      brainEntries: brainDiaryRows[0]?.count || 0,
+      throughput,
+      nextRuns: {
+        concept:   '07:00 UTC daily',
+        autogen:   'every 4h',
+        scoring:   '09:00 UTC daily',
+        decide:    'Mon 10:00 UTC',
+        metrics:   'every 6h',
+        evolution: 'Sun 05:00 UTC',
+        feedback:  'Sun 06:00 UTC',
+        publish:   'every 15 min',
+      },
+    });
   } catch (err) {
     serverErr(res, err);
   }
@@ -2781,7 +3674,7 @@ app.post('/api/ideas', requireAuth, async (req, res) => {
   }
 });
 
-const VALID_IDEA_STATUSES = new Set(['pending','generating','created','scheduled','published','analyzed']);
+const VALID_IDEA_STATUSES = new Set(['pending','generating','created','scheduled','published','analyzed','archived','rejected']);
 
 app.get('/api/ideas/:id', requireAuth, async (req, res) => {
   try {
@@ -2958,7 +3851,12 @@ function startAgentScheduler() {
   cron.schedule('0 5 * * 0',   () => runEvolutionAgent().catch(e => console.error('Evolution agent cron failed:', e.message)));
   cron.schedule('0 6 * * 0',   () => runFeedbackAgent().catch(e => console.error('Feedback agent cron failed:', e.message)));
   cron.schedule('0 */6 * * *', () => runMetricsAgent().catch(e => console.error('Metrics agent cron failed:', e.message)));
-  console.log('Agent scheduler started (concept 07:00, scoring 09:00, evolution Sunday 05:00, feedback Sunday 06:00, metrics every 6h)');
+  // Autonomous loop additions
+  cron.schedule('0 */4 * * *', () => runAutoGenAgent().catch(e => console.error('AutoGen agent cron failed:', e.message)));
+  cron.schedule('0 10 * * 1',  () => runDecideAgent().catch(e => console.error('Decide agent cron failed:', e.message)));
+  cron.schedule('0 3 */6 * *', () => runInstagramMetricsAgent().catch(e => console.error('Instagram metrics cron failed:', e.message)));
+  cron.schedule('*/15 * * * *', () => runPublishAgent().catch(e => console.error('Publish agent cron failed:', e.message)));
+  console.log('Agent scheduler started (concept 07:00, scoring 09:00, evolution Sun 05:00, feedback Sun 06:00, metrics every 6h, autogen every 4h, decide Mon 10:00, instagram_metrics every 6h offset, publish every 15min)');
 }
 
 module.exports = app;
