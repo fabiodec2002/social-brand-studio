@@ -173,6 +173,11 @@
       position:relative; transition:all 0.3s;
     }
     .mv-char-active { animation:orbPulse 1.5s ease-in-out infinite; }
+    /* SVG character hover */
+    .mv-char-hover { transition:stroke 0.2s,r 0.2s; }
+    g[onclick]:hover .mv-char-hover { stroke:rgba(255,255,255,0.25) !important; r:24; }
+    g[onclick] { transition:filter 0.15s; }
+    g[onclick]:hover { filter:brightness(1.25); }
     /* Status badge */
     .mv-status-dot { display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle; }
     /* Info strip */
@@ -6936,6 +6941,7 @@
   }
 
   function renderMetaverse(agents) {
+    window._mvAgents = agents;
     const agentMap = {};
     for (const a of agents) agentMap[a.agent_name] = a;
     const container = document.getElementById('mv-office-container');
@@ -7125,55 +7131,184 @@
       el.setAttribute('fill', '#0e0e1e'); el.setAttribute('stroke', col+'44'); el.setAttribute('stroke-width','1.2');
       svg.appendChild(el);
 
-      // ── Character orb ──────────────────────────────────────────────────
-      const charP = sc(CX, CY, 0.56);
-      const CR = 16;
+      // ── Character person sprite ────────────────────────────────────────
+      const charP = sc(CX, CY - 0.6, DH + 1.1);
+      const PHASE_AGENTS = ['concept','autogen','publish','metrics','scoring','decide','evolution','feedback'];
+      const phaseIdx  = PHASE_AGENTS.indexOf(agentKey);
+      const phaseDelay = (phaseIdx * 0.38).toFixed(2) + 's';
+      const bobDur = running ? '0.65s' : '2.8s';
+      const bobAmt = running ? 8 : 4;
 
-      if (running) {
-        const glowEl = mkC(charP.x, charP.y, CR+10, col+'18', col+'33', 1);
-        glowEl.setAttribute('filter','url(#mv-glow)');
-        svg.appendChild(glowEl);
-
-        // Animated pulse ring
-        const ring = mkC(charP.x, charP.y, CR+4, 'none', col+'77', 1.2);
-        const anim = document.createElementNS(NS, 'animate');
-        anim.setAttribute('attributeName','r'); anim.setAttribute('values',`${CR+2};${CR+8};${CR+2}`);
-        anim.setAttribute('dur','2s'); anim.setAttribute('repeatCount','indefinite');
-        ring.appendChild(anim);
-        const animO = document.createElementNS(NS, 'animate');
-        animO.setAttribute('attributeName','stroke-opacity'); animO.setAttribute('values','0.8;0.1;0.8');
-        animO.setAttribute('dur','2s'); animO.setAttribute('repeatCount','indefinite');
-        ring.appendChild(animO);
-        svg.appendChild(ring);
-      }
-
-      // Shadow under char
+      // Shadow (stays on floor, no bob)
       const shEl = document.createElementNS(NS, 'ellipse');
-      shEl.setAttribute('cx', charP.x.toFixed(1)); shEl.setAttribute('cy', (charP.y+CR*0.7).toFixed(1));
-      shEl.setAttribute('rx', CR.toFixed(1)); shEl.setAttribute('ry', (CR*0.35).toFixed(1));
-      shEl.setAttribute('fill','rgba(0,0,0,0.35)');
+      shEl.setAttribute('cx', charP.x.toFixed(1)); shEl.setAttribute('cy', (charP.y + 50).toFixed(1));
+      shEl.setAttribute('rx','16'); shEl.setAttribute('ry','5');
+      shEl.setAttribute('fill','rgba(0,0,0,0.5)');
       svg.appendChild(shEl);
 
-      // Main orb
-      const orb = mkC(charP.x, charP.y, CR, `url(#mvg-${agentKey})`, running ? col : col+'88', running ? 2 : 1.5);
-      if (err) orb.setAttribute('filter','grayscale(0.7)');
-      svg.appendChild(orb);
+      // Outer group: static screen position + click
+      const charG = document.createElementNS(NS,'g');
+      charG.setAttribute('transform', `translate(${charP.x.toFixed(1)},${charP.y.toFixed(1)})`);
+      charG.style.cssText = 'cursor:pointer';
+      charG.setAttribute('onclick', `showAgentOfficeDetail('${agentKey}')`);
 
-      // Initials text
-      svg.appendChild(mkT(charP.x, charP.y + 4.5, meta.label.slice(0,2).toUpperCase(), '9', running ? '#fff' : col, 'middle', { w:'700' }));
+      // Inner group: animated bob
+      const innerG = document.createElementNS(NS,'g');
+      const bobT = document.createElementNS(NS,'animateTransform');
+      bobT.setAttribute('attributeName','transform'); bobT.setAttribute('type','translate');
+      bobT.setAttribute('additive','sum');
+      bobT.setAttribute('values',`0,0; 0,-${bobAmt}; 0,0`);
+      bobT.setAttribute('dur', bobDur); bobT.setAttribute('repeatCount','indefinite');
+      bobT.setAttribute('begin', phaseDelay); bobT.setAttribute('calcMode','spline');
+      bobT.setAttribute('keySplines','0.45 0 0.55 1; 0.45 0 0.55 1');
+      innerG.appendChild(bobT);
 
-      // Status dot (top right)
+      // ── Helper ─────────────────────────────────────────────────────────
+      const mkRect = (x, y, w, h, rx, fill, str, sw) => {
+        const r = document.createElementNS(NS,'rect');
+        r.setAttribute('x',x); r.setAttribute('y',y);
+        r.setAttribute('width',w); r.setAttribute('height',h);
+        r.setAttribute('rx',rx); r.setAttribute('fill',fill);
+        if (str) { r.setAttribute('stroke',str); r.setAttribute('stroke-width', sw||'1'); }
+        return r;
+      };
+
+      // ── Legs ──────────────────────────────────────────────────────────
+      const skinTone = '#e8c9a0';
+      const legFill  = err ? '#2a1010' : '#1c1c3a';
+      const legL = mkRect(-11, 28, 10, 22, 5, legFill);
+      const legR = mkRect(  1, 28, 10, 22, 5, legFill);
+      if (running) {
+        const mkLegAnim = (fwd) => {
+          const a = document.createElementNS(NS,'animateTransform');
+          a.setAttribute('attributeName','transform'); a.setAttribute('type','rotate');
+          a.setAttribute('values', fwd ? '0,5,28; 28,5,28; 0,5,28' : '0,5,28; -28,5,28; 0,5,28');
+          a.setAttribute('dur','0.65s'); a.setAttribute('repeatCount','indefinite');
+          if (!fwd) a.setAttribute('begin','0.325s');
+          return a;
+        };
+        legL.appendChild(mkLegAnim(true)); legR.appendChild(mkLegAnim(false));
+      }
+      innerG.appendChild(legL); innerG.appendChild(legR);
+
+      // ── Body (torso) ─────────────────────────────────────────────────
+      const torsoFill = err ? '#2a1010' : col + (running ? 'ff' : 'dd');
+      innerG.appendChild(mkRect(-13, 2, 26, 28, 7, torsoFill, running ? col : col+'55', running ? '1.5' : '1'));
+
+      // ── Shirt detail stripe ───────────────────────────────────────────
+      if (!err) {
+        innerG.appendChild(mkRect(-4, 2, 8, 28, 0, running ? '#ffffff18' : '#ffffff10'));
+      }
+
+      // ── Arms ──────────────────────────────────────────────────────────
+      const armFill = err ? '#2a1010' : col + (running ? 'ff' : 'cc');
+      const armL = mkRect(-22, 4, 10, 20, 5, armFill, running ? col+'aa' : 'none');
+      const armR = mkRect( 12, 4, 10, 20, 5, armFill, running ? col+'aa' : 'none');
+      // Hands
+      const handL = mkC(-17, 25, 5, skinTone, 'none');
+      const handR = mkC( 17, 25, 5, skinTone, 'none');
+      if (running) {
+        const mkArmAnim = (pivX, fwd) => {
+          const a = document.createElementNS(NS,'animateTransform');
+          a.setAttribute('attributeName','transform'); a.setAttribute('type','rotate');
+          a.setAttribute('values', fwd ? `0,${pivX},10; 35,${pivX},10; 0,${pivX},10` : `0,${pivX},10; -35,${pivX},10; 0,${pivX},10`);
+          a.setAttribute('dur','0.65s'); a.setAttribute('repeatCount','indefinite');
+          if (!fwd) a.setAttribute('begin','0.325s');
+          return a;
+        };
+        armL.appendChild(mkArmAnim(-17, false));
+        armR.appendChild(mkArmAnim(17, true));
+        handL.appendChild(mkArmAnim(-17, false));
+        handR.appendChild(mkArmAnim(17, true));
+      }
+      innerG.appendChild(armL); innerG.appendChild(armR);
+      innerG.appendChild(handL); innerG.appendChild(handR);
+
+      // ── Neck ──────────────────────────────────────────────────────────
+      innerG.appendChild(mkRect(-5, -4, 10, 8, 3, skinTone));
+
+      // ── Head ──────────────────────────────────────────────────────────
+      const headFill = skinTone;
+      const headCirc = mkC(0, -18, 16, headFill, err ? '#f87171' : col+'44', '1');
+      innerG.appendChild(headCirc);
+
+      // Hair cap (agent color, top half of head)
+      const hairCap = document.createElementNS(NS,'path');
+      hairCap.setAttribute('d', 'M-16,-18 A16,16 0 0,1 16,-18 L16,-22 Q0,-36 -16,-22 Z');
+      hairCap.setAttribute('fill', err ? '#550000' : col + (running ? 'ff' : 'ee'));
+      innerG.appendChild(hairCap);
+
+      // Eyes
+      if (!err) {
+        innerG.appendChild(mkC(-6,-20, 3,'#fff'));
+        innerG.appendChild(mkC( 6,-20, 3,'#fff'));
+        innerG.appendChild(mkC(-5.5,-19.5, 1.5,'#1a1a2a'));
+        innerG.appendChild(mkC( 6.5,-19.5, 1.5,'#1a1a2a'));
+        innerG.appendChild(mkC(-4.8,-20.2, 0.7,'#fff'));
+        innerG.appendChild(mkC( 7.2,-20.2, 0.7,'#fff'));
+        const mouth = document.createElementNS(NS,'path');
+        mouth.setAttribute('d', running ? 'M-5,-12 Q0,-8 5,-12' : 'M-4,-13 Q0,-11 4,-13');
+        mouth.setAttribute('stroke', running ? '#c0392b' : '#88776655');
+        mouth.setAttribute('stroke-width','1.8'); mouth.setAttribute('fill','none');
+        mouth.setAttribute('stroke-linecap','round');
+        innerG.appendChild(mouth);
+        // Rosy cheeks when running
+        if (running) {
+          innerG.appendChild(mkC(-11,-16, 4, '#e0406040'));
+          innerG.appendChild(mkC( 11,-16, 4, '#e0406040'));
+        }
+      } else {
+        // Error: X eyes
+        [[-6,-20],[6,-20]].forEach(([cx,cy]) => {
+          const p = document.createElementNS(NS,'path');
+          p.setAttribute('d',`M${cx-3},${cy-3} L${cx+3},${cy+3} M${cx+3},${cy-3} L${cx-3},${cy+3}`);
+          p.setAttribute('stroke','#f87171'); p.setAttribute('stroke-width','2');
+          p.setAttribute('stroke-linecap','round');
+          innerG.appendChild(p);
+        });
+      }
+
+      // ── Status badge (shoulder chip) ───────────────────────────────────
       const dotC = running ? '#10B981' : err ? '#f87171' : done ? '#6366f1' : '#2a2a44';
-      const dotEl = mkC(charP.x + CR*0.72, charP.y - CR*0.72, 4.5, dotC, '#07071a', 1.5);
-      svg.appendChild(dotEl);
+      innerG.appendChild(mkC(15, 4, 6, dotC, '#07071a', '1.5'));
+      if (running) {
+        const pulse = mkC(15, 4, 6, 'none', '#10B981', 1.5);
+        const pa  = document.createElementNS(NS,'animate');
+        pa.setAttribute('attributeName','r'); pa.setAttribute('values','6;12;6');
+        pa.setAttribute('dur','1.2s'); pa.setAttribute('repeatCount','indefinite');
+        const pa2 = document.createElementNS(NS,'animate');
+        pa2.setAttribute('attributeName','stroke-opacity'); pa2.setAttribute('values','0.9;0;0.9');
+        pa2.setAttribute('dur','1.2s'); pa2.setAttribute('repeatCount','indefinite');
+        pulse.appendChild(pa); pulse.appendChild(pa2);
+        innerG.appendChild(pulse);
+      }
 
-      // Agent name tag
-      const nameP = sc(CX, CY + 1.05, 0);
-      svg.appendChild(mkT(nameP.x, nameP.y + 4, meta.label, 11, running ? col : 'rgba(255,255,255,0.82)', 'middle', { w: running ? '700' : '400' }));
-      svg.appendChild(mkT(nameP.x, nameP.y + 16, (a.run_count || 0) + ' runs', 8, 'rgba(255,255,255,0.28)', 'middle'));
+      // Activity indicator above head when running (floating dots)
+      if (running) {
+        [0,1,2].forEach(i => {
+          const dot = mkC(i*8-8, -42, 3, col, 'none');
+          const da = document.createElementNS(NS,'animate');
+          da.setAttribute('attributeName','cy'); da.setAttribute('values','-42;-50;-42');
+          da.setAttribute('dur','1s'); da.setAttribute('repeatCount','indefinite');
+          da.setAttribute('begin', (i*0.33).toFixed(2)+'s');
+          const da2 = document.createElementNS(NS,'animate');
+          da2.setAttribute('attributeName','opacity'); da2.setAttribute('values','1;0.3;1');
+          da2.setAttribute('dur','1s'); da2.setAttribute('repeatCount','indefinite');
+          da2.setAttribute('begin', (i*0.33).toFixed(2)+'s');
+          dot.appendChild(da); dot.appendChild(da2);
+          innerG.appendChild(dot);
+        });
+      }
+
+      charG.appendChild(innerG);
+      svg.appendChild(charG);
+
+      // Name tag (static, below)
+      const nameP = sc(CX, CY + 1.2, 0);
+      svg.appendChild(mkT(nameP.x, nameP.y + 4, meta.label, 11, running ? col : 'rgba(255,255,255,0.85)', 'middle', { w: running ? '700' : '400' }));
+      svg.appendChild(mkT(nameP.x, nameP.y + 16, (a.run_count || 0) + ' runs', 8, 'rgba(255,255,255,0.25)', 'middle'));
       if (running && a.last_action) {
-        const laP = sc(CX, CY + 1.55, 0);
-        svg.appendChild(mkT(laP.x, laP.y, a.last_action.slice(0, 28)+'…', 7.5, col+'cc', 'middle', { op:'0.85' }));
+        svg.appendChild(mkT(nameP.x, nameP.y + 28, a.last_action.slice(0,30)+'…', 7, col+'bb', 'middle'));
       }
     }
 
@@ -7221,6 +7356,81 @@
           }).join('<br>')}</div>`
         : '<div style="opacity:0.35;font-size:0.72rem">All agents on standby. Loop runs on schedule.</div>';
     }
+  }
+
+  function showAgentOfficeDetail(agentKey) {
+    const meta = AGENT_META[agentKey];
+    if (!meta) return;
+    const col  = AGENT_CFG[agentKey]?.color || '#8B5CF6';
+    const a    = (window._mvAgents || []).find(x => x.agent_name === agentKey) || {};
+    const status  = a.status || 'idle';
+    const running = status === 'running';
+    const err     = status === 'error';
+    const dotC    = running ? '#10B981' : err ? '#f87171' : status === 'done' ? '#6366f1' : '#44445a';
+    const dotLbl  = running ? 'RUNNING' : err ? 'ERROR' : status === 'done' ? 'DONE' : 'IDLE';
+
+    let panel = document.getElementById('mv-detail-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'mv-detail-panel';
+      panel.style.cssText = `position:absolute;top:16px;right:16px;width:280px;background:#0d0d1f;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;z-index:10;font-family:'Outfit',sans-serif;box-shadow:0 8px 40px rgba(0,0,0,0.7);transition:opacity 0.2s`;
+      panel.onclick = e => e.stopPropagation();
+      document.getElementById('mv-office-container').appendChild(panel);
+    }
+    panel.style.borderColor = col + '44';
+    panel.style.opacity = '1';
+
+    panel.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 30%,${col}99,${col}33);border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;color:${col};font-weight:700">${meta.label.slice(0,2).toUpperCase()}</div>
+          <div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:#fff">${meta.label}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:${col};letter-spacing:0.1em">${meta.role.toUpperCase()}</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('mv-detail-panel').style.opacity='0';setTimeout(()=>document.getElementById('mv-detail-panel')?.remove(),200)" style="background:none;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:0.8rem">✕</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dotC};display:inline-block;${running?`box-shadow:0 0 6px ${dotC};`:''};flex-shrink:0"></span>
+        <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:${dotC};letter-spacing:0.08em">${dotLbl}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.25);margin-left:auto">${a.run_count||0} runs total</span>
+      </div>
+
+      <div style="font-size:0.82rem;color:rgba(255,255,255,0.7);line-height:1.55;margin-bottom:14px">${meta.does}</div>
+
+      <div style="background:${col}0d;border:1px solid ${col}22;border-radius:8px;padding:10px;margin-bottom:10px">
+        <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:${col};letter-spacing:0.1em;margin-bottom:4px">IMPACT</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6)">${meta.impact}</div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:${a.last_action?'10px':'0'}">
+        <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px">
+          <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.3);margin-bottom:3px">INPUT</div>
+          <div style="font-size:0.73rem;color:rgba(255,255,255,0.65)">${meta.input}</div>
+        </div>
+        <div style="display:flex;align-items:center;color:rgba(255,255,255,0.2);font-size:0.9rem">→</div>
+        <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px">
+          <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.3);margin-bottom:3px">OUTPUT</div>
+          <div style="font-size:0.73rem;color:rgba(255,255,255,0.65)">${meta.output}</div>
+        </div>
+      </div>
+
+      ${a.last_action ? `<div style="background:rgba(255,255,255,0.03);border-radius:8px;padding:8px;font-family:'DM Mono',monospace;font-size:0.62rem;color:${col}aa;border:1px solid rgba(255,255,255,0.05)">↳ ${_escHtml(a.last_action)}</div>` : ''}
+    `;
+
+    // click-outside to close
+    setTimeout(() => {
+      const closer = (e) => {
+        if (!panel.contains(e.target)) {
+          panel.style.opacity = '0';
+          setTimeout(() => panel?.remove(), 200);
+          document.removeEventListener('click', closer);
+        }
+      };
+      document.addEventListener('click', closer);
+    }, 50);
   }
 
   // ─── REVIEW QUEUE ────────────────────────────────────────────────────────────
