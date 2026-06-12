@@ -3711,13 +3711,15 @@
         <!-- Topology map -->
         <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:1.5rem;margin-bottom:2rem;overflow:hidden;position:relative">
           <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);letter-spacing:0.1em;margin-bottom:0.5rem">AGENT TOPOLOGY — LIVE NETWORK</div>
-          <svg id="topology-svg" viewBox="0 0 700 280" style="width:100%;height:280px;overflow:visible">
+          <svg id="topology-svg" viewBox="0 0 700 310" style="width:100%;height:310px;overflow:visible">
             <defs>
               <radialGradient id="orb-violet" cx="40%" cy="35%"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#7c3aed"/></radialGradient>
               <radialGradient id="orb-green" cx="40%" cy="35%"><stop offset="0%" stop-color="#6ee7b7"/><stop offset="100%" stop-color="#059669"/></radialGradient>
               <radialGradient id="orb-orange" cx="40%" cy="35%"><stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#d97706"/></radialGradient>
               <radialGradient id="orb-blue" cx="40%" cy="35%"><stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#2563eb"/></radialGradient>
               <radialGradient id="orb-magenta" cx="40%" cy="35%"><stop offset="0%" stop-color="#f9a8d4"/><stop offset="100%" stop-color="#db2777"/></radialGradient>
+              <radialGradient id="orb-teal" cx="40%" cy="35%"><stop offset="0%" stop-color="#5eead4"/><stop offset="100%" stop-color="#0d9488"/></radialGradient>
+              <radialGradient id="orb-red" cx="40%" cy="35%"><stop offset="0%" stop-color="#fca5a5"/><stop offset="100%" stop-color="#dc2626"/></radialGradient>
               <filter id="node-glow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             </defs>
             <!-- Paths, nodes, labels and particles drawn by JS -->
@@ -6365,41 +6367,39 @@
   // ─── AGENT CONFIGURATION ────────────────────────────────────────────────────
 
   const AGENT_CFG = {
-    concept:   { label: 'Atlas',     role: 'IDEA GENERATOR',   color: '#8B5CF6', grad: 'orb-violet', prompt: 'Reads brand strategy, viral trends, and brain diary wins → generates 7 specific post ideas per content pillar daily. Deduplicates against last 7 days.' },
-    scoring:   { label: 'Spark',     role: 'ANALYST',          color: '#10B981', grad: 'orb-green',  prompt: 'Pulls post analytics, splits into top/bottom 20% performers → calls GPT-4o to extract win/loss patterns → writes to brain diary.' },
-    feedback:  { label: 'Echo',      role: 'SYNTHESIZER',      color: '#F59E0B', grad: 'orb-orange', prompt: 'Every Sunday synthesizes the week\'s wins and losses into a coaching narrative → writes weekly_summary to brain diary.' },
-    metrics:   { label: 'Pulse',     role: 'METRICS AGENT',    color: '#3B82F6', grad: 'orb-blue',   prompt: 'Pulls live engagement data from LinkedIn API every 6h → updates engagement_score on published posts → feeds scoring agent.' },
-    publishing:{ label: 'Mira',      role: 'CONTENT BUILDER',  color: '#EC4899', grad: 'orb-magenta',prompt: 'Runs hourly → finds scheduled posts where publish time ≤ now → calls LinkedIn API → marks published → notifies metrics agent.' },
-    autogen:   { label: 'Mira',      role: 'CONTENT BUILDER',  color: '#3B82F6', grad: 'orb-blue',   prompt: 'Picks pending ideas from queue → runs 4-stage generation pipeline → stores drafts for review. Caps at 10 unreviewed drafts.' },
-    decide:    { label: 'Oracle',    role: 'STRATEGIST',       color: '#EC4899', grad: 'orb-magenta', prompt: 'Every Monday: reads 30 days of brain diary → boosts winning ideas to priority 9 → archives ideas matching loss patterns.' },
-    evolution: { label: 'Echo',      role: 'SYNTHESIZER',      color: '#A855F7', grad: 'orb-violet',  prompt: 'Every Sunday: distils 60 days of wins/losses into 3–5 learned prompt rules → injected into every future post generation.' },
-    publish:   { label: 'Nova',      role: 'PUBLISHER',        color: '#10B981', grad: 'orb-green',   prompt: 'Every 15 minutes: finds approved posts where scheduled_for ≤ now → posts to LinkedIn/Instagram → marks as published.' },
-    instagram_metrics: { label: 'Glow', role: 'IG METRICS',   color: '#EC4899', grad: 'orb-magenta', prompt: 'Instagram metrics equivalent: scrapes IG profiles, matches posts, scores engagement.' },
+    concept:   { label: 'Atlas',  role: 'IDEA GENERATOR',  color: '#8B5CF6', grad: 'orb-violet',  prompt: 'Reads brand strategy, viral trends, and brain diary wins → generates 7 specific post ideas per content pillar daily. Deduplicates against last 7 days.' },
+    autogen:   { label: 'Mira',   role: 'CONTENT BUILDER', color: '#EC4899', grad: 'orb-magenta', prompt: 'Picks pending ideas from queue → runs 4-stage pipeline (draft → critique → fact-check → voice score) → stores drafts for review. Capped at 10 unreviewed.' },
+    publish:   { label: 'Nova',   role: 'PUBLISHER',       color: '#10B981', grad: 'orb-green',   prompt: 'Runs every 15 min → finds approved posts where scheduled_for ≤ now → posts to LinkedIn and Instagram → marks as published → notifies Pulse.' },
+    metrics:   { label: 'Pulse',  role: 'METRICS AGENT',   color: '#3B82F6', grad: 'orb-blue',    prompt: 'Scrapes LinkedIn and Instagram profiles every 6h via Apify → AI-matches published posts to drafts → calculates engagement scores.' },
+    scoring:   { label: 'Spark',  role: 'ANALYST',         color: '#F59E0B', grad: 'orb-orange',  prompt: 'Splits posts into top/bottom 20% by engagement → calls GPT-4o to extract 2–3 win patterns and 2–3 loss patterns with post evidence → writes to Brain Diary.' },
+    evolution: { label: 'Echo',   role: 'SYNTHESIZER',     color: '#0d9488', grad: 'orb-teal',    prompt: 'Every Sunday distils 60 days of wins and losses into 3–5 learned prompt rules. These rules are injected into every future post generation — compounding improvement.' },
+    decide:    { label: 'Oracle', role: 'STRATEGIST',      color: '#EF4444', grad: 'orb-red',     prompt: 'Every Monday reads 30 days of Brain Diary → boosts ideas matching win patterns to priority 9 → archives ideas matching loss patterns → directs next cycle.' },
   };
 
   const AGENT_META = {
-    concept:   { label:'Atlas',  role:'Idea Generator',  does:'Reads brand context, prior wins and viral trends. Generates 7 fresh ideas each day — tagged with hook, angle, emotion and KPI target.',        impact:'Sets the ceiling for the entire cycle. Better ideas = better everything downstream.', input:'Brain Diary + Strategy', output:'Idea Queue',   agentKey:'concept'  },
-    autogen:   { label:'Mira',   role:'Content Builder', does:'Turns pending ideas into full posts via the 4-stage AI pipeline: draft → critique → fact-check → voice score. Capped at 10 drafts per user.', impact:'Bottleneck-aware — skips if review queue is full.',                                    input:'Idea + Brand DNA',       output:'Draft Posts',  agentKey:'autogen'  },
-    publish:   { label:'Nova',   role:'Publisher',       does:'Runs every 15 minutes. Finds approved posts where scheduled_for ≤ now → publishes to LinkedIn or Instagram → marks published.',                 impact:'Zero-touch publishing. Auto-notifies when live.',                                          input:'Approved Post',          output:'Live Post',    agentKey:'publish'  },
-    metrics:   { label:'Pulse',  role:'Metrics Agent',   does:'Scrapes LinkedIn and Instagram profiles via Apify every 6h. AI-matches published posts to drafts and calculates engagement scores.',             impact:'Closes the feedback loop with real performance data.',                                     input:'Profile URL',            output:'Eng. Scores',  agentKey:'metrics'  },
-    scoring:   { label:'Spark',  role:'Analyst',         does:'Compares top 20% vs bottom 20% posts by engagement. Extracts 2–3 win patterns and 2–3 loss patterns with post evidence.',                      impact:'Feeds the Evolution loop. Every pattern shapes the next batch of ideas.',                  input:'Post Library',           output:'Brain Diary',  agentKey:'scoring'  },
-    winloss:   { label:'Brain',  role:'Pattern Store',   does:'Stores every win, loss, weekly summary and strategic decision as a diary entry. The institutional memory of your brand.',                       impact:'All agents read from here. More data = smarter decisions.',                               input:'Patterns + Feedback',    output:'Win/Loss Log', agentKey:'scoring'  },
-    decide:    { label:'Oracle', role:'Strategist',      does:'Reviews 30 days of brain diary entries every Monday. Boosts ideas matching win patterns to priority 9, archives ideas matching losses.',         impact:'Directs the next cycle focus. Cuts waste, amplifies signal.',                              input:'Brain Diary',            output:'Boosted Queue',agentKey:'decide'   },
-    evolution: { label:'Echo',   role:'Synthesizer',     does:'Every Sunday distils 60 days of wins and losses into 3–5 learned prompt rules. These rules are injected into every future post generation.',    impact:'Makes the AI smarter each week — compounding improvement.',                               input:'Brain Diary (60 days)',  output:'Prompt Rules', agentKey:'evolution' },
-    feedback:  { label:'Debrief',role:'Coach',           does:'Every Sunday synthesises the week\'s wins and losses into a coaching narrative so you understand what\'s working and why.',                           impact:'Closes the human-in-the-loop. You learn what the AI learned.',                            input:'Brain Diary',            output:'Weekly Summary',agentKey:'feedback' },
+    concept:   { label:'Atlas',  role:'Idea Generator',  does:'Reads brand context, prior wins and viral trends. Generates 7 fresh ideas each day — tagged with hook, angle, emotion and KPI target.',                    impact:'Sets the ceiling for the entire cycle. Better ideas = better everything downstream.',      input:'Brain Diary + Strategy', output:'Idea Queue',    agentKey:'concept'   },
+    autogen:   { label:'Mira',   role:'Content Builder', does:'Turns pending ideas into full posts via the 4-stage AI pipeline: draft → critique → fact-check → voice score. Capped at 10 unreviewed drafts per user.',   impact:'Bottleneck-aware — skips if review queue is full.',                                       input:'Idea + Brand DNA',       output:'Draft Posts',   agentKey:'autogen'   },
+    publish:   { label:'Nova',   role:'Publisher',       does:'Runs every 15 minutes. Finds approved posts where scheduled_for ≤ now → publishes to LinkedIn or Instagram → marks published → notifies Pulse.',            impact:'Zero-touch publishing. Closes the gap from approved draft to live content.',              input:'Approved Post',          output:'Live Post',     agentKey:'publish'   },
+    metrics:   { label:'Pulse',  role:'Metrics Agent',   does:'Scrapes LinkedIn and Instagram profiles via Apify every 6h. AI-matches published posts to drafts and calculates engagement scores.',                         impact:'Closes the feedback loop with real performance data from every platform.',               input:'Profile URL',            output:'Eng. Scores',   agentKey:'metrics'   },
+    scoring:   { label:'Spark',  role:'Analyst',         does:'Compares top 20% vs bottom 20% posts by engagement. Extracts 2–3 win patterns and 2–3 loss patterns with supporting post evidence.',                        impact:'Feeds the Evolution loop. Every extracted pattern shapes the next idea batch.',           input:'Post Library',           output:'Brain Diary',   agentKey:'scoring'   },
+    evolution: { label:'Echo',   role:'Synthesizer',     does:'Every Sunday distils 60 days of wins and losses into 3–5 learned prompt rules. These rules are permanently injected into every future post generation.',    impact:'Makes the AI measurably smarter each week — compounding improvement.',                   input:'Brain Diary (60 days)',  output:'Prompt Rules',  agentKey:'evolution' },
+    decide:    { label:'Oracle', role:'Strategist',      does:'Every Monday reviews 30 days of Brain Diary entries. Boosts ideas matching win patterns to priority 9, archives ideas that echo loss patterns.',             impact:'Directs the next cycle focus. Cuts waste before Mira touches the queue.',                input:'Brain Diary (30 days)',  output:'Boosted Queue', agentKey:'decide'    },
   };
 
+  // 7 agents in a ring, center (350,150), radius 110
   const TOPO_POSITIONS = {
-    concept:   { x: 350, y: 60 },
-    scoring:   { x: 560, y: 160 },
-    feedback:  { x: 430, y: 220 },
-    metrics:   { x: 200, y: 180 },
-    publishing:{ x: 140, y: 80 },
+    concept:   { x: 350, y: 40  },
+    autogen:   { x: 440, y: 79  },
+    publish:   { x: 461, y: 169 },
+    metrics:   { x: 397, y: 245 },
+    scoring:   { x: 303, y: 245 },
+    evolution: { x: 239, y: 169 },
+    decide:    { x: 260, y: 79  },
   };
 
   const TOPO_EDGES = [
-    ['concept','publishing'], ['concept','scoring'], ['publishing','metrics'],
-    ['metrics','scoring'], ['scoring','feedback'], ['feedback','concept'],
+    ['concept','autogen'], ['autogen','publish'], ['publish','metrics'],
+    ['metrics','scoring'], ['scoring','evolution'], ['evolution','decide'], ['decide','concept'],
   ];
 
   let agentPollInterval = null;
@@ -6426,32 +6426,46 @@
   // ─── THE TEAM VIEW ───────────────────────────────────────────────────────────
 
   async function loadAgentStatus() {
-    try {
-      const data = await authFetch('/api/agents/status').then(r => r.json());
-      _lastAgentData = data.agents || [];
-      renderTeamView(_lastAgentData);
-    } catch {
-      const el = document.getElementById('agent-system-status');
-      if (el) el.textContent = 'UNABLE TO CONNECT';
-    }
+    const [agentRes, ideasRes] = await Promise.allSettled([
+      authFetch('/api/agents/status').then(r => r.json()),
+      authFetch('/api/ideas').then(r => r.json()),
+    ]);
+
+    const offline = agentRes.status === 'rejected';
+    _lastAgentData = agentRes.status === 'fulfilled' ? (agentRes.value.agents || []) : [];
+    const ideasCount = ideasRes.status === 'fulfilled'
+      ? (ideasRes.value.ideas || []).filter(i => i.status === 'pending').length
+      : null;
+
+    renderTeamView(_lastAgentData, ideasCount, offline);
   }
 
-  function renderTeamView(agents) {
+  function renderTeamView(agents, ideasCount, offline) {
     const agentMap = {};
     for (const a of agents) agentMap[a.agent_name] = a;
     const running = agents.filter(a => a.status === 'running');
 
     const statusEl = document.getElementById('agent-system-status');
-    if (statusEl) statusEl.textContent = running.length
-      ? `◉ ${running.length} AGENT${running.length > 1 ? 'S' : ''} RUNNING — NETWORK ACTIVE`
-      : '● SYSTEM ACTIVE — ALL AGENTS STANDBY';
+    if (statusEl) {
+      if (offline) {
+        statusEl.textContent = '○ OFFLINE — AGENTS IN STANDBY';
+        statusEl.style.color = '#EF4444';
+      } else if (running.length) {
+        statusEl.textContent = `◉ ${running.length} AGENT${running.length > 1 ? 'S' : ''} RUNNING — NETWORK ACTIVE`;
+        statusEl.style.color = 'var(--neon-green)';
+      } else {
+        statusEl.textContent = '● SYSTEM ACTIVE — ALL AGENTS STANDBY';
+        statusEl.style.color = 'var(--neon-violet)';
+      }
+    }
 
-    // KPI
     const totalRuns = agents.reduce((s, a) => s + (a.run_count || 0), 0);
     const kpiTasks = document.getElementById('team-kpi-tasks');
-    if (kpiTasks) kpiTasks.textContent = totalRuns || '—';
+    if (kpiTasks) kpiTasks.textContent = totalRuns || '0';
     const kpiActive = document.getElementById('team-kpi-active');
     if (kpiActive) kpiActive.textContent = running.length || '0';
+    const kpiIdeas = document.getElementById('team-kpi-ideas');
+    if (kpiIdeas) kpiIdeas.textContent = ideasCount != null ? ideasCount : '—';
 
     renderTopology(agentMap);
     renderAgentCards(agentMap);
@@ -6574,16 +6588,30 @@
     const grid = document.getElementById('agent-cards-grid');
     if (!grid) return;
 
+    const META_IO = {
+      concept:   { input: 'Strategy + Brain Diary', output: 'Idea Queue' },
+      autogen:   { input: 'Idea + Brand DNA',        output: 'Draft Posts' },
+      publish:   { input: 'Approved Post',           output: 'Live Post' },
+      metrics:   { input: 'Profile URL',             output: 'Eng. Scores' },
+      scoring:   { input: 'Post Library',            output: 'Brain Diary' },
+      evolution: { input: 'Brain Diary (60 days)',   output: 'Prompt Rules' },
+      decide:    { input: 'Brain Diary (30 days)',   output: 'Boosted Queue' },
+    };
+
     grid.innerHTML = Object.entries(AGENT_CFG).map(([name, cfg]) => {
       const a = agentMap[name] || { status: 'idle', run_count: 0, last_action: null, finished_at: null };
       const isRunning = a.status === 'running';
-      const isBuilt = ['concept', 'scoring', 'feedback'].includes(name);
+      const isDone = a.status === 'done';
+      const isError = a.status === 'error';
       const lastRun = a.finished_at ? timeAgo(a.finished_at) : 'Never';
       const lastRunFull = a.finished_at
         ? new Date(a.finished_at).toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
         : null;
+      const statusColor = isRunning ? cfg.color : isError ? '#EF4444' : 'var(--text2)';
+      const statusLabel = isRunning ? '◉ running' : isDone ? '● done' : isError ? '✕ error' : '○ idle';
+      const io = META_IO[name] || {};
 
-      return `<div class="agent-profile-card" style="border-color:${isRunning ? cfg.color + '55' : 'var(--glass-border)'};${isRunning ? `box-shadow:0 0 20px ${cfg.color}22` : ''}">
+      return `<div class="agent-profile-card" style="border-color:${isRunning ? cfg.color + '55' : isError ? '#EF444433' : 'var(--glass-border)'};${isRunning ? `box-shadow:0 0 20px ${cfg.color}22` : ''}">
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem">
           <div class="agent-orb${isRunning ? ' running' : ''}" style="background:radial-gradient(circle at 35% 35%, ${cfg.color}88, ${cfg.color}22);box-shadow:0 0 16px ${cfg.color}44">
             <svg width="52" height="52" viewBox="0 0 52 52"><defs><radialGradient id="og-${name}" cx="35%" cy="35%"><stop offset="0%" stop-color="white" stop-opacity="0.6"/><stop offset="100%" stop-color="${cfg.color}"/></radialGradient></defs><circle cx="26" cy="26" r="22" fill="url(#og-${name})"/></svg>
@@ -6592,14 +6620,17 @@
             <div style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;line-height:1">${cfg.label}</div>
             <div class="agent-role-badge" style="background:${cfg.color}18;color:${cfg.color};border:1px solid ${cfg.color}44;display:inline-block;margin-top:0.3rem">${cfg.role}</div>
           </div>
-          ${isBuilt
-            ? `<button onclick="runAgentManual('${name}')" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;padding:0.35rem 0.7rem;background:${cfg.color}18;border:1px solid ${cfg.color}44;color:${cfg.color};border-radius:6px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='${cfg.color}33'" onmouseout="this.style.background='${cfg.color}18'">RUN</button>`
-            : `<span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);border:1px dashed var(--glass-border);padding:0.3rem 0.5rem;border-radius:4px">PH.4</span>`}
+          <button onclick="runAgentManual('${name}')" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;padding:0.35rem 0.7rem;background:${cfg.color}18;border:1px solid ${cfg.color}44;color:${cfg.color};border-radius:6px;cursor:pointer;white-space:nowrap" onmouseover="this.style.background='${cfg.color}33'" onmouseout="this.style.background='${cfg.color}18'">RUN</button>
         </div>
         <div class="agent-prompt-box">${cfg.prompt}</div>
-        <div style="display:flex;gap:1.5rem;font-size:0.72rem;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--glass-border)">
-          <div><span style="color:var(--text3)">Status </span><span style="color:${isRunning ? cfg.color : 'var(--text2)'}">${isRunning ? '◉ running' : a.status === 'done' ? '● done' : '○ idle'}</span></div>
-          <div title="${lastRunFull || 'Never run'}"><span style="color:var(--text3)">Last run </span><span style="color:var(--text2)">${lastRun}</span>${lastRunFull ? `<div style="font-size:0.62rem;color:var(--text3);margin-top:0.1rem">${lastRunFull}</div>` : ''}</div>
+        ${io.input ? `<div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.6rem;font-family:'DM Mono',monospace;font-size:0.62rem;flex-wrap:wrap">
+          <span style="background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:4px;padding:0.2rem 0.5rem;color:var(--text3)">${io.input}</span>
+          <span style="color:${cfg.color}">→</span>
+          <span style="background:${cfg.color}18;border:1px solid ${cfg.color}44;border-radius:4px;padding:0.2rem 0.5rem;color:${cfg.color}">${io.output}</span>
+        </div>` : ''}
+        <div style="display:flex;gap:1.5rem;font-size:0.72rem;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--glass-border);flex-wrap:wrap">
+          <div><span style="color:var(--text3)">Status </span><span style="color:${statusColor}">${statusLabel}</span></div>
+          <div title="${lastRunFull || 'Never run'}"><span style="color:var(--text3)">Last run </span><span style="color:var(--text2)">${lastRun}</span></div>
           <div><span style="color:var(--text3)">Runs </span><span style="color:var(--text2)">${a.run_count || 0}</span></div>
         </div>
         ${a.last_action ? `<div style="font-size:0.72rem;color:var(--text3);font-style:italic;margin-top:0.5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">"${a.last_action}"</div>` : ''}
