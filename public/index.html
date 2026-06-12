@@ -6579,6 +6579,9 @@
       const isRunning = a.status === 'running';
       const isBuilt = ['concept', 'scoring', 'feedback'].includes(name);
       const lastRun = a.finished_at ? timeAgo(a.finished_at) : 'Never';
+      const lastRunFull = a.finished_at
+        ? new Date(a.finished_at).toLocaleString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+        : null;
 
       return `<div class="agent-profile-card" style="border-color:${isRunning ? cfg.color + '55' : 'var(--glass-border)'};${isRunning ? `box-shadow:0 0 20px ${cfg.color}22` : ''}">
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem">
@@ -6596,7 +6599,7 @@
         <div class="agent-prompt-box">${cfg.prompt}</div>
         <div style="display:flex;gap:1.5rem;font-size:0.72rem;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--glass-border)">
           <div><span style="color:var(--text3)">Status </span><span style="color:${isRunning ? cfg.color : 'var(--text2)'}">${isRunning ? '◉ running' : a.status === 'done' ? '● done' : '○ idle'}</span></div>
-          <div><span style="color:var(--text3)">Last </span><span style="color:var(--text2)">${lastRun}</span></div>
+          <div title="${lastRunFull || 'Never run'}"><span style="color:var(--text3)">Last run </span><span style="color:var(--text2)">${lastRun}</span>${lastRunFull ? `<div style="font-size:0.62rem;color:var(--text3);margin-top:0.1rem">${lastRunFull}</div>` : ''}</div>
           <div><span style="color:var(--text3)">Runs </span><span style="color:var(--text2)">${a.run_count || 0}</span></div>
         </div>
         ${a.last_action ? `<div style="font-size:0.72rem;color:var(--text3);font-style:italic;margin-top:0.5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">"${a.last_action}"</div>` : ''}
