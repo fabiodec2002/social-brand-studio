@@ -2710,6 +2710,277 @@
       white-space: pre-wrap;
       margin-top: 0.75rem;
     }
+
+    /* ═══════════════════════════════════════════
+       PHASE NAVIGATION SYSTEM
+    ═══════════════════════════════════════════ */
+
+    /* Override app-screen to column layout */
+    #app-screen { flex-direction: column !important; overflow: hidden; }
+    .sidebar { display: none !important; }
+    .main-content { flex: 1; overflow-y: auto; padding: 2rem 3rem; min-height: 0; }
+
+    /* Phase nav bar */
+    .phase-nav {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      flex-shrink: 0;
+      padding: 0 1.5rem;
+      overflow-x: auto;
+    }
+
+    .phase-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.85rem 1.25rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .phase-btn:hover { color: var(--text2); }
+    .phase-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    .phase-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .phase-dot.done { background: #10B981; }
+
+    .automate-pulse {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--neon-violet);
+      animation: pulse 2s ease-in-out infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+    .automate-pulse.active { display: block; }
+
+    /* Phase home dashboard */
+    .phase-home {
+      flex: 1;
+      overflow-y: auto;
+      padding: 3rem;
+      display: none;
+    }
+    .phase-home.visible { display: block; }
+
+    .phase-home-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+    .phase-home-title em { color: var(--gold); font-style: italic; }
+    .phase-home-sub { font-size: 0.88rem; color: var(--text3); max-width: 520px; margin-bottom: 2.5rem; line-height: 1.6; }
+
+    .phase-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .phase-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.75rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .phase-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .phase-card.complete { border-color: rgba(16,185,129,0.3); }
+
+    .phase-card-num { font-family: 'DM Mono', monospace; font-size: 0.56rem; letter-spacing: 0.18em; color: var(--text3); text-transform: uppercase; }
+    .phase-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; color: var(--text); }
+    .phase-card-tagline { font-size: 0.78rem; color: var(--text3); line-height: 1.55; }
+    .phase-card-cta {
+      margin-top: auto; padding-top: 0.85rem; border-top: 1px solid var(--border);
+      font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .phase-card.complete .phase-card-cta { color: #10B981; }
+
+    /* Phase subnav */
+    .phase-subnav {
+      display: none;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.55rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+    .phase-subnav.visible { display: flex; }
+
+    .phase-subnav-btn {
+      padding: 0.4rem 0.9rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .phase-subnav-btn:hover { color: var(--text2); border-color: var(--border); }
+    .phase-subnav-btn.active { color: var(--gold); border-color: rgba(201,169,110,0.3); background: rgba(201,169,110,0.06); }
+
+    /* Phase content area */
+    .phase-content-area {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .phase-content-area.visible { display: flex; }
+
+    /* Context banner */
+    .context-banner {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 2rem;
+      background: rgba(201,169,110,0.07);
+      border-bottom: 1px solid rgba(201,169,110,0.2);
+      flex-shrink: 0;
+    }
+    .context-banner.visible { display: flex; }
+    .context-banner-msg { font-size: 0.8rem; color: var(--text2); flex: 1; }
+    .context-banner-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--gold); text-decoration: none; white-space: nowrap; cursor: pointer; }
+    .context-banner-link:hover { text-decoration: underline; }
+    .context-banner-close { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 0.85rem; padding: 0; }
+
+    /* What-next bar */
+    .what-next-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.8rem 2rem;
+      background: rgba(201,169,110,0.07);
+      border-top: 1px solid rgba(201,169,110,0.2);
+      flex-shrink: 0;
+      animation: fadeUp 0.3s ease;
+    }
+    .what-next-bar.visible { display: flex; }
+    .what-next-msg { font-size: 0.82rem; color: var(--text2); }
+    .what-next-action {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0.5rem 1.25rem; background: var(--gold);
+      color: var(--bg); border: none; border-radius: 2px; cursor: pointer;
+      white-space: nowrap; transition: background 0.2s; flex-shrink: 0;
+    }
+    .what-next-action:hover { background: var(--gold2); }
+
+    /* Machine phase */
+    .machine-intro { font-size: 0.85rem; color: var(--text3); max-width: 600px; margin-bottom: 2rem; line-height: 1.65; }
+    .machine-section-label {
+      font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--text3); margin: 2rem 0 1rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+    }
+    .machine-cta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 1.5rem; }
+    .machine-pillar-slot {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;
+    }
+    .machine-pillar-name {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.85rem;
+    }
+    .machine-field-label {
+      font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text3); margin-bottom: 0.3rem; margin-top: 0.75rem;
+    }
+    .machine-field-label:first-of-type { margin-top: 0; }
+    .machine-input {
+      width: 100%; box-sizing: border-box; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 2px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.82rem;
+      line-height: 1.5; padding: 0.5rem 0.7rem; outline: none; resize: vertical; transition: border-color 0.2s;
+    }
+    .machine-input:focus { border-color: var(--gold); }
+    .machine-input::placeholder { color: var(--text3); font-style: italic; }
+
+    .mon-paths-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+    .mon-path-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; }
+    .mon-path-badge {
+      font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.15em;
+      text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 20px;
+      display: inline-block; margin-bottom: 0.75rem;
+    }
+    .mon-path-badge.path-a { background: rgba(59,130,246,0.15); color: #3B82F6; }
+    .mon-path-badge.path-b { background: rgba(139,92,246,0.15); color: var(--neon-violet); }
+
+    .post-cta-badge {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.7rem; background: rgba(201,169,110,0.07);
+      border: 1px solid rgba(201,169,110,0.2); border-radius: 4px;
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em;
+      margin-top: 0.5rem;
+    }
+    .cta-pill {
+      color: var(--gold); background: rgba(201,169,110,0.1);
+      border: 1px solid rgba(201,169,110,0.25); border-radius: 3px;
+      padding: 0.1rem 0.4rem;
+    }
+    .cta-pill.mon {
+      color: var(--neon-violet); background: rgba(139,92,246,0.1);
+      border-color: rgba(139,92,246,0.25);
+    }
+
+    /* Platform focus selector (Foundation phase) */
+    .platform-focus-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .platform-focus-card {
+      background: var(--bg2); border: 2px solid var(--border); border-radius: 8px;
+      padding: 1.1rem 1.25rem; cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .platform-focus-card:hover { border-color: var(--border2); }
+    .platform-focus-card.selected { border-color: var(--gold); background: rgba(201,169,110,0.05); }
+    .platform-focus-icon { font-size: 1.6rem; margin-bottom: 0.35rem; }
+    .platform-focus-name { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text2); margin-bottom: 0.2rem; }
+    .platform-focus-hint { font-size: 0.72rem; color: var(--text3); }
+
+    /* Foundation phase: platform selector wrapper */
+    #tab-platform-focus { display: none; }
+    #tab-platform-focus.tab-content { display: none; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .phase-cards-grid { grid-template-columns: 1fr 1fr; }
+      .machine-cta-grid { grid-template-columns: 1fr; }
+      .mon-paths-grid { grid-template-columns: 1fr; }
+      .phase-home { padding: 1.5rem; }
+      .main-content { padding: 1.25rem; }
+      .phase-nav { padding: 0 0.75rem; }
+      .phase-subnav { padding: 0.5rem 1rem; }
+    }
   </style>
 </head>
 <body>
@@ -2818,73 +3089,145 @@
   <!-- App Screen -->
   <div class="screen" id="app-screen">
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-label">Your brand <span class="brand-badge" id="sidebar-brand-badge" style="display:none"></span></div>
-        <div class="brand-statement" id="sidebar-brand-statement">Loading...</div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-label nav-group-label">STUDIO</div>
-        <div class="nav-item active" onclick="showTab('strategy')" id="nav-strategy">
-          <div class="nav-dot"></div>Strategy overview
+    <!-- Sidebar (hidden — kept for legacy JS references) -->
+    <div class="sidebar" style="display:none">
+      <div class="sidebar-section" id="sidebar-expertise"><div class="sidebar-label">Expertise</div></div>
+      <div class="sidebar-section"><div class="brand-statement" id="sidebar-brand-statement"></div><span class="brand-badge" id="sidebar-brand-badge" style="display:none"></span></div>
+      <div class="nav-item" id="nav-strategy"></div>
+      <div class="nav-item" id="nav-pillars"></div>
+      <div class="nav-item" id="nav-platforms"></div>
+      <div class="nav-item" id="nav-generator"></div>
+      <div class="nav-item" id="nav-remake"></div>
+      <div class="nav-item" id="nav-carousel"></div>
+      <div class="nav-item" id="nav-library"></div>
+      <div class="nav-item" id="nav-hooks"></div>
+      <div class="nav-item" id="nav-ideas"></div>
+      <div class="nav-item" id="nav-review"></div>
+      <div class="nav-item" id="nav-agents"></div>
+      <div class="nav-item" id="nav-metaverse"></div>
+      <div class="nav-item" id="nav-pipeline"></div>
+      <div class="nav-item" id="nav-brain-diary"></div>
+      <div class="nav-item" id="nav-analytics"></div>
+      <span class="nav-live-pill" id="nav-live-pill"></span>
+      <span class="nav-live-pill" id="nav-live-pill-2"></span>
+    </div>
+
+    <!-- Phase Navigation Bar -->
+    <nav class="phase-nav" id="phase-nav">
+      <button class="phase-btn" id="pbtn-foundation" onclick="showPhase('foundation')">
+        <span class="phase-dot" id="pdot-foundation"></span>Foundation
+      </button>
+      <button class="phase-btn" id="pbtn-machine" onclick="showPhase('machine')">
+        <span class="phase-dot" id="pdot-machine"></span>Machine
+      </button>
+      <button class="phase-btn" id="pbtn-create" onclick="showPhase('create')">
+        <span class="phase-dot" id="pdot-create"></span>Create
+      </button>
+      <button class="phase-btn" id="pbtn-publish" onclick="showPhase('publish')">
+        <span class="phase-dot" id="pdot-publish"></span>Publish
+        <span id="review-badge" style="display:none;background:var(--gold);color:#0c0c0b;font-family:'DM Mono',monospace;font-size:0.5rem;font-weight:700;border-radius:20px;padding:0.05rem 0.4rem;line-height:1.5">0</span>
+      </button>
+      <button class="phase-btn" id="pbtn-analyze" onclick="showPhase('analyze')">
+        <span class="phase-dot" id="pdot-analyze"></span>Analyze
+      </button>
+      <button class="phase-btn" id="pbtn-automate" onclick="showPhase('automate')">
+        <span class="automate-pulse" id="automate-pulse"></span>Automate
+      </button>
+    </nav>
+
+    <!-- Phase Home Dashboard -->
+    <div class="phase-home" id="phase-home">
+      <div class="phase-home-title">Your social media <em>machine</em></div>
+      <div class="phase-home-sub">Six phases. One flywheel. Platform → Pillars → CTAs → Lead Magnets → Cash.</div>
+      <div class="phase-cards-grid">
+        <div class="phase-card" id="pcard-foundation" onclick="showPhase('foundation')">
+          <div class="phase-card-num">Phase 01</div>
+          <div class="phase-card-title">Foundation</div>
+          <div class="phase-card-tagline">Who you are, what you stand for, who you serve. Pick your platform. Define your 3 pillars.</div>
+          <div class="phase-card-cta" id="pcard-cta-foundation">Start here →</div>
         </div>
-        <div class="nav-item" onclick="showTab('pillars')" id="nav-pillars">
-          <div class="nav-dot"></div>Content pillars
+        <div class="phase-card" id="pcard-machine" onclick="showPhase('machine')">
+          <div class="phase-card-num">Phase 02</div>
+          <div class="phase-card-title">Machine</div>
+          <div class="phase-card-tagline">The infrastructure between your content and cash. CTAs per pillar → lead magnets → 2 monetisation paths.</div>
+          <div class="phase-card-cta" id="pcard-cta-machine">Build your machine →</div>
         </div>
-        <div class="nav-item" onclick="showTab('platforms')" id="nav-platforms">
-          <div class="nav-dot"></div>Platform guide
+        <div class="phase-card" id="pcard-create" onclick="showPhase('create')">
+          <div class="phase-card-num">Phase 03</div>
+          <div class="phase-card-title">Create</div>
+          <div class="phase-card-tagline">Generate posts that move people through the machine. 70% proven content, 30% wildcard.</div>
+          <div class="phase-card-cta" id="pcard-cta-create">Generate posts →</div>
         </div>
-        <div class="nav-item" onclick="showTab('generator')" id="nav-generator">
-          <div class="nav-dot"></div>Post generator
+        <div class="phase-card" id="pcard-publish" onclick="showPhase('publish')">
+          <div class="phase-card-num">Phase 04</div>
+          <div class="phase-card-title">Publish</div>
+          <div class="phase-card-tagline">Review AI-drafted posts, approve the best, schedule them live to LinkedIn and Instagram.</div>
+          <div class="phase-card-cta" id="pcard-cta-publish">Review queue →</div>
         </div>
-        <div class="nav-item" onclick="showTab('remake')" id="nav-remake">
-          <div class="nav-dot"></div>Remake this
+        <div class="phase-card" id="pcard-analyze" onclick="showPhase('analyze')">
+          <div class="phase-card-num">Phase 05</div>
+          <div class="phase-card-title">Analyze</div>
+          <div class="phase-card-tagline">Double down on what works. Import analytics and let the machine learn from your wins.</div>
+          <div class="phase-card-cta" id="pcard-cta-analyze">View performance →</div>
         </div>
-        <div class="nav-item" onclick="showTab('carousel')" id="nav-carousel">
-          <div class="nav-dot"></div>Carousel builder
+        <div class="phase-card" id="pcard-automate" onclick="showPhase('automate')">
+          <div class="phase-card-num">Phase 06</div>
+          <div class="phase-card-title">Automate</div>
+          <div class="phase-card-tagline">9 AI agents generating ideas, scoring posts, and evolving your voice while you sleep.</div>
+          <div class="phase-card-cta" id="pcard-cta-automate">Meet the team →</div>
         </div>
-        <div class="nav-item" onclick="showTab('library')" id="nav-library">
-          <div class="nav-dot"></div>Posts library
-        </div>
-        <div class="nav-item" onclick="showTab('hooks')" id="nav-hooks">
-          <div class="nav-dot"></div>Hook generator
-        </div>
-        <div class="nav-item" onclick="showTab('ideas')" id="nav-ideas">
-          <div class="nav-dot"></div>Idea bank
-        </div>
-        <div class="nav-item" onclick="showTab('review')" id="nav-review" style="position:relative">
-          <div class="nav-dot"></div>Review queue
-          <span id="review-badge" style="display:none;position:absolute;right:0;top:50%;transform:translateY(-50%);background:var(--gold);color:#0c0c0b;font-family:'DM Mono',monospace;font-size:0.55rem;font-weight:700;border-radius:20px;padding:0.1rem 0.4rem;min-width:18px;text-align:center;line-height:1.4">0</span>
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-label nav-group-label">THE TEAM</div>
-        <div class="nav-item" onclick="showTab('agents')" id="nav-agents">
-          <div class="nav-dot"></div>The team
-          <span class="nav-live-pill" id="nav-live-pill">LIVE</span>
-        </div>
-        <div class="nav-item" onclick="showTab('metaverse')" id="nav-metaverse">
-          <div class="nav-dot"></div>Metaverse office
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-label nav-group-label">INTELLIGENCE</div>
-        <div class="nav-item" onclick="showTab('pipeline')" id="nav-pipeline">
-          <div class="nav-dot"></div>Feedback loop
-          <span class="nav-live-pill" id="nav-live-pill-2">LIVE</span>
-        </div>
-        <div class="nav-item" onclick="showTab('brain-diary')" id="nav-brain-diary">
-          <div class="nav-dot"></div>Brain diary
-        </div>
-        <div class="nav-item" onclick="showTab('analytics')" id="nav-analytics">
-          <div class="nav-dot"></div>Analytics
-        </div>
-      </div>
-      <div class="sidebar-section" id="sidebar-expertise">
-        <div class="sidebar-label">Expertise</div>
       </div>
     </div>
+
+    <!-- Phase Content Area -->
+    <div class="phase-content-area" id="phase-content-area">
+
+      <!-- Foundation subnav -->
+      <div class="phase-subnav" id="psubnav-foundation">
+        <button class="phase-subnav-btn" id="psnav-strategy" onclick="showTool('foundation','strategy')">Brand</button>
+        <button class="phase-subnav-btn" id="psnav-pillars" onclick="showTool('foundation','pillars')">Pillars</button>
+        <button class="phase-subnav-btn" id="psnav-platforms" onclick="showTool('foundation','platforms')">Platform guide</button>
+      </div>
+
+      <!-- Machine subnav -->
+      <div class="phase-subnav" id="psubnav-machine">
+        <button class="phase-subnav-btn" id="psnav-machine" onclick="showTool('machine','machine')">CTAs &amp; Magnets</button>
+        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text3);padding-right:0.5rem" id="machine-complete-badge"></span>
+      </div>
+
+      <!-- Create subnav -->
+      <div class="phase-subnav" id="psubnav-create">
+        <button class="phase-subnav-btn" id="psnav-generator" onclick="showTool('create','generator')">Generate</button>
+        <button class="phase-subnav-btn" id="psnav-ideas" onclick="showTool('create','ideas')">Ideas</button>
+        <button class="phase-subnav-btn" id="psnav-hooks" onclick="showTool('create','hooks')">Hooks</button>
+        <button class="phase-subnav-btn" id="psnav-remake" onclick="showTool('create','remake')">Viral</button>
+      </div>
+
+      <!-- Publish subnav -->
+      <div class="phase-subnav" id="psubnav-publish">
+        <button class="phase-subnav-btn" id="psnav-review" onclick="showTool('publish','review')">Queue</button>
+        <button class="phase-subnav-btn" id="psnav-library" onclick="showTool('publish','library')">Library</button>
+      </div>
+
+      <!-- Analyze subnav -->
+      <div class="phase-subnav" id="psubnav-analyze">
+        <button class="phase-subnav-btn" id="psnav-analytics" onclick="showTool('analyze','analytics')">Performance</button>
+        <button class="phase-subnav-btn" id="psnav-brain-diary" onclick="showTool('analyze','brain-diary')">Brain Diary</button>
+        <button class="phase-subnav-btn" id="psnav-pipeline" onclick="showTool('analyze','pipeline')">Feedback Loop</button>
+      </div>
+
+      <!-- Automate subnav -->
+      <div class="phase-subnav" id="psubnav-automate">
+        <button class="phase-subnav-btn" id="psnav-agents" onclick="showTool('automate','agents')">The Team</button>
+        <button class="phase-subnav-btn" id="psnav-metaverse" onclick="showTool('automate','metaverse')">Agent Office</button>
+      </div>
+
+      <!-- Context banner (cross-phase guidance) -->
+      <div class="context-banner" id="context-banner">
+        <span class="context-banner-msg" id="context-banner-msg"></span>
+        <span class="context-banner-link" id="context-banner-link" onclick="doContextBannerAction()"></span>
+        <button class="context-banner-close" onclick="dismissContextBanner()">✕</button>
+      </div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -3757,7 +4100,59 @@
         </div>
       </div>
 
+      <!-- ── MACHINE PHASE TAB ───────────────────────────────────────── -->
+      <div id="tab-machine" class="tab-content" style="display:none">
+        <div class="section-title">The Machine</div>
+        <div class="section-subtitle">The infrastructure between your content and cash</div>
+        <p class="machine-intro">Most people create content and wonder why it doesn't convert. The machine fixes that. For each of your 3 content pillars, you define one contextual CTA that leads to a generous free resource — and both resources point to your 2 monetisation paths. Every post you create from here will know exactly where it's sending people.</p>
+
+        <div class="machine-section-label">Step 1 — Contextual CTAs &amp; Lead Magnets per pillar</div>
+        <div class="machine-cta-grid" id="machine-cta-grid">
+          <!-- Dynamically populated by JS from pillars -->
+          <div class="machine-pillar-slot" style="opacity:0.4">
+            <div class="machine-pillar-name">Pillar 1 — set up in Foundation first</div>
+            <div style="font-size:0.8rem;color:var(--text3)">Define your content pillars in Foundation → Pillars, then come back here.</div>
+          </div>
+        </div>
+        <div style="margin-bottom:0.5rem">
+          <button class="generate-btn" style="max-width:240px;margin-top:0" onclick="saveMachineData()">Save CTAs &amp; magnets</button>
+        </div>
+
+        <div class="machine-section-label">Step 2 — Your 2 monetisation paths</div>
+        <p style="font-size:0.82rem;color:var(--text3);margin-bottom:1.25rem;">Every lead magnet points to two paths. Keep it that simple. Two doors. One for people who want to hire you, one for people who want to learn from you.</p>
+        <div class="mon-paths-grid">
+          <div class="mon-path-card">
+            <span class="mon-path-badge path-a">Path A — Service</span>
+            <div class="machine-field-label" style="margin-top:0">Label (e.g. "Get a quote", "Work with us")</div>
+            <input class="machine-input" id="mon-path-a-label" placeholder="e.g. Book a strategy call" style="resize:none">
+            <div class="machine-field-label">URL or call-to-action</div>
+            <input class="machine-input" id="mon-path-a-url" placeholder="e.g. yoursite.com/work-with-me" style="resize:none">
+            <div class="machine-field-label">One-line description</div>
+            <textarea class="machine-input" id="mon-path-a-desc" rows="2" placeholder="For people who want to hire you to do the work for them"></textarea>
+          </div>
+          <div class="mon-path-card">
+            <span class="mon-path-badge path-b">Path B — Education</span>
+            <div class="machine-field-label" style="margin-top:0">Label (e.g. "Join the programme", "Apply to work with me")</div>
+            <input class="machine-input" id="mon-path-b-label" placeholder="e.g. Apply for the mentorship" style="resize:none">
+            <div class="machine-field-label">URL or call-to-action</div>
+            <input class="machine-input" id="mon-path-b-url" placeholder="e.g. yoursite.com/mentorship" style="resize:none">
+            <div class="machine-field-label">One-line description</div>
+            <textarea class="machine-input" id="mon-path-b-desc" rows="2" placeholder="For people who want to learn your system and do it themselves"></textarea>
+          </div>
+        </div>
+        <button class="generate-btn" style="max-width:240px" onclick="saveMachineData()">Save monetisation paths</button>
+      </div>
+      <!-- ── END MACHINE PHASE TAB ──────────────────────────────────── -->
+
     </div>
+
+      <!-- What-next bar -->
+      <div class="what-next-bar" id="what-next-bar">
+        <span class="what-next-msg" id="what-next-msg"></span>
+        <button class="what-next-action" id="what-next-action" onclick="doWhatNext()"></button>
+      </div>
+
+    </div><!-- /phase-content-area -->
   </div>
 
   <!-- Onboarding Screen -->
@@ -4044,6 +4439,26 @@
     const dot = score >= 8 ? '●' : score >= 5 ? '◐' : '○';
     scoreEl.innerHTML = `<span class="voice-score-badge ${tier}">${dot} Voice ${score}/10</span>`;
     if (note && noteEl) { noteEl.textContent = note; noteEl.style.display = 'block'; }
+  }
+
+  function _renderPostCTABadge(platform, pillarId) {
+    const cta = getMachineCTAForPillar(pillarId);
+    const paths = getMonetizationPathsSummary();
+    if (!cta && !paths) return;
+    const scoreEl = document.getElementById(`voice-score-${platform}`);
+    if (!scoreEl) return;
+    let existing = scoreEl.parentElement.querySelector('.post-cta-badge');
+    if (existing) existing.remove();
+    const badge = document.createElement('div');
+    badge.className = 'post-cta-badge';
+    let html = '';
+    if (cta) {
+      const ctaText = typeof cta === 'object' ? (cta.ctaText || cta.magnet || JSON.stringify(cta)) : cta;
+      html += `<span class="cta-pill">CTA: ${ctaText}</span>`;
+    }
+    if (paths) html += `<span class="cta-pill mon">→ ${paths}</span>`;
+    badge.innerHTML = html;
+    scoreEl.parentElement.appendChild(badge);
   }
 
   // ─── Post resize ──────────────────────────────────────────────────────────
@@ -4421,6 +4836,7 @@
         expSection.appendChild(div);
       });
     }
+    updatePhaseDots();
   }
 
   function selectTone(btn) {
@@ -4659,6 +5075,8 @@
             referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
             knowledgeDocIds: selectedKnowledgeDocIds.size ? [...selectedKnowledgeDocIds] : null,
             brandContext: appData.brandContext || null,
+            machineCTA: getMachineCTAForPillar(selectedPillar),
+            monetizationPaths: getMonetizationPathsSummary(),
           })
         });
         const data = await res.json();
@@ -4666,6 +5084,7 @@
         bodyEl.textContent = data.post;
         bodyEl.classList.remove('generating');
         renderVoiceScore(p, data.voiceScore, data.voiceNote);
+        _renderPostCTABadge(p, selectedPillar);
       } catch (err) {
         document.getElementById(`post-body-${p}`).textContent = 'Error generating post. Try again.';
       }
@@ -4673,6 +5092,7 @@
 
     btn.disabled = false;
     btn.textContent = 'Generate post';
+    showWhatNext('Post ready. Review and schedule it.', 'Review queue →', 'publish', 'review');
   }
 
   async function regenerate(platform) {
@@ -4706,12 +5126,15 @@
           referenceSummaries: referenceSummaries.length ? referenceSummaries : null,
           knowledgeDocIds: selectedKnowledgeDocIds.size ? [...selectedKnowledgeDocIds] : null,
           brandContext: appData.brandContext || null,
+          machineCTA: getMachineCTAForPillar(selectedPillar),
+          monetizationPaths: getMonetizationPathsSummary(),
         })
       });
       const data = await res.json();
       bodyEl.textContent = data.post;
       bodyEl.classList.remove('generating');
       renderVoiceScore(platform, data.voiceScore, data.voiceNote);
+      _renderPostCTABadge(platform, selectedPillar);
     } catch (err) {
       bodyEl.textContent = 'Error. Try again.';
     }
@@ -4793,15 +5216,54 @@
     }
   }
 
-  function showTab(tabName) {
+  // ── Phase Navigation System ──────────────────────────────────────────────────
+
+  const PHASE_MAP = {
+    foundation: { default: 'strategy',  tools: ['strategy','pillars','platforms'] },
+    machine:    { default: 'machine',   tools: ['machine'] },
+    create:     { default: 'generator', tools: ['generator','ideas','hooks','remake'] },
+    publish:    { default: 'review',    tools: ['review','library'] },
+    analyze:    { default: 'analytics', tools: ['analytics','brain-diary','pipeline'] },
+    automate:   { default: 'agents',    tools: ['agents','metaverse'] },
+  };
+
+  let currentPhase = null;
+  let currentTool = null;
+  let _whatNextTarget = null;
+
+  function showPhase(phaseName) {
+    currentPhase = phaseName;
+    document.getElementById('phase-home').classList.remove('visible');
+    const area = document.getElementById('phase-content-area');
+    area.classList.add('visible');
+    document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+    const activeBtn = document.getElementById(`pbtn-${phaseName}`);
+    if (activeBtn) activeBtn.classList.add('active');
+    document.querySelectorAll('.phase-subnav').forEach(s => s.classList.remove('visible'));
+    const subnav = document.getElementById(`psubnav-${phaseName}`);
+    if (subnav) subnav.classList.add('visible');
+    const defaultTool = PHASE_MAP[phaseName]?.default;
+    if (defaultTool) showTool(phaseName, defaultTool);
+    _checkContextBanners(phaseName);
+  }
+
+  function showTool(phaseName, toolName) {
+    currentTool = toolName;
     document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-    document.getElementById(`tab-${tabName}`).style.display = 'block';
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const navEl = document.getElementById(`nav-${tabName}`);
-    if (navEl) navEl.classList.add('active');
+    const tab = document.getElementById(`tab-${toolName}`);
+    if (tab) tab.style.display = 'block';
+    document.querySelectorAll('.phase-subnav-btn').forEach(b => b.classList.remove('active'));
+    const snav = document.getElementById(`psnav-${toolName}`);
+    if (snav) snav.classList.add('active');
+    _showTabSideEffects(toolName);
+    document.getElementById('what-next-bar').classList.remove('visible');
+  }
+
+  function _showTabSideEffects(tabName) {
     if (tabName === 'carousel' && typeof carouselInit === 'function') carouselInit();
     if (tabName === 'library') loadLibrary();
     if (tabName === 'ideas') populateIdeasPillarSelect();
+    if (tabName === 'machine') buildMachineCTAGrid();
     if (tabName === 'agents') {
       loadAgentStatus();
       if (!agentPollInterval) agentPollInterval = setInterval(loadAgentStatus, 10000);
@@ -4816,6 +5278,169 @@
     if (tabName === 'review') { loadReviewQueue(); loadOAuthStatus(); }
   }
 
+  function _checkContextBanners(phaseName) {
+    dismissContextBanner();
+    if (phaseName === 'create') {
+      if (!checkFoundationComplete()) {
+        showContextBanner('Your brand foundation is incomplete — posts may be generic.', 'Finish Foundation →', () => showPhase('foundation'));
+      } else if (!checkMachineComplete()) {
+        showContextBanner("Your machine isn't built — posts won't have a conversion path.", 'Build your machine →', () => showPhase('machine'));
+      }
+    }
+  }
+
+  function showContextBanner(msg, linkText, action) {
+    document.getElementById('context-banner-msg').textContent = msg;
+    const link = document.getElementById('context-banner-link');
+    link.textContent = linkText;
+    link._bannerAction = action;
+    document.getElementById('context-banner').classList.add('visible');
+  }
+
+  function doContextBannerAction() {
+    const link = document.getElementById('context-banner-link');
+    if (link._bannerAction) link._bannerAction();
+    dismissContextBanner();
+  }
+
+  function dismissContextBanner() {
+    document.getElementById('context-banner').classList.remove('visible');
+  }
+
+  function showWhatNext(msg, actionLabel, phase, tool) {
+    _whatNextTarget = { phase, tool };
+    document.getElementById('what-next-msg').textContent = msg;
+    document.getElementById('what-next-action').textContent = actionLabel;
+    document.getElementById('what-next-bar').classList.add('visible');
+  }
+
+  function doWhatNext() {
+    document.getElementById('what-next-bar').classList.remove('visible');
+    if (_whatNextTarget?.phase) {
+      showPhase(_whatNextTarget.phase);
+      if (_whatNextTarget.tool && _whatNextTarget.tool !== PHASE_MAP[_whatNextTarget.phase]?.default) {
+        setTimeout(() => showTool(_whatNextTarget.phase, _whatNextTarget.tool), 60);
+      }
+    }
+  }
+
+  function checkFoundationComplete() {
+    const s = appData?.strategy;
+    return !!(s?.brand_statement && s?.content_pillars?.length);
+  }
+
+  function checkMachineComplete() {
+    const m = appData?.brandContext?.machine;
+    return !!(m?.monetizationPaths?.pathA?.label && m?.monetizationPaths?.pathB?.label);
+  }
+
+  function updatePhaseDots() {
+    const fd = checkFoundationComplete();
+    const mc = checkMachineComplete();
+    document.getElementById('pdot-foundation')?.classList.toggle('done', fd);
+    document.getElementById('pcard-foundation')?.classList.toggle('complete', fd);
+    document.getElementById('pdot-machine')?.classList.toggle('done', mc);
+    document.getElementById('pcard-machine')?.classList.toggle('complete', mc);
+    const badge = document.getElementById('machine-complete-badge');
+    if (badge) badge.textContent = mc ? '✓ complete' : '';
+  }
+
+  function buildMachineCTAGrid() {
+    const grid = document.getElementById('machine-cta-grid');
+    if (!grid) return;
+    const pillars = appData?.strategy?.content_pillars || [];
+    const machine = appData?.brandContext?.machine || {};
+    const ctaData = machine.ctaPerPillar || [];
+
+    if (!pillars.length) {
+      grid.innerHTML = '<div class="machine-pillar-slot" style="grid-column:1/-1;opacity:0.5"><div class="machine-pillar-name">No pillars set</div><div style="font-size:0.8rem;color:var(--text3);margin-bottom:1rem">Go to Foundation → Pillars to define your content pillars first.</div><button class="generate-btn" style="max-width:200px;margin-top:0" onclick="showPhase(\'foundation\');setTimeout(()=>showTool(\'foundation\',\'pillars\'),60)">Go to Pillars →</button></div>';
+      return;
+    }
+
+    grid.innerHTML = pillars.slice(0,3).map((p, i) => {
+      const saved = ctaData[i] || {};
+      const name = typeof p === 'string' ? p : (p.name || p.pillar || `Pillar ${i+1}`);
+      return `<div class="machine-pillar-slot">
+        <div class="machine-pillar-name">${name}</div>
+        <div class="machine-field-label" style="margin-top:0">Contextual CTA</div>
+        <textarea class="machine-input" id="cta-text-${i}" rows="2" placeholder="If you loved this post on ${name}, here's my free [resource] →">${saved.cta||''}</textarea>
+        <div class="machine-field-label">Lead magnet (free resource)</div>
+        <input class="machine-input" id="cta-magnet-${i}" placeholder="e.g. Self-regulation morning routine (Google doc)" value="${saved.magnet||''}">
+        <div class="machine-field-label">Link</div>
+        <input class="machine-input" id="cta-link-${i}" placeholder="e.g. yoursite.com/morning-routine" value="${saved.link||''}">
+      </div>`;
+    }).join('');
+
+    const paths = machine.monetizationPaths || {};
+    if (paths.pathA) {
+      const el = (id) => document.getElementById(id);
+      el('mon-path-a-label').value = paths.pathA.label || '';
+      el('mon-path-a-url').value   = paths.pathA.url   || '';
+      el('mon-path-a-desc').value  = paths.pathA.desc  || '';
+    }
+    if (paths.pathB) {
+      const el = (id) => document.getElementById(id);
+      el('mon-path-b-label').value = paths.pathB.label || '';
+      el('mon-path-b-url').value   = paths.pathB.url   || '';
+      el('mon-path-b-desc').value  = paths.pathB.desc  || '';
+    }
+  }
+
+  async function saveMachineData() {
+    if (!appData.sessionId) return;
+    const pillars = appData?.strategy?.content_pillars || [];
+    const ctaPerPillar = pillars.slice(0,3).map((p, i) => ({
+      pillar: typeof p === 'string' ? p : (p.name || p.pillar || `Pillar ${i+1}`),
+      cta:    document.getElementById(`cta-text-${i}`)?.value || '',
+      magnet: document.getElementById(`cta-magnet-${i}`)?.value || '',
+      link:   document.getElementById(`cta-link-${i}`)?.value || '',
+    }));
+    const monetizationPaths = {
+      pathA: { label: document.getElementById('mon-path-a-label')?.value||'', url: document.getElementById('mon-path-a-url')?.value||'', desc: document.getElementById('mon-path-a-desc')?.value||'' },
+      pathB: { label: document.getElementById('mon-path-b-label')?.value||'', url: document.getElementById('mon-path-b-url')?.value||'', desc: document.getElementById('mon-path-b-desc')?.value||'' },
+    };
+    if (!appData.brandContext) appData.brandContext = {};
+    appData.brandContext.machine = { ctaPerPillar, monetizationPaths };
+    try {
+      await authFetch(`/api/sessions/${appData.sessionId}/brand-context`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brandContext: appData.brandContext }),
+      });
+      showSaveIndicator();
+      updatePhaseDots();
+      if (checkMachineComplete()) showWhatNext('Machine is live. Now generate your first post.', 'Start creating →', 'create', 'generator');
+    } catch(e) { console.error('saveMachineData:', e); }
+  }
+
+  function getMachineCTAForPillar(pillarName) {
+    const ctaData = appData?.brandContext?.machine?.ctaPerPillar || [];
+    return ctaData.find(c => c.pillar && pillarName && c.pillar.toLowerCase().startsWith(pillarName.toLowerCase().substring(0,5))) || null;
+  }
+
+  function getMonetizationPathsSummary() {
+    const paths = appData?.brandContext?.machine?.monetizationPaths;
+    if (!paths) return '';
+    const parts = [];
+    if (paths.pathA?.label) parts.push('Path A: ' + paths.pathA.label);
+    if (paths.pathB?.label) parts.push('Path B: ' + paths.pathB.label);
+    return parts.join(' | ');
+  }
+
+  // Legacy compatibility — routes through phase system
+  function showTab(tabName) {
+    const phaseEntry = Object.entries(PHASE_MAP).find(([, v]) => v.tools.includes(tabName));
+    if (phaseEntry) {
+      showPhase(phaseEntry[0]);
+      if (tabName !== PHASE_MAP[phaseEntry[0]].default) setTimeout(() => showTool(phaseEntry[0], tabName), 30);
+    } else {
+      // fallback direct show
+      document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+      const tab = document.getElementById(`tab-${tabName}`);
+      if (tab) tab.style.display = 'block';
+      _showTabSideEffects(tabName);
+    }
+  }
+
   function showApp() {
     hideLoading();
     document.getElementById('upload-screen').classList.remove('active');
@@ -4823,6 +5448,13 @@
     document.getElementById('app-screen').classList.add('active');
     document.getElementById('upload-new-btn').style.display = 'block';
     setTimeout(bindAppEditing, 50);
+    // Show phase home first, then auto-navigate to Foundation
+    document.getElementById('phase-home').classList.add('visible');
+    document.getElementById('phase-content-area').classList.remove('visible');
+    setTimeout(() => {
+      showPhase('foundation');
+      updatePhaseDots();
+    }, 80);
     // Handle OAuth redirect result
     const oauthParam = new URLSearchParams(window.location.search).get('oauth');
     if (oauthParam) {
@@ -4838,7 +5470,7 @@
       const isError = oauthParam.endsWith('_failed') || oauthParam.endsWith('_denied');
       alert(msg);
       window.history.replaceState({}, '', window.location.pathname);
-      if (!isError) { showTab('review'); loadOAuthStatus(); }
+      if (!isError) { showPhase('publish'); loadOAuthStatus(); }
     }
     // Load initial review badge count
     authFetch('/api/notifications/count').then(r => r.json()).then(d => updateReviewBadge(d.pending || 0)).catch(() => {});
@@ -4854,8 +5486,15 @@
     document.getElementById('upload-new-btn').style.display = 'none';
     document.getElementById('file-input').value = '';
     ['brand-statement', 'target-audience', 'uvp'].forEach(id => document.getElementById(id).textContent = '');
-    ['voice-do', 'voice-dont', 'voice-adjectives', 'growth-tactics', 'pillars-grid', 'pillar-select-list', 'platform-strategy-grid', 'post-output'].forEach(id => document.getElementById(id).innerHTML = '');
+    ['voice-do', 'voice-dont', 'voice-adjectives', 'growth-tactics', 'pillars-grid', 'pillar-select-list', 'platform-strategy-grid', 'post-output'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
     document.getElementById('sidebar-expertise').innerHTML = '<div class="sidebar-label">Expertise</div>';
+    // Reset phase UI
+    document.getElementById('phase-home').classList.remove('visible');
+    document.getElementById('phase-content-area').classList.remove('visible');
+    document.querySelectorAll('.phase-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.phase-dot').forEach(d => d.classList.remove('done'));
+    document.querySelectorAll('.phase-card').forEach(c => c.classList.remove('complete'));
+    currentPhase = null; currentTool = null;
     showUploadScreen();
     loadSessions();
   }
@@ -6183,6 +6822,7 @@
       const post = libraryPosts.find(p => p.id === id);
       if (post) post.status = status;
       renderLibrary();
+      if (status === 'approved') showWhatNext('Post approved. Track its performance.', 'View performance →', 'analyze', 'analytics');
     } catch {}
   }
 
@@ -6469,6 +7109,7 @@
 
     renderTopology(agentMap);
     renderAgentCards(agentMap);
+    document.getElementById('automate-pulse')?.classList.toggle('active', running.length > 0);
   }
 
   function renderTopology(agentMap) {
@@ -7626,6 +8267,7 @@
       reviewIndex = Math.min(reviewIndex, Math.max(0, reviewQueue.length - 1));
       renderReviewCard();
       updateReviewBadge(reviewQueue.length);
+      showWhatNext('Post approved. Track its performance.', 'View performance →', 'analyze', 'analytics');
     } catch (err) {
       alert('Failed to approve post: ' + err.message);
     }

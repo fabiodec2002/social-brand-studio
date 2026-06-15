@@ -961,7 +961,7 @@ Return ONLY the revised post text. No explanation, no preamble.`,
 }
 
 // Generate a social post
-async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal', extraContext = null, referenceSummaries = null, styleFingerprint = null, brandContext = null, learnedRules = null) {
+async function generatePost(personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions = {}, topPosts = [], brandType = 'personal', extraContext = null, referenceSummaries = null, styleFingerprint = null, brandContext = null, learnedRules = null, machineCTA = null, monetizationPaths = null) {
   const pillarData = customTopic
     ? { name: 'Custom Topic', description: customTopic }
     : (strategy.content_pillars.find(p => p.id === pillar) || strategy.content_pillars[0]);
@@ -1241,7 +1241,7 @@ ${brandContext ? (() => {
 })() : ''}${extraContext ? `\nADDITIONAL CONTEXT FROM THE WRITER:\n${extraContext}\n\nUse this as background knowledge and voice calibration. Do not quote it directly — let it inform the specificity and perspective of what you write.\n` : ''}${referenceSummaries && referenceSummaries.length ? `\nREFERENCE MATERIALS — insights from books/articles the writer wants to draw from:\n${referenceSummaries.map(r => `[${r.title}]\n${r.summary}`).join('\n\n')}\n\nDraw on these frameworks and vocabulary where relevant. Don't cite them explicitly unless it fits naturally.\n` : ''}${styleFingerprint ? `\nSTYLE FINGERPRINT — learned from this writer's actual posts. Mirror these patterns:\n${styleFingerprint}\n` : ''}${learnedRules ? `\nLEARNED FROM THIS WRITER'S PERFORMANCE DATA — these rules come from what actually performed well vs. poorly. Follow them closely:
 ${(learnedRules.do || []).length ? `DO:\n${(learnedRules.do).map(r => `• ${r}`).join('\n')}` : ''}
 ${(learnedRules.dont || []).length ? `AVOID:\n${(learnedRules.dont).map(r => `• ${r}`).join('\n')}` : ''}
-${learnedRules.platform_notes?.[platform] ? `FOR ${platform.toUpperCase()}: ${learnedRules.platform_notes[platform]}` : ''}\n` : ''}Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
+${learnedRules.platform_notes?.[platform] ? `FOR ${platform.toUpperCase()}: ${learnedRules.platform_notes[platform]}` : ''}\n` : ''}${(machineCTA || monetizationPaths) ? `\nCONVERSION MACHINE — the post should organically lead the reader toward this:\n${machineCTA ? `Pillar CTA: ${typeof machineCTA === 'object' ? (machineCTA.ctaText || machineCTA.magnet || '') : machineCTA}` : ''}${machineCTA && (typeof machineCTA === 'object') && machineCTA.link ? ` (${machineCTA.link})` : ''}\n${monetizationPaths ? `Monetization paths: ${monetizationPaths}` : ''}\nWeave this naturally — do not paste the CTA verbatim. End the post in a way that points toward this next step without being salesy.\n` : ''}Write ONLY the post text. Nothing else — no preamble, no "here's the post:", no quotation marks around it.`
     }],
   });
 
@@ -1623,7 +1623,7 @@ const VALID_EMAIL_SUBTYPES = ['value', 'story', 'curation'];
 
 app.post('/api/generate-post', requireAuth, async (req, res) => {
   try {
-    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType, extraContext, referenceSummaries, brandContext: bodyBrandContext } = req.body;
+    const { personalityMap, strategy, platform, pillar, tone, customTopic, instagramOptions, sessionId, useAnalytics, brandType, extraContext, referenceSummaries, brandContext: bodyBrandContext, machineCTA, monetizationPaths } = req.body;
 
     if (!VALID_PLATFORMS.includes(platform)) return res.status(400).json({ error: 'Invalid platform' });
     if (tone && !VALID_TONES.includes(tone)) return res.status(400).json({ error: 'Invalid tone' });
@@ -1691,7 +1691,8 @@ app.post('/api/generate-post', requireAuth, async (req, res) => {
 
     const { post, voiceScore, voiceNote } = await generatePost(
       personalityMap, strategy, platform, pillar, tone, customTopic,
-      instagramOptions, topPosts, brandType || 'personal', safeContext, finalRefs, styleFingerprint, resolvedBrandContext, learnedRules
+      instagramOptions, topPosts, brandType || 'personal', safeContext, finalRefs, styleFingerprint, resolvedBrandContext, learnedRules,
+      machineCTA || null, typeof monetizationPaths === 'string' ? monetizationPaths : null
     );
 
     // Save to generated_posts library
