@@ -2497,6 +2497,44 @@
     }
     .carousel-add-slide-btn:hover { border-color: var(--gold); color: var(--gold); }
 
+    /* Preset template cards */
+    .carousel-presets-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .carousel-preset-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      padding: 0;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.15s;
+      text-align: left;
+    }
+    .carousel-preset-card:hover { border-color: var(--gold); transform: translateY(-1px); }
+    .carousel-preset-swatch {
+      height: 36px;
+      width: 100%;
+      position: relative;
+    }
+    .carousel-preset-info { padding: 6px 8px 8px; }
+    .carousel-preset-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.04em;
+      line-height: 1.3;
+    }
+    .carousel-preset-desc {
+      font-size: 9px;
+      color: var(--text3);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+
     /* Settings */
     .carousel-settings-grid {
       display: grid;
@@ -4256,11 +4294,13 @@
         <!-- Editor panel -->
         <div id="cpanel-editor" style="display:none">
           <div class="carousel-slides-list" id="carousel-slides-list"></div>
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-            <button class="carousel-add-slide-btn" onclick="carouselAddSlide()" style="flex:2;min-width:120px;">+ Content slide</button>
-            <button class="carousel-add-slide-btn" onclick="carouselAddQuoteSlide()" style="flex:1;min-width:100px;">❝ Quote</button>
-            <button class="carousel-add-slide-btn" onclick="carouselAddStatSlide()" style="flex:1;min-width:100px;">📊 Stat</button>
-            <button class="carousel-add-slide-btn" onclick="carouselAddCtaSlide()" style="flex:1;min-width:100px;border-color:var(--gold);color:var(--gold);">+ CTA</button>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+            <button class="carousel-add-slide-btn" onclick="carouselAddSlide()" style="flex:2;min-width:110px;">+ Content</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddSplitSlide()" style="flex:1;min-width:72px;">◫ Split</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddChecklistSlide()" style="flex:1;min-width:72px;">☑ List</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddQuoteSlide()" style="flex:1;min-width:72px;">❝ Quote</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddStatSlide()" style="flex:1;min-width:72px;">📊 Stat</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddCtaSlide()" style="flex:1;min-width:72px;border-color:var(--gold);color:var(--gold);">↗ CTA</button>
           </div>
         </div>
 
@@ -4268,6 +4308,11 @@
         <div id="cpanel-settings" style="display:none">
           <div class="carousel-settings-grid">
             <div class="carousel-settings-section">
+
+              <div style="margin-bottom:1.25rem;">
+                <div class="carousel-field-label">Start from a template</div>
+                <div class="carousel-presets-grid" id="carousel-presets-grid"></div>
+              </div>
 
               <div>
                 <div class="carousel-field-label">Theme</div>

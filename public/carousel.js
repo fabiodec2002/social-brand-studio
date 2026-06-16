@@ -18,7 +18,116 @@ const CAROUSEL_THEMES = [
   { id: 'navy',   name: 'Navy',   bg: '#0d1b2a', accent: '#4fc3f7', slideStyle: 'dark' },
   { id: 'forest', name: 'Forest', bg: '#0f1f15', accent: '#81c784', slideStyle: 'dark' },
   { id: 'rose',   name: 'Rose',   bg: '#fdf2f4', accent: '#d4647a', slideStyle: 'light' },
-  { id: 'sand',   name: 'Sand',   bg: '#f5efe6', accent: '#a0785a', slideStyle: 'light' },
+  { id: 'sand',     name: 'Sand',     bg: '#f5efe6', accent: '#a0785a', slideStyle: 'light' },
+  { id: 'electric', name: 'Electric', bg: '#1a0533', accent: '#a855f7', slideStyle: 'dark' },
+];
+
+// Named full-carousel presets — each loads a complete set of slides + settings
+const CAROUSEL_PRESETS = [
+  {
+    id: 'dark-oracle',
+    name: 'Dark Oracle',
+    description: 'Luxury dark · gold',
+    settings: { accentColor: '#c9a96e', bgColor: '#0c0c0c', slideStyle: 'dark', theme: 'dark', logoText: 'BRAND.' },
+    slides: [
+      { type: 'title', heading: 'The thing nobody tells you', subheading: "Until it's too late.", tag: 'INSIGHT', username: '@yourhandle' },
+      { type: 'content', number: '01', heading: 'Most people wait for permission', description: "They wait for someone to validate their idea, tell them it's good enough. Permission never comes.", highlight: 'Start before you\'re ready.' },
+      { type: 'content', number: '02', heading: 'The cost of waiting', description: 'Every day you wait is a day someone else builds the thing you were supposed to build.', highlight: 'Action beats perfection.' },
+      { type: 'stat', number: '92%', label: 'of ideas die waiting', context: "They never leave the note app. Don't let yours be one of them." },
+      { type: 'cta', heading: 'Save this for later.', subtext: 'Send it to someone who needs to hear this.', action: 'Follow @yourhandle for daily insights.' },
+    ],
+  },
+  {
+    id: 'clean-founder',
+    name: 'Clean Founder',
+    description: 'Minimal white · black',
+    settings: { accentColor: '#111111', bgColor: '#ffffff', slideStyle: 'light', theme: 'light', logoText: 'FOUNDER.' },
+    slides: [
+      { type: 'title', heading: '5 things I wish I knew', subheading: 'Before starting my business.', tag: '', username: '@yourname' },
+      { type: 'content', number: '01', heading: 'Revenue ≠ profit', description: 'You can make a million and lose it all to overhead. Understand your margins from day one.', highlight: 'Know your numbers.' },
+      { type: 'content', number: '02', heading: 'Your network is your net worth', description: 'The right introduction changes everything. Build relationships before you need them.', highlight: 'Invest in people.' },
+      { type: 'content', number: '03', heading: 'Done beats perfect', description: 'Shipping something imperfect and iterating is always better than waiting for the perfect version.', highlight: 'Ship and improve.' },
+      { type: 'cta', heading: 'Which hit closest?', subtext: 'Drop it in the comments.', action: 'Follow for more founder lessons.' },
+    ],
+  },
+  {
+    id: 'magazine-edit',
+    name: 'Magazine Edit',
+    description: 'Editorial · rose',
+    settings: { accentColor: '#d4647a', bgColor: '#fdf2f4', slideStyle: 'light', theme: 'rose', logoText: 'EDIT.' },
+    slides: [
+      { type: 'title', heading: 'The truth about burnout', subheading: 'No one talks about this part.', tag: '', username: '@yourname' },
+      { type: 'quote', text: "Burnout isn't about working too much. It's about working on the wrong things for too long.", attribution: '' },
+      { type: 'content', number: '01', heading: 'It sneaks up on you', description: "You don't notice burnout happening. You just stop caring — about the work, the outcomes, yourself.", highlight: 'Awareness is the first step.' },
+      { type: 'content', number: '02', heading: 'Recovery takes longer than you think', description: "A weekend off doesn't fix months of depletion. Real recovery means changing the conditions that caused it.", highlight: 'Rest is not a reward.' },
+      { type: 'cta', heading: 'Save for the moment you need it.', subtext: 'Share with someone who needs this.', action: 'Follow for more honest conversations.' },
+    ],
+  },
+  {
+    id: 'navy-brief',
+    name: 'Navy Brief',
+    description: 'Corporate authority · sky',
+    settings: { accentColor: '#4fc3f7', bgColor: '#0d1b2a', slideStyle: 'dark', theme: 'navy', logoText: 'BRIEF.' },
+    slides: [
+      { type: 'title', heading: 'How top performers think differently', subheading: 'A 5-point framework.', tag: 'FRAMEWORK', username: '@yourhandle' },
+      { type: 'stat', number: '10×', label: 'output gap', context: 'Between average and elite performers — not from talent, but from how they structure their thinking.' },
+      { type: 'content', number: '01', heading: 'They work on the right problems', description: "High performers don't work harder — they work on higher-leverage problems. The 20% that drives 80% of results.", highlight: 'Leverage, not effort.' },
+      { type: 'content', number: '02', heading: 'They say no more than yes', description: 'Every yes to something good is a no to something great. Ruthless prioritization creates space for excellence.', highlight: 'Protect your time ruthlessly.' },
+      { type: 'cta', heading: 'Forward this to your team.', subtext: 'These frameworks work.', action: 'Follow @yourhandle for weekly strategy frameworks.' },
+    ],
+  },
+  {
+    id: 'warm-story',
+    name: 'Warm Story',
+    description: 'Coaching · warm earth',
+    settings: { accentColor: '#c2714f', bgColor: '#f5efe6', slideStyle: 'light', theme: 'sand', logoText: 'STORY.' },
+    slides: [
+      { type: 'title', heading: 'A year ago I was exhausted', subheading: "Here's what changed everything.", tag: '', username: '@yourname' },
+      { type: 'quote', text: "You don't need more motivation. You need a better system.", attribution: '' },
+      { type: 'checklist', heading: 'What I changed', items: ['Set 3 non-negotiables each morning', 'Blocked 2 hours of deep work before 10am', 'Said no to 80% of requests', 'Reviewed my priorities every Sunday'] },
+      { type: 'content', number: '01', heading: 'The result?', description: 'Less hustle, more output. More peace, better work. It was a system built around my energy.', highlight: 'Structure creates freedom.' },
+      { type: 'cta', heading: 'Save this if you needed it.', subtext: "Share with someone who's running on empty.", action: 'Follow for more real conversations.' },
+    ],
+  },
+  {
+    id: 'bold-framework',
+    name: 'Bold Framework',
+    description: 'How-to · orange',
+    settings: { accentColor: '#ff6b35', bgColor: '#ffffff', slideStyle: 'light', theme: 'light', logoText: 'METHOD.' },
+    slides: [
+      { type: 'title', heading: 'Write better content in 3 steps', subheading: 'The exact framework I use daily.', tag: 'FRAMEWORK', username: '@yourhandle' },
+      { type: 'content', number: '01', heading: 'Start with the insight, not the topic', description: "Don't write about \"marketing.\" Write about the one counterintuitive thing you believe that others don't.", highlight: 'Specific beats generic.' },
+      { type: 'content', number: '02', heading: 'Write the ending first', description: 'What do you want them to feel or do after reading? Write that last line first. Let it guide everything else.', highlight: 'Work backwards.' },
+      { type: 'content', number: '03', heading: 'Cut the first paragraph', description: 'Your real opening is almost never your first paragraph. Delete it and see if the next one is stronger. It usually is.', highlight: 'When in doubt, cut.' },
+      { type: 'cta', heading: 'Save this for your next writing session.', subtext: 'Tag someone who needs this framework.', action: 'Follow @yourhandle for more writing frameworks.' },
+    ],
+  },
+  {
+    id: 'emerald-authority',
+    name: 'Emerald Auth.',
+    description: 'Premium dark · sage',
+    settings: { accentColor: '#7ba05b', bgColor: '#0f1f15', slideStyle: 'dark', theme: 'forest', logoText: 'AUTHORITY.' },
+    slides: [
+      { type: 'title', heading: 'Why most strategies fail', subheading: "And how to build one that doesn't.", tag: 'STRATEGY', username: '@yourhandle' },
+      { type: 'content', number: '01', heading: "They're built on assumptions", description: "Most strategies are based on what the team wants to be true, not what's actually happening in the market.", highlight: 'Test before you scale.' },
+      { type: 'stat', number: '67%', label: 'strategies fail', context: "Not because they're bad ideas — because they were never validated against real customer behavior." },
+      { type: 'content', number: '02', heading: 'Build feedback loops early', description: 'Successful strategies are designed to be wrong and corrected quickly. Measure from the start, not as an afterthought.', highlight: 'Measure to improve.' },
+      { type: 'cta', heading: 'Save this to your strategy folder.', subtext: 'Share with your team.', action: 'Follow @yourhandle for weekly strategy insights.' },
+    ],
+  },
+  {
+    id: 'neon-signal',
+    name: 'Neon Signal',
+    description: 'High-energy · neon',
+    settings: { accentColor: '#39FF14', bgColor: '#0a0a0a', slideStyle: 'dark', theme: 'dark', logoText: 'SIGNAL.' },
+    slides: [
+      { type: 'title', heading: 'Hard truth about growth', subheading: "Most people don't want to hear this.", tag: 'GROWTH', username: '@yourhandle' },
+      { type: 'content', number: '01', heading: 'Consistency is boring and essential', description: 'Not one viral post. Not one big launch. Daily, boring, consistent effort compounded over time. That\'s the game.', highlight: 'Boring wins.' },
+      { type: 'content', number: '02', heading: 'Your biggest competitor is distraction', description: 'You have the ideas. You have the skills. What kills most creators is the inability to focus long enough to execute.', highlight: 'Focus is the skill.' },
+      { type: 'stat', number: '18mo', label: 'to real traction', context: "Most creators quit at month 3. The ones who make it are the ones who stayed." },
+      { type: 'cta', heading: 'Save this for the hard days.', subtext: 'Send to a creator friend who needs it.', action: 'Follow @yourhandle for real growth talk.' },
+    ],
+  },
 ];
 
 let carouselState = {
@@ -88,6 +197,7 @@ function carouselInit() {
   carouselLoadAvatar();
   _carouselBuildColorPresets();
   carouselBuildThemeSelector();
+  carouselBuildPresetGrid();
   carouselUpdatePreview();
   carouselRenderEditor();
 }
@@ -117,9 +227,11 @@ function _carouselBuildSlideHTML(slide, idx) {
   const total = carouselState.slides.length;
   const style = carouselState.slideStyle;
 
-  // New layout types (work in both styles)
-  if (slide.type === 'quote') return _carouselBuildQuoteHTML(slide, style);
-  if (slide.type === 'stat')  return _carouselBuildStatHTML(slide, style);
+  // Layout types (work in both styles)
+  if (slide.type === 'quote')     return _carouselBuildQuoteHTML(slide, style);
+  if (slide.type === 'stat')      return _carouselBuildStatHTML(slide, style);
+  if (slide.type === 'split')     return _carouselBuildSplitHTML(slide);
+  if (slide.type === 'checklist') return _carouselBuildChecklistHTML(slide);
 
   if (style === 'light') {
     if (slide.type === 'title') return _carouselBuildLightTitleHTML(slide);
@@ -191,6 +303,82 @@ function _carouselBuildStatHTML(slide) {
     <div style="width:64px;height:4px;background:${accentColor};margin:0 auto 16px;border-radius:2px;"></div>
     <div style="font-size:18px;font-weight:700;color:${accentColor};letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;">${_esc(slide.label || '')}</div>
     ${slide.context ? `<div style="font-size:13px;color:${subColor};line-height:1.6;max-width:340px;margin:0 auto;">${_escMultiline(slide.context)}</div>` : ''}
+  </div>
+  <div style="position:absolute;bottom:28px;right:28px;font-size:11px;color:${subColor};">${_esc(username)}</div>
+  ${siteHtml}
+</div>`;
+}
+
+// ─── Split layout slide ───────────────────────────────────────────────────────
+
+function _carouselBuildSplitHTML(slide) {
+  const { accentColor, bgColor, slideStyle, logoText, websiteUrl } = carouselState;
+  const isLight = slideStyle === 'light';
+  const textBg = isLight ? (bgColor === '#0a0a0a' ? '#ffffff' : bgColor) : bgColor;
+  const textColor = isLight ? '#111111' : '#ffffff';
+  const subColor = isLight ? '#555555' : 'rgba(255,255,255,0.65)';
+  const logo = logoText || 'BRAND.';
+  const site = websiteUrl || '';
+  const halfW = Math.floor(SLIDE_W / 2); // 270px each half
+
+  const watermarkHtml = slide.number
+    ? `<div style="position:absolute;bottom:-16px;right:-10px;font-size:150px;font-weight:900;color:rgba(0,0,0,0.1);line-height:1;pointer-events:none;user-select:none;">${_esc(slide.number)}</div>`
+    : '';
+
+  const highlightHtml = slide.highlight
+    ? `<div style="font-size:12px;color:${accentColor};font-weight:700;margin-top:14px;padding-top:12px;border-top:1.5px solid ${accentColor}44;line-height:1.5;letter-spacing:0.02em;">${_esc(slide.highlight)}</div>`
+    : '';
+
+  const siteHtml = site
+    ? `<div style="position:absolute;bottom:20px;left:12px;font-size:10px;color:${subColor};font-style:italic;">${_esc(site)}</div>`
+    : '';
+
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;position:relative;overflow:hidden;font-family:${SLIDE_FONT};display:flex;">
+  <div style="width:${halfW}px;min-width:${halfW}px;height:${SLIDE_H}px;background:${accentColor};position:relative;overflow:hidden;">
+    ${watermarkHtml}
+    <div style="position:absolute;top:20px;left:14px;font-size:11px;font-weight:900;color:rgba(0,0,0,0.3);letter-spacing:0.06em;">${_esc(logo)}</div>
+  </div>
+  <div style="width:${halfW}px;min-width:${halfW}px;height:${SLIDE_H}px;background:${textBg};position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:40px 28px 40px 24px;box-sizing:border-box;">
+    <div style="font-size:21px;font-weight:800;color:${textColor};line-height:1.25;letter-spacing:-0.4px;margin-bottom:12px;">${_esc(slide.heading || '')}</div>
+    <div style="font-size:13px;color:${subColor};line-height:1.65;">${_escMultiline(slide.description || '')}</div>
+    ${highlightHtml}
+    ${siteHtml}
+  </div>
+</div>`;
+}
+
+// ─── Checklist slide ──────────────────────────────────────────────────────────
+
+function _carouselBuildChecklistHTML(slide) {
+  const { accentColor, bgColor, slideStyle, logoText, websiteUrl } = carouselState;
+  const isLight = slideStyle === 'light';
+  const bg = isLight ? (bgColor === '#0a0a0a' ? '#ffffff' : bgColor) : bgColor;
+  const textColor = isLight ? '#111111' : '#ffffff';
+  const subColor = isLight ? '#555555' : 'rgba(255,255,255,0.65)';
+  const dividerColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)';
+  const logo = logoText || 'BRAND.';
+  const site = websiteUrl || '';
+  const items = Array.isArray(slide.items) ? slide.items.slice(0, 5) : [];
+  const username = (carouselState.slides[0]?.username) || '@yourhandle';
+
+  const itemsHtml = items.map(item =>
+    `<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid ${dividerColor};">
+      <div style="width:14px;height:14px;min-width:14px;background:${accentColor};border-radius:2px;margin-top:2px;flex-shrink:0;"></div>
+      <div style="font-size:14px;color:${textColor};line-height:1.5;font-weight:500;">${_esc(item)}</div>
+    </div>`
+  ).join('');
+
+  const siteHtml = site
+    ? `<div style="position:absolute;bottom:28px;left:40px;font-size:11px;color:${subColor};font-style:italic;">${_esc(site)}</div>`
+    : '';
+
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:${bg};position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
+  <div style="position:absolute;top:22px;right:28px;font-size:14px;font-weight:900;color:${accentColor};letter-spacing:-0.3px;">${_esc(logo)}</div>
+  <div style="position:absolute;left:40px;right:40px;top:72px;bottom:80px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="font-size:22px;font-weight:800;color:${textColor};line-height:1.25;letter-spacing:-0.3px;margin-bottom:18px;">${_esc(slide.heading || '')}</div>
+    <div style="border-top:1px solid ${dividerColor};">
+      ${itemsHtml}
+    </div>
   </div>
   <div style="position:absolute;bottom:28px;right:28px;font-size:11px;color:${subColor};">${_esc(username)}</div>
   ${siteHtml}
@@ -370,16 +558,30 @@ function _carouselBuildContentHTML(slide, idx, total) {
        </div>`
     : '';
 
+  // Large faint watermark number — defines "premium" depth on dark slides
+  const watermarkHtml = slide.number
+    ? `<div style="position:absolute;bottom:28px;right:12px;font-size:140px;font-weight:900;color:rgba(255,255,255,0.04);line-height:1;pointer-events:none;user-select:none;">${_esc(slide.number)}</div>`
+    : '';
+
+  // Segmented progress bar at the bottom edge
+  const segW = Math.floor(SLIDE_W / total);
+  const progressSegs = Array.from({ length: total }, (_, i) => {
+    const bg = i < idx + 1 ? accentColor : `${accentColor}28`;
+    return `<div style="width:${segW}px;height:100%;background:${bg};"></div>`;
+  }).join('');
+
   return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;position:relative;overflow:hidden;font-family:${SLIDE_FONT};background:${bgColor};">
+  ${watermarkHtml}
   <div style="position:absolute;top:22px;right:28px;font-size:11px;color:rgba(255,255,255,0.18);letter-spacing:0.08em;">${counter}</div>
-  <div style="position:absolute;left:40px;right:40px;top:72px;bottom:100px;display:flex;flex-direction:column;justify-content:center;">
+  <div style="position:absolute;left:40px;right:40px;top:72px;bottom:110px;display:flex;flex-direction:column;justify-content:center;">
     <div style="font-size:12px;font-weight:700;color:${accentColor};letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">${_esc(slide.number || '')}</div>
     <h2 style="font-size:28px;font-weight:800;color:#fff;line-height:1.25;margin:0 0 16px;letter-spacing:-0.3px;">${_esc(slide.heading || '')}</h2>
     ${imgHtml}
     <p style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.65;margin:0;">${_escMultiline(slide.description || '')}</p>
     ${highlightHtml}
   </div>
-  <div style="position:absolute;bottom:28px;left:40px;right:40px;display:flex;align-items:center;gap:8px;">${_carouselAvatarHTML(30)}<span style="font-size:12px;color:rgba(255,255,255,0.7);">${_esc(username)}</span><span style="color:#1d9bf0;font-size:14px;font-weight:bold;">✓</span></div>
+  <div style="position:absolute;bottom:38px;left:40px;right:40px;display:flex;align-items:center;gap:8px;">${_carouselAvatarHTML(30)}<span style="font-size:12px;color:rgba(255,255,255,0.7);">${_esc(username)}</span><span style="color:#1d9bf0;font-size:14px;font-weight:bold;">✓</span></div>
+  <div style="position:absolute;bottom:0;left:0;right:0;height:8px;display:flex;overflow:hidden;">${progressSegs}</div>
 </div>`;
 }
 
@@ -697,7 +899,7 @@ function _escContent(str) {
 
 function _carouselSlideItemHTML(slide, i) {
   const total = carouselState.slides.length;
-  const typeLabels = { title: '🖼', content: '📋', cta: '↗', quote: '❝', stat: '📊' };
+  const typeLabels = { title: '🖼', content: '📋', cta: '↗', quote: '❝', stat: '📊', split: '◫', checklist: '☑' };
   const typeLabel = typeLabels[slide.type] || '▪';
   const previewText = slide.heading || slide.text || slide.number || `Slide ${i + 1}`;
   const label = `${typeLabel} ${_esc(previewText)}`;
@@ -764,6 +966,42 @@ function _carouselSlideItemHTML(slide, i) {
        <div class="carousel-field">
          <label class="carousel-field-label">Context (1–2 sentences)</label>
          <textarea oninput="carouselUpdateField(${i},'context',this.value)">${_escContent(slide.context || '')}</textarea>
+       </div>
+       <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
+  } else if (slide.type === 'split') {
+    fields = `<div class="carousel-field">
+         <label class="carousel-field-label">Slide number (decorative)</label>
+         <input type="text" value="${_escAttr(slide.number || '')}" placeholder="e.g. 01" oninput="carouselUpdateField(${i},'number',this.value)">
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Heading</label>
+         <input type="text" value="${_escAttr(slide.heading || '')}" oninput="carouselUpdateField(${i},'heading',this.value)">
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Description</label>
+         <textarea oninput="carouselUpdateField(${i},'description',this.value)">${_escContent(slide.description || '')}</textarea>
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Highlight phrase (optional)</label>
+         <input type="text" value="${_escAttr(slide.highlight || '')}" placeholder="Key takeaway" oninput="carouselUpdateField(${i},'highlight',this.value)">
+       </div>
+       <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
+  } else if (slide.type === 'checklist') {
+    const items = Array.isArray(slide.items) ? slide.items : [];
+    const itemRows = items.map((item, j) =>
+      `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+        <input type="text" value="${_escAttr(item)}" style="flex:1;" oninput="carouselUpdateChecklistItem(${i},${j},this.value)" placeholder="Item ${j + 1}">
+        ${items.length > 1 ? `<button class="carousel-img-btn danger" onclick="carouselRemoveChecklistItem(${i},${j})" style="padding:4px 8px;font-size:11px;min-width:28px;">✕</button>` : ''}
+      </div>`
+    ).join('');
+    fields = `<div class="carousel-field">
+         <label class="carousel-field-label">Heading</label>
+         <input type="text" value="${_escAttr(slide.heading || '')}" oninput="carouselUpdateField(${i},'heading',this.value)">
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Items (max 5)</label>
+         ${itemRows}
+         ${items.length < 5 ? `<button class="carousel-img-btn" onclick="carouselAddChecklistItem(${i})" style="margin-top:4px;">+ Add item</button>` : ''}
        </div>
        <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
   } else {
@@ -914,6 +1152,116 @@ function carouselAddStatSlide() {
   carouselUpdatePreview();
   carouselSaveTemplate();
   setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
+}
+
+function carouselAddSplitSlide() {
+  const splitCount = carouselState.slides.filter(s => s.type === 'split').length;
+  carouselState.slides.push({
+    type: 'split',
+    number: String(splitCount + 1).padStart(2, '0'),
+    heading: 'Key insight',
+    description: 'Add your point here. Keep it focused — one idea per slide.',
+    highlight: '',
+  });
+  carouselRenderEditor();
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+  setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
+}
+
+function carouselAddChecklistSlide() {
+  carouselState.slides.push({
+    type: 'checklist',
+    heading: 'What to do',
+    items: ['First action item', 'Second action item', 'Third action item'],
+  });
+  carouselRenderEditor();
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+  setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
+}
+
+function carouselUpdateChecklistItem(slideIdx, itemIdx, value) {
+  const slide = carouselState.slides[slideIdx];
+  if (!slide || !Array.isArray(slide.items)) return;
+  slide.items[itemIdx] = value;
+  carouselState.currentSlide = slideIdx;
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+}
+
+function carouselAddChecklistItem(slideIdx) {
+  const slide = carouselState.slides[slideIdx];
+  if (!slide || !Array.isArray(slide.items) || slide.items.length >= 5) return;
+  slide.items.push('New item');
+  carouselState.currentSlide = slideIdx;
+  carouselRenderEditor();
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+  setTimeout(() => {
+    const item = document.getElementById(`cslide-item-${slideIdx}`);
+    if (item && !item.classList.contains('open')) carouselToggleSlideItem(slideIdx);
+  }, 50);
+}
+
+function carouselRemoveChecklistItem(slideIdx, itemIdx) {
+  const slide = carouselState.slides[slideIdx];
+  if (!slide || !Array.isArray(slide.items) || slide.items.length <= 1) return;
+  slide.items.splice(itemIdx, 1);
+  carouselState.currentSlide = slideIdx;
+  carouselRenderEditor();
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+  setTimeout(() => {
+    const item = document.getElementById(`cslide-item-${slideIdx}`);
+    if (item && !item.classList.contains('open')) carouselToggleSlideItem(slideIdx);
+  }, 50);
+}
+
+// ─── Preset templates ─────────────────────────────────────────────────────────
+
+function carouselBuildPresetGrid() {
+  const grid = document.getElementById('carousel-presets-grid');
+  if (!grid) return;
+  grid.innerHTML = CAROUSEL_PRESETS.map(p => {
+    const s = p.settings;
+    return `<button class="carousel-preset-card" onclick="carouselLoadPreset('${p.id}')" title="${p.name}">
+      <div class="carousel-preset-swatch" style="background:${s.bgColor};">
+        <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:${s.accentColor};"></div>
+      </div>
+      <div class="carousel-preset-info">
+        <div class="carousel-preset-name">${p.name}</div>
+        <div class="carousel-preset-desc">${p.description}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function carouselLoadPreset(presetId) {
+  const preset = CAROUSEL_PRESETS.find(p => p.id === presetId);
+  if (!preset) return;
+  if (!confirm(`Load "${preset.name}" template? This will replace your current slides.`)) return;
+  carouselState.slides = preset.slides.map(s => {
+    const copy = { ...s };
+    if (Array.isArray(s.items)) copy.items = [...s.items];
+    return copy;
+  });
+  carouselState.currentSlide = 0;
+  const s = preset.settings;
+  carouselState.theme = s.theme || 'dark';
+  carouselSetAccent(s.accentColor, false, true);
+  carouselSetBg(s.bgColor, false, true);
+  carouselSetStyle(s.slideStyle, true);
+  if (s.logoText !== undefined) {
+    carouselState.logoText = s.logoText;
+    const el = document.getElementById('carousel-logo-text');
+    if (el) el.value = s.logoText;
+  }
+  carouselBuildThemeSelector();
+  carouselUpdatePreview();
+  carouselRenderEditor();
+  carouselSwitchTab('preview');
+  carouselSaveTemplate();
 }
 
 // ─── Theme selector ───────────────────────────────────────────────────────────
