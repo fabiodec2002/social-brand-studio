@@ -2981,6 +2981,500 @@
       .phase-nav { padding: 0 0.75rem; }
       .phase-subnav { padding: 0.5rem 1rem; }
     }
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     SIDEBAR NAVIGATION v2 — overrides old phase-nav system
+  ═══════════════════════════════════════════════════════════════════════ */
+
+  /* Layout overrides */
+  #app-screen { display: flex !important; flex-direction: row !important; height: 100vh !important; overflow: hidden !important; }
+  #phase-nav  { display: none !important; }
+  #phase-home { display: none !important; }
+
+  /* ── App Sidebar ───────────────────────────────────────────────────── */
+  .app-sidebar {
+    flex: 0 0 240px;
+    width: 240px;
+    height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    scrollbar-width: none;
+  }
+  .app-sidebar::-webkit-scrollbar { display: none; }
+
+  .sidebar-logo-area {
+    padding: 1.5rem 1.25rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .sidebar-logo-wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.15rem;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .sidebar-logo-wordmark em { color: var(--gold); font-style: italic; }
+  .sidebar-logo-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.18em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 0.5rem 0;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .sidebar-nav::-webkit-scrollbar { display: none; }
+
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.25rem;
+    cursor: pointer;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.15s, background 0.15s;
+    position: relative;
+    border-left: 2px solid transparent;
+    user-select: none;
+    border-bottom: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    outline: none;
+  }
+  .sidebar-nav-item:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
+  .sidebar-nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,169,110,0.08); }
+  .sidebar-nav-item svg {
+    width: 14px; height: 14px;
+    flex-shrink: 0;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.9;
+  }
+  .sidebar-nav-label { flex: 1; }
+  .sidebar-nav-badge {
+    font-size: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-weight: 700;
+    padding: 0.1rem 0.35rem;
+    border-radius: 20px;
+    background: var(--gold);
+    color: #0c0c0b;
+    line-height: 1.4;
+    min-width: 16px;
+    text-align: center;
+  }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 0.4rem 1.25rem; }
+
+  /* Inline sub-navigation */
+  .sidebar-subnav {
+    display: none;
+    flex-direction: column;
+    background: rgba(0,0,0,0.12);
+  }
+  .sidebar-subnav.open { display: flex; }
+
+  .sidebar-subnav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1.25rem 0.45rem 2.6rem;
+    cursor: pointer;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    transition: color 0.15s, background 0.15s;
+    border-left: 2px solid transparent;
+    user-select: none;
+  }
+  .sidebar-subnav-item:hover { color: var(--text2); background: rgba(255,255,255,0.02); }
+  .sidebar-subnav-item.active { color: var(--gold); border-left-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.05); }
+  .sidebar-subnav-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: 0.6; }
+
+  /* Bottom section */
+  .sidebar-bottom {
+    border-top: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    flex-shrink: 0;
+  }
+  .sidebar-session-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .sidebar-session-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.88rem;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+  .sidebar-session-switch {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 0.28rem 0.55rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+  .sidebar-session-switch:hover { border-color: var(--gold); color: var(--gold); }
+  .sidebar-user-email {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.57rem;
+    color: var(--text3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.4rem;
+  }
+  .sidebar-logout {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .sidebar-logout:hover { color: var(--text2); }
+
+  /* ── App Main ──────────────────────────────────────────────────────── */
+  .app-main {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--bg);
+  }
+
+  /* ── Section Header ─────────────────────────────────────────────────── */
+  .section-header {
+    padding: 1.75rem 2.5rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .section-header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.52rem;
+    letter-spacing: 0.16em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+  .section-header-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.9rem;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 0.3rem;
+  }
+  .section-header-sub {
+    font-size: 0.8rem;
+    color: var(--text3);
+    line-height: 1.5;
+    max-width: 460px;
+  }
+  .section-header-action {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.55rem 1.1rem;
+    background: var(--gold);
+    color: #0c0c0b;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .section-header-action:hover { background: var(--gold2); }
+
+  /* ── Dashboard ──────────────────────────────────────────────────────── */
+  #section-dashboard {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+  }
+  #section-dashboard.visible { display: flex; }
+
+  .dashboard-content {
+    padding: 2rem 2.5rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .dashboard-greeting {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    margin-bottom: 0.25rem;
+    color: var(--text);
+  }
+  .dashboard-greeting em { color: var(--gold); font-style: italic; }
+  .dashboard-sub { font-size: 0.8rem; color: var(--text3); margin-bottom: 1.75rem; }
+
+  .dashboard-stats { display: flex; gap: 0.85rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .dash-stat-card {
+    flex: 1; min-width: 120px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+  }
+  .dash-stat-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+  .dash-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+  }
+
+  .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .dash-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.65rem;
+  }
+
+  .dash-quick-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+  .dash-quick-action {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1.1rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .dash-quick-action:hover { border-color: var(--gold); transform: translateX(2px); color: var(--gold); }
+  .dash-quick-action .arrow { color: var(--gold); }
+
+  .dash-recent-posts { display: flex; flex-direction: column; gap: 0.6rem; }
+  .dash-recent-post {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+  }
+  .dash-recent-post-meta { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.35rem; }
+  .dash-recent-post-platform {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.12rem 0.4rem;
+    border-radius: 3px;
+    background: rgba(201,169,110,0.1);
+    color: var(--gold);
+    border: 1px solid rgba(201,169,110,0.2);
+  }
+  .dash-recent-post-preview {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .dash-system-status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.1rem;
+    background: rgba(139,92,246,0.06);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 6px;
+  }
+  .dash-system-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--neon-violet); animation: pulse 2s ease-in-out infinite; flex-shrink: 0; }
+  .dash-system-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; color: var(--neon-violet); text-transform: uppercase; flex: 1; }
+  .dash-system-value { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text2); }
+
+  /* ── Section Settings ───────────────────────────────────────────────── */
+  #section-settings {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+  }
+  #section-settings.visible { display: flex; }
+  .settings-content { padding: 2rem 2.5rem; max-width: 540px; }
+  .settings-group { margin-bottom: 2rem; }
+  .settings-group-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-value { font-size: 0.88rem; color: var(--text2); margin-bottom: 0.5rem; }
+  .settings-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.9rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text3);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .settings-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .settings-oauth-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
+  .settings-oauth-label { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); flex: 1; }
+  .settings-oauth-status { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text3); }
+  .settings-oauth-status.connected { color: #10b981; }
+
+  /* ── Generator split panel override ────────────────────────────────── */
+  .generator-layout {
+    display: grid !important;
+    grid-template-columns: 320px 1fr !important;
+    gap: 0 !important;
+    min-height: calc(100vh - 180px);
+  }
+  .generator-controls {
+    overflow-y: auto;
+    padding: 1.5rem;
+    border-right: 1px solid var(--border);
+    background: var(--bg2);
+    height: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  #post-output {
+    overflow-y: auto;
+    padding: 1.5rem;
+    height: 100%;
+    background: var(--bg);
+  }
+
+  /* ── Toast system ───────────────────────────────────────────────────── */
+  #toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    pointer-events: none;
+  }
+  .toast {
+    min-width: 240px;
+    max-width: 360px;
+    padding: 0.8rem 1rem;
+    border-radius: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    line-height: 1.5;
+    border: 1px solid transparent;
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    animation: toastSlideUp 0.3s ease forwards;
+  }
+  .toast-icon { flex-shrink: 0; opacity: 0.9; font-size: 0.8rem; }
+  .toast.toast-success { background: rgba(201,169,110,0.12); border-color: rgba(201,169,110,0.3); color: var(--gold2); }
+  .toast.toast-error   { background: rgba(139,0,0,0.15);    border-color: rgba(248,113,113,0.3); color: #f87171; }
+  .toast.toast-info    { background: rgba(255,255,255,0.05); border-color: var(--border);          color: var(--text2); }
+  .toast.toast-fade-out { animation: toastFadeOut 0.35s ease forwards; }
+  @keyframes toastSlideUp  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastFadeOut  { from { opacity: 1; transform: translateY(0);    } to { opacity: 0; transform: translateY(-8px); } }
+
+  /* ── Responsive: icon-only sidebar at <768px ────────────────────────── */
+  @media (max-width: 768px) {
+    .app-sidebar { flex: 0 0 50px; width: 50px; }
+    .sidebar-logo-area { padding: 0.75rem 0; text-align: center; }
+    .sidebar-logo-wordmark, .sidebar-logo-sub { display: none; }
+    .sidebar-nav-item { padding: 0.7rem; justify-content: center; }
+    .sidebar-nav-label, .sidebar-subnav, .sidebar-bottom { display: none; }
+    .sidebar-nav-item svg { width: 17px; height: 17px; }
+    .sidebar-nav-badge { position: absolute; top: 5px; right: 5px; min-width: 14px; font-size: 0.45rem; }
+    .section-header { padding: 1.25rem 1.25rem 1rem; }
+    .section-header-title { font-size: 1.5rem; }
+    .dashboard-content { padding: 1.25rem; }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .generator-layout { grid-template-columns: 1fr !important; min-height: auto; }
+    .generator-controls { height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    #post-output { height: auto; }
+  }
+
   </style>
 </head>
 <body>
@@ -3089,7 +3583,135 @@
   <!-- App Screen -->
   <div class="screen" id="app-screen">
 
-    <!-- Sidebar (hidden — kept for legacy JS references) -->
+    <!-- ── New Sidebar ─────────────────────────────────────────────── -->
+    <aside class="app-sidebar" id="app-sidebar">
+
+      <div class="sidebar-logo-area">
+        <div class="sidebar-logo-wordmark">Social <em>Brand</em> Studio</div>
+        <div class="sidebar-logo-sub">AI Content Engine</div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebar-nav">
+
+        <!-- Dashboard -->
+        <div class="sidebar-nav-item" id="snav-dashboard" onclick="showSection('dashboard')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span class="sidebar-nav-label">Dashboard</span>
+        </div>
+
+        <!-- Brand -->
+        <div class="sidebar-nav-item" id="snav-brand" onclick="showSection('brand')">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <span class="sidebar-nav-label">Brand</span>
+        </div>
+        <div class="sidebar-subnav" id="ssubnav-brand">
+          <div class="sidebar-subnav-item" id="ssub-strategy" onclick="showSection('brand');showTool('foundation','strategy')">
+            <span class="sidebar-subnav-dot"></span>Brand Identity
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-pillars" onclick="showSection('brand');showTool('foundation','pillars')">
+            <span class="sidebar-subnav-dot"></span>Pillars
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-platforms" onclick="showSection('brand');showTool('foundation','platforms')">
+            <span class="sidebar-subnav-dot"></span>Platform Guide
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-machine" onclick="showSection('brand');showTool('machine','machine')">
+            <span class="sidebar-subnav-dot"></span>CTA Machine
+          </div>
+        </div>
+
+        <!-- Create -->
+        <div class="sidebar-nav-item" id="snav-create" onclick="showSection('create')">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span class="sidebar-nav-label">Create</span>
+        </div>
+        <div class="sidebar-subnav" id="ssubnav-create">
+          <div class="sidebar-subnav-item" id="ssub-generator" onclick="showTool('create','generator')">
+            <span class="sidebar-subnav-dot"></span>Generate Post
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-ideas" onclick="showTool('create','ideas')">
+            <span class="sidebar-subnav-dot"></span>Idea Bank
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-hooks" onclick="showTool('create','hooks')">
+            <span class="sidebar-subnav-dot"></span>Hooks
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-remake" onclick="showTool('create','remake')">
+            <span class="sidebar-subnav-dot"></span>Viral Trends
+          </div>
+        </div>
+
+        <!-- Library -->
+        <div class="sidebar-nav-item" id="snav-library" onclick="showSection('library')">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="sidebar-nav-label">Library</span>
+          <span class="sidebar-nav-badge" id="sidebar-review-badge" style="display:none">0</span>
+        </div>
+        <div class="sidebar-subnav" id="ssubnav-library">
+          <div class="sidebar-subnav-item" id="ssub-review" onclick="showTool('publish','review')">
+            <span class="sidebar-subnav-dot"></span>Review Queue
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-library" onclick="showTool('publish','library')">
+            <span class="sidebar-subnav-dot"></span>All Posts
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="sidebar-nav-item" id="snav-insights" onclick="showSection('insights')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="sidebar-nav-label">Insights</span>
+        </div>
+        <div class="sidebar-subnav" id="ssubnav-insights">
+          <div class="sidebar-subnav-item" id="ssub-analytics" onclick="showTool('analyze','analytics')">
+            <span class="sidebar-subnav-dot"></span>Performance
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-brain-diary" onclick="showTool('analyze','brain-diary')">
+            <span class="sidebar-subnav-dot"></span>Brain Diary
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-pipeline" onclick="showTool('analyze','pipeline')">
+            <span class="sidebar-subnav-dot"></span>Feedback Loop
+          </div>
+        </div>
+
+        <!-- Automate -->
+        <div class="sidebar-nav-item" id="snav-automate" onclick="showSection('automate')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          <span class="sidebar-nav-label">Automate</span>
+        </div>
+        <div class="sidebar-subnav" id="ssubnav-automate">
+          <div class="sidebar-subnav-item" id="ssub-agents" onclick="showTool('automate','agents')">
+            <span class="sidebar-subnav-dot"></span>Agents
+          </div>
+          <div class="sidebar-subnav-item" id="ssub-metaverse" onclick="showTool('automate','metaverse')">
+            <span class="sidebar-subnav-dot"></span>Agent Office
+          </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Settings -->
+        <div class="sidebar-nav-item" id="snav-settings" onclick="showSection('settings')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="sidebar-nav-label">Settings</span>
+        </div>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-session-label">Current session</div>
+        <div class="sidebar-session-name" id="sidebar-session-name">—</div>
+        <button class="sidebar-session-switch" onclick="resetToUpload()">Switch session</button>
+        <div class="sidebar-user-email" id="sidebar-user-email-display"></div>
+        <button class="sidebar-logout" onclick="logout()">Sign out</button>
+      </div>
+
+    </aside>
+
+    <!-- Toast container (fixed, global) -->
+    <div id="toast-container"></div>
+
+    <!-- ── App Main ─────────────────────────────────────────────────── -->
+    <div class="app-main" id="app-main">
+
+    <!-- Legacy sidebar refs preserved for JS compatibility (hidden) -->
     <div class="sidebar" style="display:none">
       <div class="sidebar-section" id="sidebar-expertise"><div class="sidebar-label">Expertise</div></div>
       <div class="sidebar-section"><div class="brand-statement" id="sidebar-brand-statement"></div><span class="brand-badge" id="sidebar-brand-badge" style="display:none"></span></div>
@@ -3110,6 +3732,102 @@
       <div class="nav-item" id="nav-analytics"></div>
       <span class="nav-live-pill" id="nav-live-pill"></span>
       <span class="nav-live-pill" id="nav-live-pill-2"></span>
+    </div>
+
+    <!-- ── Dashboard Section ───────────────────────────────────────── -->
+    <div id="section-dashboard">
+      <div class="section-header">
+        <div class="section-header-left">
+          <div class="section-header-eyebrow">Overview</div>
+          <div class="section-header-title" id="dash-greeting-title">Dashboard</div>
+          <div class="section-header-sub">Here's where your brand stands today.</div>
+        </div>
+        <button class="section-header-action" onclick="showSection('create');showTool('create','generator')">Generate Post →</button>
+      </div>
+      <div class="dashboard-content">
+        <div class="dashboard-stats">
+          <div class="dash-stat-card">
+            <div class="dash-stat-value" id="dash-stat-drafted">—</div>
+            <div class="dash-stat-label">Drafted</div>
+          </div>
+          <div class="dash-stat-card">
+            <div class="dash-stat-value" id="dash-stat-published">—</div>
+            <div class="dash-stat-label">Published</div>
+          </div>
+          <div class="dash-stat-card">
+            <div class="dash-stat-value" id="dash-stat-voice">—</div>
+            <div class="dash-stat-label">Voice Score</div>
+          </div>
+          <div class="dash-stat-card">
+            <div class="dash-stat-value" id="dash-stat-diary">—</div>
+            <div class="dash-stat-label">Brain Entries</div>
+          </div>
+        </div>
+        <div class="dashboard-grid">
+          <div>
+            <div class="dash-section-label">Quick Actions</div>
+            <div class="dash-quick-actions">
+              <div class="dash-quick-action" onclick="showSection('create');showTool('create','generator')">
+                <span>Generate Post</span><span class="arrow">→</span>
+              </div>
+              <div class="dash-quick-action" onclick="showSection('library');showTool('publish','review')">
+                <span>Review Queue</span><span class="arrow">→</span>
+              </div>
+              <div class="dash-quick-action" onclick="showSection('create');showTool('create','remake')">
+                <span>Viral Trends</span><span class="arrow">→</span>
+              </div>
+              <div class="dash-quick-action" onclick="showSection('insights');showTool('analyze','brain-diary')">
+                <span>Brain Diary</span><span class="arrow">→</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="dash-section-label">Recent Posts</div>
+            <div class="dash-recent-posts" id="dash-recent-posts">
+              <div style="font-size:0.78rem;color:var(--text3);font-style:italic;">No posts generated yet.</div>
+            </div>
+          </div>
+        </div>
+        <div class="dash-system-status">
+          <div class="dash-system-dot"></div>
+          <span class="dash-system-label">Agent Loop</span>
+          <span class="dash-system-value" id="dash-loop-integrity">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Settings Section ────────────────────────────────────────── -->
+    <div id="section-settings">
+      <div class="section-header">
+        <div class="section-header-left">
+          <div class="section-header-eyebrow">Account</div>
+          <div class="section-header-title">Settings</div>
+          <div class="section-header-sub">Manage your session, platform connections, and account.</div>
+        </div>
+      </div>
+      <div class="settings-content">
+        <div class="settings-group">
+          <div class="settings-group-label">Account</div>
+          <div class="settings-value" id="settings-email-display"></div>
+          <button class="settings-btn" onclick="logout()">Sign out</button>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-label">Current Session</div>
+          <div class="settings-value" id="settings-session-name" style="font-style:italic;font-family:'Cormorant Garamond',serif;font-size:1rem"></div>
+          <button class="settings-btn" onclick="resetToUpload()">Upload new brand PDF</button>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-label">Platform Connections</div>
+          <div class="settings-oauth-row">
+            <span class="settings-oauth-label">LinkedIn</span>
+            <span class="settings-oauth-status" id="settings-li-status">Not connected</span>
+          </div>
+          <div class="settings-oauth-row">
+            <span class="settings-oauth-label">Instagram</span>
+            <span class="settings-oauth-status" id="settings-ig-status">Not connected</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Phase Navigation Bar -->
@@ -3181,6 +3899,16 @@
 
     <!-- Phase Content Area -->
     <div class="phase-content-area" id="phase-content-area">
+
+      <!-- Dynamic section header (updated by showSection()) -->
+      <div class="section-header" id="section-header" style="display:none">
+        <div class="section-header-left">
+          <div class="section-header-eyebrow" id="sh-eyebrow"></div>
+          <div class="section-header-title" id="sh-title"></div>
+          <div class="section-header-sub" id="sh-sub"></div>
+        </div>
+        <div id="sh-action-wrap"></div>
+      </div>
 
       <!-- Foundation subnav -->
       <div class="phase-subnav" id="psubnav-foundation">
@@ -4153,7 +4881,9 @@
       </div>
 
     </div><!-- /phase-content-area -->
-  </div>
+
+    </div><!-- /app-main -->
+  </div><!-- /app-screen -->
 
   <!-- Onboarding Screen -->
   <div class="screen" id="onboarding-screen">
@@ -4571,6 +5301,12 @@
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       appData = { sessionId: id, personalityMap: data.personalityMap, strategy: data.strategy, brandType: data.brandType || 'personal', brandContext: data.brandContext || null };
+      // Update sidebar session name
+      const snEl = document.getElementById('sidebar-session-name');
+      if (snEl && data.strategy?.brand_statement) {
+        const stmt = data.strategy.brand_statement;
+        snEl.textContent = stmt.length > 38 ? stmt.slice(0, 38) + '…' : stmt;
+      }
       if (!isBrandContextComplete(data.brandContext)) {
         // Brand DNA has never been filled — send them to onboarding starting at step 3
         showOnboarding(data.strategy, data.personalityMap, data.brandContext, 3);
@@ -5227,6 +5963,121 @@
     automate:   { default: 'agents',    tools: ['agents','metaverse'] },
   };
 
+  // ── Sidebar Section System ────────────────────────────────────────────────
+  const SECTION_MAP = {
+    dashboard: { phase: null,         eyebrow: 'Overview',   title: 'Dashboard', sub: 'Your brand at a glance.' },
+    brand:     { phase: 'foundation', eyebrow: 'Foundation', title: 'Brand',     sub: 'Your identity, pillars, and content machine.', default: 'strategy' },
+    create:    { phase: 'create',     eyebrow: 'Create',     title: 'Create',    sub: 'Generate posts across every platform.',        default: 'generator' },
+    library:   { phase: 'publish',    eyebrow: 'Publish',    title: 'Library',   sub: 'Review, approve, and schedule your posts.',    default: 'review' },
+    insights:  { phase: 'analyze',    eyebrow: 'Analyze',    title: 'Insights',  sub: 'Performance patterns and content intelligence.', default: 'analytics' },
+    automate:  { phase: 'automate',   eyebrow: 'Automate',   title: 'Automate',  sub: 'Your AI team generating content around the clock.', default: 'agents' },
+    settings:  { phase: null,         eyebrow: 'Account',    title: 'Settings',  sub: 'Manage your session and platform connections.' },
+  };
+
+  let currentSection = 'dashboard';
+
+  function showSection(sectionName) {
+    currentSection = sectionName;
+    const cfg = SECTION_MAP[sectionName];
+    if (!cfg) return;
+
+    // Update sidebar active item
+    document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
+    const navItem = document.getElementById(`snav-${sectionName}`);
+    if (navItem) navItem.classList.add('active');
+
+    // Open matching subnav, close others
+    document.querySelectorAll('.sidebar-subnav').forEach(el => el.classList.remove('open'));
+    const subnav = document.getElementById(`ssubnav-${sectionName}`);
+    if (subnav) subnav.classList.add('open');
+
+    // Hide dashboard and settings by default
+    const dashEl = document.getElementById('section-dashboard');
+    const settEl = document.getElementById('section-settings');
+    const phaseArea = document.getElementById('phase-content-area');
+    if (dashEl) dashEl.classList.remove('visible');
+    if (settEl) settEl.classList.remove('visible');
+
+    if (sectionName === 'dashboard') {
+      if (phaseArea) phaseArea.classList.remove('visible');
+      document.getElementById('phase-home')?.classList.remove('visible');
+      if (dashEl) dashEl.classList.add('visible');
+      refreshDashboard();
+      return;
+    }
+
+    if (sectionName === 'settings') {
+      if (phaseArea) phaseArea.classList.remove('visible');
+      document.getElementById('phase-home')?.classList.remove('visible');
+      if (settEl) {
+        settEl.classList.add('visible');
+        // Populate settings values
+        const emailEl = document.getElementById('settings-email-display');
+        if (emailEl) emailEl.textContent = currentUserEmail || '';
+        const sessEl = document.getElementById('settings-session-name');
+        if (sessEl) sessEl.textContent = document.getElementById('sidebar-session-name')?.textContent || '—';
+        // Refresh OAuth status for settings panel
+        authFetch('/api/oauth/status').then(r => r.json()).then(d => {
+          const liEl = document.getElementById('settings-li-status');
+          const igEl = document.getElementById('settings-ig-status');
+          if (liEl) {
+            liEl.textContent = d.oauth?.linkedin?.connected ? `Connected (${d.oauth.linkedin.username || ''})` : 'Not connected';
+            liEl.className = 'settings-oauth-status' + (d.oauth?.linkedin?.connected ? ' connected' : '');
+          }
+          if (igEl) {
+            igEl.textContent = d.oauth?.instagram?.connected ? `Connected (${d.oauth.instagram.username || ''})` : 'Not connected';
+            igEl.className = 'settings-oauth-status' + (d.oauth?.instagram?.connected ? ' connected' : '');
+          }
+        }).catch(() => {});
+      }
+      return;
+    }
+
+    // Route to phase system for other sections
+    // Brand section spans both foundation and machine phases
+    const targetPhase = sectionName === 'brand' ? 'foundation' : cfg.phase;
+    showPhase(targetPhase);
+    _updateSectionHeader(cfg);
+  }
+
+  function _updateSectionHeader(cfg) {
+    const header = document.getElementById('section-header');
+    if (!header) return;
+    header.style.display = 'flex';
+    const eyebrow = document.getElementById('sh-eyebrow');
+    const title   = document.getElementById('sh-title');
+    const sub     = document.getElementById('sh-sub');
+    const actionW = document.getElementById('sh-action-wrap');
+    if (eyebrow) eyebrow.textContent = cfg.eyebrow || '';
+    if (title)   title.textContent   = cfg.title   || '';
+    if (sub)     sub.textContent     = cfg.sub     || '';
+    if (actionW) {
+      actionW.innerHTML = '';
+      if (currentSection === 'create') {
+        actionW.innerHTML = `<button class="section-header-action" onclick="showTool('create','generator')">Generate Post →</button>`;
+      } else if (currentSection === 'library') {
+        actionW.innerHTML = `<button class="section-header-action" onclick="showTool('publish','review')">Review Queue →</button>`;
+      }
+    }
+  }
+
+  function _syncSidebarFromPhase(phaseName) {
+    const phaseToSection = {
+      foundation: 'brand', machine: 'brand',
+      create: 'create', publish: 'library',
+      analyze: 'insights', automate: 'automate',
+    };
+    const sName = phaseToSection[phaseName];
+    if (!sName) return;
+    document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
+    const navItem = document.getElementById(`snav-${sName}`);
+    if (navItem) navItem.classList.add('active');
+    document.querySelectorAll('.sidebar-subnav').forEach(el => el.classList.remove('open'));
+    const subnav = document.getElementById(`ssubnav-${sName}`);
+    if (subnav) subnav.classList.add('open');
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   let currentPhase = null;
   let currentTool = null;
   let _whatNextTarget = null;
@@ -5245,6 +6096,7 @@
     const defaultTool = PHASE_MAP[phaseName]?.default;
     if (defaultTool) showTool(phaseName, defaultTool);
     _checkContextBanners(phaseName);
+    _syncSidebarFromPhase(phaseName);
   }
 
   function showTool(phaseName, toolName) {
@@ -5255,6 +6107,10 @@
     document.querySelectorAll('.phase-subnav-btn').forEach(b => b.classList.remove('active'));
     const snav = document.getElementById(`psnav-${toolName}`);
     if (snav) snav.classList.add('active');
+    // Sync sidebar subnav active item
+    document.querySelectorAll('.sidebar-subnav-item').forEach(el => el.classList.remove('active'));
+    const ssubItem = document.getElementById(`ssub-${toolName}`);
+    if (ssubItem) ssubItem.classList.add('active');
     _showTabSideEffects(toolName);
     document.getElementById('what-next-bar').classList.remove('visible');
   }
@@ -5448,11 +6304,19 @@
     document.getElementById('app-screen').classList.add('active');
     document.getElementById('upload-new-btn').style.display = 'block';
     setTimeout(bindAppEditing, 50);
-    // Show phase home first, then auto-navigate to Foundation
-    document.getElementById('phase-home').classList.add('visible');
+    // Hide global header — sidebar replaces it inside app
+    const globalHeader = document.querySelector('header');
+    if (globalHeader) globalHeader.style.display = 'none';
+
+    // Populate sidebar user info
+    const sidebarEmail = document.getElementById('sidebar-user-email-display');
+    if (sidebarEmail && currentUserEmail) sidebarEmail.textContent = currentUserEmail;
+
+    // Navigate to dashboard on entry
+    document.getElementById('phase-home').classList.remove('visible');
     document.getElementById('phase-content-area').classList.remove('visible');
     setTimeout(() => {
-      showPhase('foundation');
+      showSection('dashboard');
       updatePhaseDots();
     }, 80);
     // Handle OAuth redirect result
@@ -5468,9 +6332,9 @@
       };
       const msg = msgs[oauthParam] || oauthParam;
       const isError = oauthParam.endsWith('_failed') || oauthParam.endsWith('_denied');
-      alert(msg);
+      showToast(msg, isError ? 'error' : 'success');
       window.history.replaceState({}, '', window.location.pathname);
-      if (!isError) { showPhase('publish'); loadOAuthStatus(); }
+      if (!isError) { showSection('library'); loadOAuthStatus(); }
     }
     // Load initial review badge count
     authFetch('/api/notifications/count').then(r => r.json()).then(d => updateReviewBadge(d.pending || 0)).catch(() => {});
@@ -5495,6 +6359,15 @@
     document.querySelectorAll('.phase-dot').forEach(d => d.classList.remove('done'));
     document.querySelectorAll('.phase-card').forEach(c => c.classList.remove('complete'));
     currentPhase = null; currentTool = null;
+    // Reset sidebar state
+    document.getElementById('section-dashboard')?.classList.remove('visible');
+    document.getElementById('section-settings')?.classList.remove('visible');
+    document.querySelectorAll('.sidebar-nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sidebar-subnav').forEach(el => el.classList.remove('open'));
+    document.getElementById('sidebar-session-name').textContent = '—';
+    // Restore global header
+    const globalHeader = document.querySelector('header');
+    if (globalHeader) globalHeader.style.display = '';
     showUploadScreen();
     loadSessions();
   }
@@ -8135,6 +9008,12 @@
     if (counterLabel) {
       counterLabel.textContent = count > 0 ? `${count} post${count !== 1 ? 's' : ''} awaiting review` : 'Queue is clear';
     }
+    // Sync sidebar Library badge
+    const sidebarBadge = document.getElementById('sidebar-review-badge');
+    if (sidebarBadge) {
+      sidebarBadge.textContent = count;
+      sidebarBadge.style.display = count > 0 ? 'inline-block' : 'none';
+    }
   }
 
   function renderReviewCard() {
@@ -8393,6 +9272,88 @@
   async function deleteDiaryEntry(id) {
     try { await authFetch(`/api/brain-diary/${id}`, { method: 'DELETE' }); await loadBrainDiary(); }
     catch { console.error('delete diary entry failed'); }
+  }
+
+  // ── Toast notification system ─────────────────────────────────────────────
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const icons = { success: '✓', error: '✕', info: '·' };
+    toast.innerHTML = `<span class="toast-icon">${icons[type] || '·'}</span><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('toast-fade-out');
+      setTimeout(() => toast.remove(), 380);
+    }, 3500);
+  }
+
+  // ── Dashboard data loader ─────────────────────────────────────────────────
+  async function refreshDashboard() {
+    // Greeting by time of day
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const titleEl = document.getElementById('dash-greeting-title');
+    if (titleEl) titleEl.textContent = greeting;
+
+    if (!appData.sessionId) return;
+
+    // Posts stats
+    try {
+      const res = await authFetch(`/api/posts?sessionId=${appData.sessionId}`);
+      const data = await res.json();
+      const posts = data.posts || [];
+
+      const drafted = posts.filter(p => p.status === 'draft').length;
+      const published = posts.filter(p => p.status === 'published').length;
+      const scores = posts.map(p => p.voice_score).filter(Boolean);
+      const avgScore = scores.length ? Math.round(scores.reduce((a,b) => a+b,0) / scores.length) : null;
+
+      const dEl = document.getElementById('dash-stat-drafted');
+      const pEl = document.getElementById('dash-stat-published');
+      const vEl = document.getElementById('dash-stat-voice');
+      if (dEl) dEl.textContent = drafted;
+      if (pEl) pEl.textContent = published;
+      if (vEl) vEl.textContent = avgScore ? avgScore + '/10' : '—';
+
+      // Recent posts preview (last 3)
+      const recentEl = document.getElementById('dash-recent-posts');
+      if (recentEl) {
+        const recent = posts.slice(0, 3);
+        if (recent.length) {
+          recentEl.innerHTML = recent.map(p => `
+            <div class="dash-recent-post">
+              <div class="dash-recent-post-meta">
+                <span class="dash-recent-post-platform">${p.platform || 'post'}</span>
+                <span style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--text3)">${p.status || 'draft'}</span>
+              </div>
+              <div class="dash-recent-post-preview">${(p.content || '').slice(0, 130).replace(/</g, '&lt;')}</div>
+            </div>
+          `).join('');
+        }
+      }
+    } catch(_) {}
+
+    // Brain diary count
+    try {
+      const res2 = await authFetch('/api/brain-diary');
+      const d2 = await res2.json();
+      const count = (d2.entries || []).length;
+      const diaryEl = document.getElementById('dash-stat-diary');
+      if (diaryEl) diaryEl.textContent = count || '0';
+    } catch(_) {}
+
+    // Agent loop integrity
+    try {
+      const res3 = await authFetch('/api/agents/loop-stats');
+      const d3 = await res3.json();
+      const intEl = document.getElementById('dash-loop-integrity');
+      if (intEl) intEl.textContent = d3.loopIntegrity != null ? d3.loopIntegrity + '%' : '—';
+    } catch(_) {
+      const intEl = document.getElementById('dash-loop-integrity');
+      if (intEl) intEl.textContent = '—';
+    }
   }
 
 
