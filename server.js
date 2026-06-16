@@ -724,46 +724,77 @@ BANNED: "In today's world" / "It's no secret that" / "When it comes to" / "At th
   }
 
   // Default: carousel post
-  const categoryNotes = {
-    educational: 'Carousel Category — Educational / Tips: Use an odd number of items (5 or 7, never 4 or 6 — odd numbers feel more credible and less calculated). Each tip = one clear, actionable sentence.',
-    'how-to': 'Carousel Category — Step-by-step / How-to: Each slide = one step with an action verb that tells the reader exactly what to do. End with the specific measurable result they will have achieved.',
-    transformation: "Carousel Category — Transformation: Slide 1 = the before state with one specific detail ('47 unread emails, no system'). Last body slide = the after state, equally specific. The transformation must be real and measurable.",
-    'myth-busting': "Carousel Category — Myth-busting: Slide 1 names the myth as it is commonly stated — quote it or show exactly where you've heard it. Each subsequent slide dismantles one aspect with a specific counter-example from their real work.",
-    storytelling: 'Carousel Category — Storytelling: Structure as: specific moment (time + place) → what happened → what changed → what you do differently now. End before the moral — stop after the last real event.',
-    frameworks: 'Carousel Category — Frameworks / Cheatsheets: Each slide = one component of the system with a clear label. Last slide = the trigger (when to use this framework). Make it screenshot-worthy.',
+  const categoryStructure = {
+    educational:
+      'FORMAT — Educational / Tips list: Use an odd count (5 or 7, never 4 or 6). Number each item visually on its slide. Order by surprise value — not alphabet, not obvious-first. Put the most counterintuitive item at slide 5–6. Final body slide: condensed "Quick recap" of all items — designed to be screenshot-saved.',
+    'how-to':
+      'FORMAT — Step-by-step / How-to: Each slide = one step, headline starts with an action verb ("Do this", "Map out", "Cut the"). Add a one-line "why" under each step — never explain what without why. Final body slide: restate the outcome the reader will achieve once all steps are done. "Step X of Y" counter visible on each slide.',
+    transformation:
+      "FORMAT — Transformation / Story arc: Slide 1 = the after state (outcome) with one specific detail. Slide 2 = the before state — be specific and vulnerable, use exact numbers. Middle slides = what changed (the turning points), written as diary entries, not a report. Never use 'journey'. Final body slide: lesson extracted from the experience — stated as a rule the reader can steal.",
+    'myth-busting':
+      'FORMAT — Myth vs. Truth: Slide 1 = the most alarming or widely-held myth, stated sympathetically ("You\'ve probably heard that…"). Each myth slide is immediately followed by a truth slide that flips the expectation completely — use data, personal proof, or a named counter-example. Add the consequence: "Believing this costs you [specific thing]". Final body slide: "The real rule is…" — the positive version of the last truth.',
+    storytelling:
+      'FORMAT — Story arc: Open with the most dramatic moment, not the beginning. Use: one specific scene (time + place + sensory detail) → the conflict or revelation → what changed → the lesson the reader can apply TODAY. First person throughout. Never summarize the moral — show the moment it clicked. End before the lesson becomes a lecture.',
+    frameworks:
+      'FORMAT — Framework / System: Give the framework a name (2–4 words, acronym optional). Each slide = one component with a short label + one sentence on how to apply it. Final body slide: "When to use this" — the specific trigger situation. Make every slide screenshot-worthy independently.',
   };
-  return `Write a carousel post with labeled slides:
+  return `Write an Instagram carousel post with clearly labeled slides. Apply ALL rules below.
 
-[Slide 1 — Hook]: Contains a specific problem or outcome — not a vague promise.
-Proven structures:
-- "X things I wish I knew before [specific situation]" (use odd numbers)
-- "Here's what most [specific role] get wrong about [specific thing]"
-- "Stop [doing specific thing]. Here's what to do instead."
+━━━ SLIDE 1 — HOOK (max 10 words) ━━━
+The hook determines reach. It must be readable at thumb-scroll speed (under 0.7 seconds). NO vague promises.
+Use EXACTLY ONE of these 6 proven formulas — adapted to the brand's content and voice:
+  1. Information gap:   "The one [thing] that determines [outcome] — most people miss it"
+  2. Loss / mistake:    "Stop [doing common thing]. Here's what it's costing you."
+  3. Specificity:       "I [did X] for [specific timeframe]. Here are the [N] things I learned." (use odd numbers: 3, 5, 7)
+  4. Story:             "I [dramatic event]. Here's what happened next." (specific, vulnerable, stakes clear)
+  5. Contrarian:        "[Common accepted belief] is wrong. Here's what actually works."
+  6. Promise:           "How to [specific outcome] in [timeframe] (even if [the main objection])"
+NEVER START WITH: "Today I want to share" / "I've been thinking about" / "In today's world" / vague intros / rhetorical questions with obvious answers.
 
-[Slides 2–6 — Body]: 3–5 sentences per slide. Each slide must fully develop one point — hook the idea in sentence 1, expand with a concrete detail or example in sentences 2–3, and close with the implication or "why this matters" in the final sentence. Vary lengths across slides — never all identical.
-At least two slides must contain a specific number, name, or concrete example.
-Use odd total item counts (5 or 7 items feel more authentic than 4 or 6).
+━━━ SLIDE 2 — STAKES ━━━
+Why does this matter RIGHT NOW for this specific person? What do they lose or miss if they don't know this?
+Max 2 short sentences. No slide numbers on this one — it should feel like a natural follow-up to the hook.
 
-[Last Slide — CTA]: Optimize for SAVES — highest-value engagement signal on Instagram.
-- "Save this for when you're [specific named situation]" outperforms "Save this post" by 3x.
-- Or: "Comment [number] of the step you need most" (drives comments and reach simultaneously).
-- Never: "Let me know what you think" / "Drop your thoughts."
+━━━ SLIDES 3–N — BODY (one idea per slide — non-negotiable) ━━━
+WORD BUDGET: 15–25 words per slide body. Hard cap: 30 words. NOT 3–5 sentences.
+ONE IDEA PER SLIDE. If you find yourself writing "also" or "and", split into two slides.
+HEADLINE: 3–6 words, action-verb first ("Fix this first", "Cut the middle step", "Never skip this").
+EVERY OTHER slide must include a specific number, name, or concrete example — specificity = credibility.
+SWIPE TRIGGER: End each body slide with EITHER a complete, satisfying resolution OR an open loop that forces the next swipe:
+  — Open loop examples: "But here's where most people get it wrong…" / "The exception is coming up next." / "This works — unless you make this one mistake."
+  — Resolution examples: A complete, punchy sentence that closes the thought satisfyingly.
+COUNTERINTUITIVE PEAK: At slides 5–6, place the most surprising or unexpected point. Audience drop-off spikes after slide 5 — max value at max risk.
+NEVER: walls of text / restating the same point across slides / multiple ideas on one slide / burying the punchline at slide 8.
 
-${categoryNotes[subType] || categoryNotes.educational}
+━━━ SECOND-TO-LAST SLIDE — SCREENSHOT SLIDE ━━━
+Condensed summary. All key points in shortest possible form. Label it "Quick recap:" or the equivalent.
+Design rule: this slide should make sense if screenshot in isolation. This is the slide that gets DM'd to friends.
 
-Caption (after last slide): 2–4 sentences. Add context, vulnerability, or a personal detail not in the slides.
-Embed the primary keyword naturally in the first sentence (Instagram indexes captions for search).
-HASHTAGS: 3–5 specific hashtags after two blank lines. Maximum 5 — hard platform limit since December 2025.
+━━━ FINAL SLIDE — CTA ━━━
+ONE ask. Not two. Not "save, follow, and comment." One.
+Choose based on what serves this content:
+  — Save ask:    "Save this for the next time you [specific scenario]" — NEVER "Save this for later" (too generic — name the exact situation)
+  — Comment ask: "Comment [specific word or number] if [this applies to you]" — NEVER "Let me know what you think"
+  — Share ask:   "Tag a [specific type of person who needs this]" — never generic "tag a friend"
+  — Follow ask:  "Follow for [specific weekly value: what, how often, why it's useful]"
+  — DM trigger:  "DM me '[one word]' and I'll send you [specific asset]"
+Before the ask: restate the value delivered in one sentence ("You now have [X].").
 
-PROBLEM-FIRST RULE — mandatory for every slide:
-Start from what the reader already feels or struggles with — never from your solution, method, or product.
-Use their language, not yours. If the reader would say "I keep losing deals I should win", write that — not "ineffective sales process".
-When you introduce a contrast (what to do vs. what not to do), use this structure:
-  "Tired of manual follow-ups?"
-  Not: "Buy our automation software"
-The reader's problem in their words first. Your solution only after — and stated as an outcome, never a feature.
+━━━ CAPTION (after slides) ━━━
+2–3 sentences. One personal detail or vulnerability NOT in the slides. First sentence contains the primary keyword naturally (Instagram search indexes captions).
+HASHTAGS: 3–5 specific hashtags on a new line. Maximum 5. Hard limit since December 2025.
 
-BANNED in slides and caption: Moreover, Furthermore, That being said, tapestry, resonate, delve, pivotal, showcase, passive voice, "It goes without saying", "As you can see".`;
+━━━ FORMAT NOTES ━━━
+${categoryStructure[subType] || categoryStructure.educational}
+
+━━━ VOICE ━━━
+Reading level: 5th–7th grade equivalent. Conversational authority — like a smart friend who knows their stuff.
+"You" appears more than "I" in body slides. Second person is dominant.
+Sentence length: 7–10 words average. Fragments are fine. No complex subordinate clauses.
+Never hedge: remove "maybe", "might", "could be", "kind of", "sort of" from every sentence.
+Active verbs, present tense where possible. Concrete nouns over abstract concepts.
+
+BANNED: Moreover / Furthermore / That being said / tapestry / resonate / delve / pivotal / showcase / passive voice / "It goes without saying" / "As you can see" / "In today's world" / "It's no secret that" / "When it comes to" / "At the end of the day" / "I'm excited to share" / capitalizing Success/Mindset/Journey as spiritual nouns.`;
 }
 
 function buildTwitterInstructions(format) {
@@ -1916,37 +1947,74 @@ app.post('/api/parse-carousel', requireAuth, async (req, res) => {
       response_format: { type: 'json_object' },
       messages: [{
         role: 'user',
-        content: `Convert this Instagram carousel post into structured slide data for a visual carousel builder. Return ONLY valid JSON.
+        content: `You are a carousel copywriting expert. Convert the post text below into structured slide objects for a visual carousel builder. You must REWRITE the copy — do not paste sentences from the post verbatim. Apply the copywriting rules below to make each slide compelling, swipeable, and save-worthy. Return ONLY valid JSON.
 
 POST TEXT:
 ${postText}
 
-SLIDE TYPES — choose the best type for each slide:
+━━━ COPYWRITING RULES TO APPLY ━━━
 
-1. title (required as first slide):
-{ "type": "title", "heading": "main hook (max 8 words)", "subheading": "supporting line (max 8 words)", "tag": "TOPIC LABEL", "username": "@yourhandle" }
+SLIDE 1 (title): The hook must stop the scroll in under 0.7 seconds.
+— Max 8 words for "heading". Make it specific, not vague.
+— Use one of these formulas: information gap ("The one X that determines Y"), loss/mistake ("Stop doing X"), specificity with number ("5 things I learned from Y"), story ("I did X — here's what happened"), contrarian ("Common belief is wrong"), promise ("How to X in Y timeframe").
+— "subheading" adds the stakes or promise (max 8 words).
+— "tag" = short all-caps category label like STRATEGY / FRAMEWORK / MINDSET / GROWTH.
 
-2. content (numbered body slides):
-{ "type": "content", "number": "01", "heading": "slide point (max 6 words)", "description": "3–5 sentences with concrete detail and why-it-matters. Never 1 sentence only.", "highlight": "single most memorable phrase", "image": null }
+BODY SLIDES (content, split, checklist):
+— Word budget: 15–25 words in "description". Hard cap: 30 words. NOT paragraphs.
+— ONE idea per slide. If content has "also" or covers two points, split into two slides.
+— "heading": 3–6 words, action-verb first ("Fix this first", "Do this instead", "Never skip this").
+— "highlight": the single most memorable, screenshot-worthy phrase — the sentence someone would underline.
+— "description": the explanation. Specific > vague. Include a number, name, or concrete example wherever possible.
+— Vary tone: some slides punchy (short sentence + period), some analytical (a concrete "this is why").
 
-3. quote (use when a slide is a key quote or insight worth showcasing):
-{ "type": "quote", "text": "the exact quote or insight phrase (max 20 words)", "attribution": "— Source or speaker (optional, omit if none)" }
+QUOTE SLIDES: Only use for a genuinely remarkable insight that works standalone as a pullquote. Max 20 words. Write it as a clean first-person or second-person insight — not a paraphrase.
 
-4. stat (use when a slide features a striking number, percentage, or metric):
-{ "type": "stat", "number": "73%", "label": "short label (max 4 words)", "context": "1–2 sentence explanation of what this means" }
+STAT SLIDES: Only use when a number IS the point. The "number" field should be the visual anchor (e.g. "73%", "3×", "$48K"). The "label" is 2–4 words of context. The "context" sentence must answer "so what?" — what does this number mean for the reader?
 
-5. cta (use for the final call-to-action slide, optional):
-{ "type": "cta", "heading": "CTA heading", "subtext": "share prompt", "action": "follow/DM/comment instruction" }
+CHECKLIST SLIDES: Use when the source material has 3–5 parallel action items or criteria. Each item: 5–8 words, action-oriented, scannable.
 
-Return: { "slides": [ ...array of slide objects... ] }
+SPLIT SLIDES: Use for a single bold insight that deserves visual emphasis — one memorable headline on the right panel, very short description. Best for the "peak" insight around slide 5–6.
 
-Rules:
-- First slide MUST be type "title"
-- Use quote or stat types only when the content genuinely fits — don't force them
-- Number content slides sequentially: "01", "02", "03", etc.
-- Omit hashtags, captions, and trailing text
-- Maximum 8 slides total
-- Keep text concise — these appear on small visual cards`,
+CTA SLIDE (final): ONE ask only. Choose the highest-value ask for this content:
+— Save: "Save this for [SPECIFIC scenario — name the exact moment, not 'for later']"
+— Comment: "Comment [specific word or number] if [this applies to you]"
+— Share: "Tag a [specific type of person] who needs this"
+— Follow: "Follow for [specific value: what + how often]"
+"heading" = the value restatement ("You now have X.") + the CTA. "subtext" = secondary nudge. "action" = the specific instruction.
+
+━━━ SLIDE TYPE REFERENCE ━━━
+
+1. title (first slide only):
+{ "type": "title", "heading": "hook max 8 words", "subheading": "stakes or promise max 8 words", "tag": "CATEGORY LABEL", "username": "@yourhandle" }
+
+2. content (numbered body slide):
+{ "type": "content", "number": "01", "heading": "action verb + point max 6 words", "description": "15–25 words max. One idea. Specific.", "highlight": "most memorable standalone phrase", "image": null }
+
+3. quote (key pullquote moment):
+{ "type": "quote", "text": "clean insight phrase max 20 words", "attribution": "— Source if applicable, else omit key" }
+
+4. stat (when a number is the main point):
+{ "type": "stat", "number": "73%", "label": "2–4 word context", "context": "1–2 sentence so-what explanation" }
+
+5. checklist (parallel action items or criteria):
+{ "type": "checklist", "heading": "what this list is max 5 words", "items": ["Item one 5–8 words", "Item two 5–8 words", "Item three 5–8 words"] }
+
+6. split (single bold insight needing visual emphasis):
+{ "type": "split", "number": "01", "heading": "bold insight 4–6 words", "description": "15–20 words max", "highlight": "optional key phrase" }
+
+7. cta (final slide only):
+{ "type": "cta", "heading": "value restatement + CTA headline", "subtext": "secondary nudge or share prompt", "action": "specific follow/save/comment/DM instruction" }
+
+Return: { "slides": [ ...array of slide objects in order... ] }
+
+Hard rules:
+— First slide MUST be type "title"
+— 5–9 slides total (5 minimum, 9 maximum)
+— Number content slides sequentially: "01", "02", "03"
+— Strip all hashtags, captions, and trailing text from source
+— Never use the same sentence from the post verbatim — rewrite for carousel reading level
+— Use "split" or "checklist" types when they fit the content better than plain "content"`,
       }],
     });
 
