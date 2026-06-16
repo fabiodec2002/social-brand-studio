@@ -1921,34 +1921,30 @@ app.post('/api/parse-carousel', requireAuth, async (req, res) => {
 POST TEXT:
 ${postText}
 
-Return this exact JSON structure:
-{
-  "slides": [
-    {
-      "type": "title",
-      "heading": "main hook (max 8 words, no punctuation at end)",
-      "subheading": "supporting line (max 8 words)",
-      "tag": "TOPIC LABEL",
-      "username": "@yourhandle"
-    },
-    {
-      "type": "content",
-      "number": "01",
-      "heading": "slide point heading (max 6 words)",
-      "description": "3–5 sentences that fully develop this point — include a concrete detail, example, or 'why this matters' expansion. Never leave a slide with only 1 sentence.",
-      "highlight": "single most memorable phrase from this slide",
-      "image": null
-    }
-  ]
-}
+SLIDE TYPES — choose the best type for each slide:
+
+1. title (required as first slide):
+{ "type": "title", "heading": "main hook (max 8 words)", "subheading": "supporting line (max 8 words)", "tag": "TOPIC LABEL", "username": "@yourhandle" }
+
+2. content (numbered body slides):
+{ "type": "content", "number": "01", "heading": "slide point (max 6 words)", "description": "3–5 sentences with concrete detail and why-it-matters. Never 1 sentence only.", "highlight": "single most memorable phrase", "image": null }
+
+3. quote (use when a slide is a key quote or insight worth showcasing):
+{ "type": "quote", "text": "the exact quote or insight phrase (max 20 words)", "attribution": "— Source or speaker (optional, omit if none)" }
+
+4. stat (use when a slide features a striking number, percentage, or metric):
+{ "type": "stat", "number": "73%", "label": "short label (max 4 words)", "context": "1–2 sentence explanation of what this means" }
+
+5. cta (use for the final call-to-action slide, optional):
+{ "type": "cta", "heading": "CTA heading", "subtext": "share prompt", "action": "follow/DM/comment instruction" }
+
+Return: { "slides": [ ...array of slide objects... ] }
 
 Rules:
-- First slide MUST be type "title" — use the opening hook or [Slide 1] content
-- Each subsequent slide (body slides + CTA) becomes a "content" slide
+- First slide MUST be type "title"
+- Use quote or stat types only when the content genuinely fits — don't force them
 - Number content slides sequentially: "01", "02", "03", etc.
-- The "tag" for the title slide: 1–2 word ALL CAPS topic category derived from content
-- The "highlight" per content slide: the single sentence worth calling out visually
-- Omit hashtags, captions, and any text that appears after the last slide
+- Omit hashtags, captions, and trailing text
 - Maximum 8 slides total
 - Keep text concise — these appear on small visual cards`,
       }],
@@ -1957,6 +1953,26 @@ Rules:
     const result = JSON.parse(response.choices[0].message.content);
     if (!result.slides || !Array.isArray(result.slides)) throw new Error('Invalid response structure');
     res.json({ success: true, slides: result.slides });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+app.post('/api/posts/save-carousel', requireAuth, async (req, res) => {
+  try {
+    const { sessionId, slides, title, settings } = req.body;
+    if (!slides || !Array.isArray(slides) || slides.length === 0) {
+      return res.status(400).json({ error: 'slides array required' });
+    }
+    const postId = crypto.randomUUID();
+    const pillarName = (title || slides[0]?.heading || 'Carousel').slice(0, 80);
+    const content = JSON.stringify({ slides, settings: settings || {} });
+    await sql`
+      INSERT INTO generated_posts (id, session_id, user_id, platform, format, pillar_name, content, status)
+      VALUES (${postId}, ${sessionId || null}, ${req.user.id}, 'instagram', 'carousel',
+              ${pillarName}, ${content}, 'draft')
+    `;
+    res.json({ success: true, postId });
   } catch (err) {
     return serverErr(res, err);
   }

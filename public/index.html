@@ -2533,6 +2533,34 @@
 
     .carousel-style-btn.active { border-color: var(--gold) !important; color: var(--gold) !important; background: rgba(201,169,110,0.06) !important; }
 
+    /* Theme swatches */
+    .carousel-theme-swatch {
+      width: 52px; height: 52px; border-radius: 6px; cursor: pointer;
+      position: relative; overflow: hidden; transition: transform 0.15s, border-color 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .carousel-theme-swatch:hover { transform: scale(1.06); }
+    .carousel-theme-swatch.active { border-width: 2px !important; transform: scale(1.08); }
+    .carousel-theme-name {
+      position: absolute; top: 4px; left: 0; right: 0; text-align: center;
+      font-size: 0.55rem; font-family: 'DM Mono', monospace; letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.7); text-transform: uppercase; font-weight: 600;
+    }
+    .carousel-theme-swatch[style*="fdf2f4"] .carousel-theme-name,
+    .carousel-theme-swatch[style*="f5efe6"] .carousel-theme-name,
+    .carousel-theme-swatch[style*="ffffff"] .carousel-theme-name { color: rgba(0,0,0,0.55); }
+
+    /* Reorder buttons */
+    .carousel-reorder-btns { display: flex; gap: 2px; }
+    .carousel-reorder-btn {
+      width: 22px; height: 22px; padding: 0; background: none; border: 1px solid var(--border);
+      color: var(--text3); font-size: 0.72rem; cursor: pointer; border-radius: 3px;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .carousel-reorder-btn:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); }
+    .carousel-reorder-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
     /* Off-screen render target */
     #carousel-render-target {
       position: fixed;
@@ -3637,6 +3665,9 @@
           <div class="sidebar-subnav-item" id="ssub-remake" onclick="showTool('create','remake')">
             <span class="sidebar-subnav-dot"></span>Viral Trends
           </div>
+          <div class="sidebar-subnav-item" id="ssub-carousel" onclick="showTool('create','carousel')">
+            <span class="sidebar-subnav-dot"></span>Carousel Builder
+          </div>
         </div>
 
         <!-- Library -->
@@ -3818,13 +3849,66 @@
         </div>
         <div class="settings-group">
           <div class="settings-group-label">Platform Connections</div>
-          <div class="settings-oauth-row">
-            <span class="settings-oauth-label">LinkedIn</span>
-            <span class="settings-oauth-status" id="settings-li-status">Not connected</span>
+          <div style="font-size:0.78rem;color:var(--text3);margin-bottom:1rem;line-height:1.5">Connect your accounts to enable auto-publishing from the Publish tab.</div>
+
+          <!-- LinkedIn row -->
+          <div style="background:rgba(10,102,194,0.05);border:1px solid rgba(10,102,194,0.18);border-radius:8px;padding:1rem;margin-bottom:0.75rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem">
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.25rem">LINKEDIN</div>
+                <span class="settings-oauth-status" id="settings-li-status">Not connected</span>
+              </div>
+              <button id="settings-li-btn" onclick="oauthConnect('linkedin')" style="padding:0.45rem 1rem;background:rgba(10,102,194,0.15);border:1px solid rgba(10,102,194,0.4);color:#0a66c2;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;border-radius:5px;cursor:pointer;white-space:nowrap">Connect LinkedIn</button>
+            </div>
+            <!-- LinkedIn instructions accordion -->
+            <div>
+              <button onclick="(function(btn){var body=btn.nextElementSibling;var open=body.style.display==='block';body.style.display=open?'none':'block';btn.querySelector('.chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0;background:none;border:none;cursor:pointer;color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em">
+                <span>HOW TO SET UP</span>
+                <span class="chevron" style="transition:transform 0.2s;display:inline-block;font-size:0.65rem">▼</span>
+              </button>
+              <div style="display:none;padding-top:0.75rem">
+                <ol style="margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:0.45rem;font-size:0.78rem;color:var(--text2);line-height:1.6">
+                  <li>Go to <strong style="color:var(--text1)">linkedin.com/developers</strong> → Create App</li>
+                  <li>Fill in app name, associate it with your LinkedIn Company Page</li>
+                  <li>Under <strong style="color:var(--text1)">Products</strong>, add <em>Sign In with LinkedIn using OpenID Connect</em> and <em>Share on LinkedIn</em></li>
+                  <li>Go to <strong style="color:var(--text1)">Auth</strong> tab → copy <strong style="color:var(--text1)">Client ID</strong> and generate a <strong style="color:var(--text1)">Client Secret</strong></li>
+                  <li>Under OAuth 2.0 settings, add redirect URL:<br><code style="font-size:0.68rem;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:3px">https://social-brand-studio-production.up.railway.app/api/oauth/linkedin/callback</code></li>
+                  <li>Add <code style="font-size:0.68rem;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:3px">LINKEDIN_CLIENT_ID</code>, <code style="font-size:0.68rem;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:3px">LINKEDIN_CLIENT_SECRET</code>, <code style="font-size:0.68rem;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:3px">LINKEDIN_REDIRECT_URI</code> to your environment variables</li>
+                  <li>Click <strong style="color:var(--text1)">Connect LinkedIn</strong> above — you'll be redirected to authorize</li>
+                </ol>
+              </div>
+            </div>
           </div>
-          <div class="settings-oauth-row">
-            <span class="settings-oauth-label">Instagram</span>
-            <span class="settings-oauth-status" id="settings-ig-status">Not connected</span>
+
+          <!-- Instagram row -->
+          <div style="background:rgba(225,48,108,0.05);border:1px solid rgba(225,48,108,0.18);border-radius:8px;padding:1rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.75rem">
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.25rem">INSTAGRAM</div>
+                <span class="settings-oauth-status" id="settings-ig-status">Not connected</span>
+              </div>
+              <button id="settings-ig-btn" onclick="oauthConnect('instagram')" style="padding:0.45rem 1rem;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.35);color:#e1306c;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;border-radius:5px;cursor:pointer;white-space:nowrap">Connect Instagram</button>
+            </div>
+            <!-- Instagram instructions accordion -->
+            <div>
+              <button onclick="(function(btn){var body=btn.nextElementSibling;var open=body.style.display==='block';body.style.display=open?'none':'block';btn.querySelector('.chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0;background:none;border:none;cursor:pointer;color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em">
+                <span>HOW TO SET UP</span>
+                <span class="chevron" style="transition:transform 0.2s;display:inline-block;font-size:0.65rem">▼</span>
+              </button>
+              <div style="display:none;padding-top:0.75rem">
+                <div style="font-size:0.73rem;color:#fbbf24;margin-bottom:0.6rem;padding:0.4rem 0.6rem;background:rgba(251,191,36,0.08);border-radius:5px;border:1px solid rgba(251,191,36,0.2)">
+                  Requires an Instagram Business or Creator account linked to a Facebook Page.
+                </div>
+                <ol style="margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:0.45rem;font-size:0.78rem;color:var(--text2);line-height:1.6">
+                  <li>Go to <strong style="color:var(--text1)">developers.facebook.com</strong> → Create App → choose <strong style="color:var(--text1)">Business</strong></li>
+                  <li>Add the <strong style="color:var(--text1)">Instagram Graph API</strong> product</li>
+                  <li>Go to <strong style="color:var(--text1)">Settings → Basic</strong> → copy <strong style="color:var(--text1)">App ID</strong> and <strong style="color:var(--text1)">App Secret</strong></li>
+                  <li>Under <strong style="color:var(--text1)">Facebook Login → Settings</strong>, add redirect URL:<br><code style="font-size:0.68rem;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:3px">https://social-brand-studio-production.up.railway.app/api/oauth/instagram/callback</code></li>
+                  <li>Add <code style="font-size:0.68rem;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:3px">FACEBOOK_APP_ID</code> and <code style="font-size:0.68rem;background:rgba(255,255,255,0.05);padding:0.15rem 0.4rem;border-radius:3px">FACEBOOK_APP_SECRET</code> to your environment variables</li>
+                  <li>Click <strong style="color:var(--text1)">Connect Instagram</strong> above — you'll be redirected to authorize via Facebook</li>
+                </ol>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -3929,6 +4013,7 @@
         <button class="phase-subnav-btn" id="psnav-ideas" onclick="showTool('create','ideas')">Ideas</button>
         <button class="phase-subnav-btn" id="psnav-hooks" onclick="showTool('create','hooks')">Hooks</button>
         <button class="phase-subnav-btn" id="psnav-remake" onclick="showTool('create','remake')">Viral</button>
+        <button class="phase-subnav-btn" id="psnav-carousel" onclick="showTool('create','carousel')">Carousel</button>
       </div>
 
       <!-- Publish subnav -->
@@ -4115,6 +4200,7 @@
           <button class="carousel-template-btn" id="carousel-export-png-btn" onclick="carouselExportAllPNG()">↓ Download PNG</button>
           <button class="carousel-template-btn" id="carousel-export-pdf-btn" onclick="carouselExportPDF()">↓ Download PDF</button>
           <button class="carousel-template-btn" onclick="carouselReset()">Reset</button>
+          <button class="carousel-template-btn" id="carousel-save-library-btn" onclick="carouselSaveToLibrary()" style="border-color:rgba(201,169,110,0.4);color:var(--gold);">Save to Library</button>
         </div>
 
         <!-- Inner tabs -->
@@ -4170,9 +4256,11 @@
         <!-- Editor panel -->
         <div id="cpanel-editor" style="display:none">
           <div class="carousel-slides-list" id="carousel-slides-list"></div>
-          <div style="display:flex;gap:0.5rem;">
-            <button class="carousel-add-slide-btn" onclick="carouselAddSlide()" style="flex:2;">+ Add content slide</button>
-            <button class="carousel-add-slide-btn" onclick="carouselAddCtaSlide()" style="flex:1;border-color:var(--gold);color:var(--gold);">+ Add CTA slide</button>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="carousel-add-slide-btn" onclick="carouselAddSlide()" style="flex:2;min-width:120px;">+ Content slide</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddQuoteSlide()" style="flex:1;min-width:100px;">❝ Quote</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddStatSlide()" style="flex:1;min-width:100px;">📊 Stat</button>
+            <button class="carousel-add-slide-btn" onclick="carouselAddCtaSlide()" style="flex:1;min-width:100px;border-color:var(--gold);color:var(--gold);">+ CTA</button>
           </div>
         </div>
 
@@ -4182,7 +4270,12 @@
             <div class="carousel-settings-section">
 
               <div>
-                <div class="carousel-field-label">Slide style</div>
+                <div class="carousel-field-label">Theme</div>
+                <div id="carousel-theme-selector" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;"></div>
+              </div>
+
+              <div style="margin-top:1rem;">
+                <div class="carousel-field-label">Custom style override</div>
                 <div style="display:flex;gap:0.5rem;margin-top:0.25rem;">
                   <button class="carousel-style-btn active" data-style="dark" onclick="carouselSetStyle('dark')"
                     style="padding:0.4rem 1rem;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;transition:all 0.2s;">
@@ -5938,7 +6031,8 @@
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
 
-      showTab('carousel');
+      showSection('create');
+      showTool('create', 'carousel');
       carouselState.slides = data.slides;
       carouselState.currentSlide = 0;
       carouselUpdatePreview();
@@ -5957,7 +6051,7 @@
   const PHASE_MAP = {
     foundation: { default: 'strategy',  tools: ['strategy','pillars','platforms'] },
     machine:    { default: 'machine',   tools: ['machine'] },
-    create:     { default: 'generator', tools: ['generator','ideas','hooks','remake'] },
+    create:     { default: 'generator', tools: ['generator','ideas','hooks','remake','carousel'] },
     publish:    { default: 'review',    tools: ['review','library'] },
     analyze:    { default: 'analytics', tools: ['analytics','brain-diary','pipeline'] },
     automate:   { default: 'agents',    tools: ['agents','metaverse'] },
@@ -6020,13 +6114,19 @@
         authFetch('/api/oauth/status').then(r => r.json()).then(d => {
           const liEl = document.getElementById('settings-li-status');
           const igEl = document.getElementById('settings-ig-status');
+          const liBtn = document.getElementById('settings-li-btn');
+          const igBtn = document.getElementById('settings-ig-btn');
           if (liEl) {
-            liEl.textContent = d.oauth?.linkedin?.connected ? `Connected (${d.oauth.linkedin.username || ''})` : 'Not connected';
-            liEl.className = 'settings-oauth-status' + (d.oauth?.linkedin?.connected ? ' connected' : '');
+            const liConn = d.oauth?.linkedin?.connected;
+            liEl.textContent = liConn ? `Connected (${d.oauth.linkedin.username || ''})` : 'Not connected';
+            liEl.className = 'settings-oauth-status' + (liConn ? ' connected' : '');
+            if (liBtn) liBtn.style.display = liConn ? 'none' : '';
           }
           if (igEl) {
-            igEl.textContent = d.oauth?.instagram?.connected ? `Connected (${d.oauth.instagram.username || ''})` : 'Not connected';
-            igEl.className = 'settings-oauth-status' + (d.oauth?.instagram?.connected ? ' connected' : '');
+            const igConn = d.oauth?.instagram?.connected;
+            igEl.textContent = igConn ? `Connected (${d.oauth.instagram.username || ''})` : 'Not connected';
+            igEl.className = 'settings-oauth-status' + (igConn ? ' connected' : '');
+            if (igBtn) igBtn.style.display = igConn ? 'none' : '';
           }
         }).catch(() => {});
       }
@@ -7650,20 +7750,52 @@
       const voiceBadge = p.voice_score != null
         ? `<span class="voice-score-badge ${p.voice_score >= 8 ? 'green' : p.voice_score >= 5 ? 'yellow' : 'red'}" style="font-size:0.6rem">Voice ${p.voice_score}/10</span>`
         : '';
+
+      const isCarousel = p.format === 'carousel';
+      let previewHtml, expandBtn, copyBtn;
+
+      if (isCarousel) {
+        let slideCount = 0;
+        let titleText = p.pillar_name || 'Carousel';
+        try {
+          const parsed = JSON.parse(p.content);
+          if (parsed.slides) {
+            slideCount = parsed.slides.length;
+            const titleSlide = parsed.slides.find(s => s.type === 'title');
+            if (titleSlide?.heading) titleText = titleSlide.heading;
+          }
+        } catch (e) {}
+        previewHtml = `<div class="lib-post-preview" style="color:var(--text2);font-style:normal;">
+          🎠 Carousel &nbsp;·&nbsp; ${slideCount} slides
+          <div style="font-size:0.78rem;color:var(--text3);margin-top:0.25rem;">${_escHtml(titleText)}</div>
+        </div>`;
+        expandBtn = `<button onclick="libOpenCarousel('${p.id}')" style="background:none;border:none;color:var(--gold);font-size:0.75rem;cursor:pointer;padding:0.35rem 0;text-align:left;font-family:'DM Mono',monospace">→ Open in Carousel Builder</button>`;
+        copyBtn = '';
+      } else {
+        previewHtml = `<div class="lib-post-preview" id="lib-preview-${p.id}" onclick="libToggleExpand('${p.id}')">${_escHtml(p.content)}</div>`;
+        expandBtn = `<button id="lib-expand-btn-${p.id}" onclick="libToggleExpand('${p.id}')" style="background:none;border:none;color:var(--text3);font-size:0.75rem;cursor:pointer;padding:0.35rem 0;text-align:left;font-family:'DM Mono',monospace">↓ Read full post</button>`;
+        copyBtn = `<button class="post-action-btn" onclick="libCopyPost('${p.id}', this)">Copy</button>`;
+      }
+
+      const formatBadge = p.format && p.format !== 'post'
+        ? `<span class="post-meta" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;text-transform:uppercase;">${_escHtml(p.format)}</span>`
+        : '';
+
       return `
         <div class="lib-post-card" id="lib-card-${p.id}">
           <div class="lib-post-meta">
             <span class="platform-badge ${p.platform}" style="font-size:0.62rem;padding:0.2rem 0.55rem">${platformLabels[p.platform] || p.platform}</span>
-            ${p.pillar_name ? `<span class="post-meta">${_escHtml(p.pillar_name)}</span>` : ''}
+            ${formatBadge}
+            ${p.pillar_name && !isCarousel ? `<span class="post-meta">${_escHtml(p.pillar_name)}</span>` : ''}
             ${p.tone ? `<span class="post-meta">${_escHtml(p.tone)}</span>` : ''}
             ${voiceBadge}
             <span class="lib-status-badge ${p.status}">${p.status}</span>
             <span class="post-meta" style="margin-left:auto">${date}</span>
           </div>
-          <div class="lib-post-preview" id="lib-preview-${p.id}" onclick="libToggleExpand('${p.id}')">${_escHtml(p.content)}</div>
-          <button id="lib-expand-btn-${p.id}" onclick="libToggleExpand('${p.id}')" style="background:none;border:none;color:var(--text3);font-size:0.75rem;cursor:pointer;padding:0.35rem 0;text-align:left;font-family:'DM Mono',monospace">↓ Read full post</button>
+          ${previewHtml}
+          ${expandBtn}
           <div class="lib-post-actions">
-            <button class="post-action-btn" onclick="libCopyPost('${p.id}', this)">Copy</button>
+            ${copyBtn}
             <button class="post-action-btn" onclick="libSetStatus('${p.id}', 'approved', this)" ${p.status === 'approved' ? 'style="color:var(--gold)"' : ''}>Approve</button>
             <button class="post-action-btn" onclick="libSetStatus('${p.id}', 'published', this)" ${p.status === 'published' ? 'style="color:#5aaedb"' : ''}>Mark published</button>
             <button class="post-action-btn" onclick="libDeletePost('${p.id}')" style="margin-left:auto;color:var(--text3)">Delete</button>
@@ -7678,6 +7810,22 @@
     if (!preview) return;
     const expanded = preview.classList.toggle('expanded');
     if (btn) btn.textContent = expanded ? '↑ Collapse' : '↓ Read full post';
+  }
+
+  function libOpenCarousel(id) {
+    const post = libraryPosts.find(p => p.id === id);
+    if (!post) return;
+    try {
+      const data = JSON.parse(post.content);
+      if (typeof carouselLoadFromData === 'function' && carouselLoadFromData(data)) {
+        showSection('create');
+        showTool('create', 'carousel');
+      } else {
+        alert('Could not load carousel data.');
+      }
+    } catch (e) {
+      alert('Could not parse carousel data.');
+    }
   }
 
   function libCopyPost(id, btn) {

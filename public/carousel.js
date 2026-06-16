@@ -11,6 +11,16 @@ const SLIDE_W = 540;
 const SLIDE_H = 675;
 const SLIDE_FONT = "'Poppins','Open Sans',sans-serif";
 
+// Named themes — selecting one sets accentColor, bgColor, slideStyle
+const CAROUSEL_THEMES = [
+  { id: 'dark',   name: 'Dark',   bg: '#0a0a0a', accent: '#39FF14', slideStyle: 'dark' },
+  { id: 'light',  name: 'Light',  bg: '#ffffff', accent: '#0d3b8c', slideStyle: 'light' },
+  { id: 'navy',   name: 'Navy',   bg: '#0d1b2a', accent: '#4fc3f7', slideStyle: 'dark' },
+  { id: 'forest', name: 'Forest', bg: '#0f1f15', accent: '#81c784', slideStyle: 'dark' },
+  { id: 'rose',   name: 'Rose',   bg: '#fdf2f4', accent: '#d4647a', slideStyle: 'light' },
+  { id: 'sand',   name: 'Sand',   bg: '#f5efe6', accent: '#a0785a', slideStyle: 'light' },
+];
+
 let carouselState = {
   slides: getDefaultCarouselSlides(),
   currentSlide: 0,
@@ -22,6 +32,7 @@ let carouselState = {
   accentColor: '#39FF14',
   bgColor: '#0a0a0a',
   slideStyle: 'dark',   // 'dark' | 'light'
+  theme: 'dark',        // id from CAROUSEL_THEMES
   logoText: 'BRAND.',
   websiteUrl: '',
   initialized: false,
@@ -53,12 +64,10 @@ function getDefaultCarouselSlides() {
       image: null,
     },
     {
-      type: 'content',
-      number: '03',
-      heading: 'The fastest way to grow',
-      description: 'Create content worth saving. Saves tell the algorithm your content has long-term value.',
-      highlight: 'Design for the save, not the like.',
-      image: null,
+      type: 'stat',
+      number: '3×',
+      label: 'more saves',
+      context: 'Carousels get 3× more saves than single-image posts — the algorithm rewards depth.',
     },
     {
       type: 'cta',
@@ -78,6 +87,7 @@ function carouselInit() {
   carouselLoadTemplate();
   carouselLoadAvatar();
   _carouselBuildColorPresets();
+  carouselBuildThemeSelector();
   carouselUpdatePreview();
   carouselRenderEditor();
 }
@@ -105,7 +115,13 @@ function _escMultiline(str) {
 
 function _carouselBuildSlideHTML(slide, idx) {
   const total = carouselState.slides.length;
-  if (carouselState.slideStyle === 'light') {
+  const style = carouselState.slideStyle;
+
+  // New layout types (work in both styles)
+  if (slide.type === 'quote') return _carouselBuildQuoteHTML(slide, style);
+  if (slide.type === 'stat')  return _carouselBuildStatHTML(slide, style);
+
+  if (style === 'light') {
     if (slide.type === 'title') return _carouselBuildLightTitleHTML(slide);
     if (slide.type === 'cta')   return _carouselBuildLightCtaHTML(slide);
     return _carouselBuildLightContentHTML(slide, idx, total);
@@ -113,6 +129,72 @@ function _carouselBuildSlideHTML(slide, idx) {
   if (slide.type === 'title') return _carouselBuildTitleHTML(slide);
   if (slide.type === 'cta')   return _carouselBuildDarkCtaHTML(slide);
   return _carouselBuildContentHTML(slide, idx, total);
+}
+
+// ─── Quote slide ──────────────────────────────────────────────────────────────
+
+function _carouselBuildQuoteHTML(slide) {
+  const { accentColor, bgColor, slideStyle, logoText, avatarImage, websiteUrl } = carouselState;
+  const isLight = slideStyle === 'light';
+  const bg = isLight ? (bgColor === '#0a0a0a' ? '#ffffff' : bgColor) : bgColor;
+  const textColor = isLight ? '#111111' : '#ffffff';
+  const subColor = isLight ? '#666666' : 'rgba(255,255,255,0.6)';
+  const logo = logoText || 'BRAND.';
+  const site = websiteUrl || '';
+  const username = (carouselState.slides[0]?.username) || '@yourhandle';
+
+  const attributionHtml = slide.attribution
+    ? `<div style="font-size:13px;color:${subColor};margin-top:18px;font-style:normal;letter-spacing:0.04em;">${_esc(slide.attribution)}</div>`
+    : '';
+
+  const siteHtml = site
+    ? `<div style="position:absolute;bottom:28px;left:40px;font-size:11px;color:${subColor};font-style:italic;">${_esc(site)}</div>`
+    : '';
+
+  const avatarSrc = avatarImage
+    ? `<img src="${avatarImage}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.25);flex-shrink:0;" crossorigin="anonymous">`
+    : `<div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;"></div>`;
+
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:${bg};position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
+  <div style="position:absolute;top:22px;right:28px;font-size:14px;font-weight:900;color:${accentColor};letter-spacing:-0.3px;">${_esc(logo)}</div>
+  <div style="position:absolute;left:40px;right:40px;top:50%;transform:translateY(-54%);text-align:center;">
+    <div style="width:48px;height:3px;background:${accentColor};margin:0 auto 32px;"></div>
+    <div style="font-size:26px;font-weight:700;color:${textColor};line-height:1.35;letter-spacing:-0.4px;font-style:italic;">"${_esc(slide.text || '')}"</div>
+    ${attributionHtml}
+    <div style="width:48px;height:3px;background:${accentColor};margin:28px auto 0;"></div>
+  </div>
+  <div style="position:absolute;bottom:28px;right:28px;display:flex;align-items:center;gap:6px;">${isLight ? '' : avatarSrc}<span style="font-size:11px;color:${subColor};">${_esc(username)}</span></div>
+  ${siteHtml}
+</div>`;
+}
+
+// ─── Stat slide ───────────────────────────────────────────────────────────────
+
+function _carouselBuildStatHTML(slide) {
+  const { accentColor, bgColor, slideStyle, logoText, websiteUrl } = carouselState;
+  const isLight = slideStyle === 'light';
+  const bg = isLight ? (bgColor === '#0a0a0a' ? '#ffffff' : bgColor) : bgColor;
+  const textColor = isLight ? '#111111' : '#ffffff';
+  const subColor = isLight ? '#555555' : 'rgba(255,255,255,0.6)';
+  const logo = logoText || 'BRAND.';
+  const site = websiteUrl || '';
+  const username = (carouselState.slides[0]?.username) || '@yourhandle';
+
+  const siteHtml = site
+    ? `<div style="position:absolute;bottom:28px;left:40px;font-size:11px;color:${subColor};font-style:italic;">${_esc(site)}</div>`
+    : '';
+
+  return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:${bg};position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
+  <div style="position:absolute;top:22px;right:28px;font-size:14px;font-weight:900;color:${accentColor};letter-spacing:-0.3px;">${_esc(logo)}</div>
+  <div style="position:absolute;left:40px;right:40px;top:50%;transform:translateY(-54%);text-align:center;">
+    <div style="font-size:88px;font-weight:900;color:${textColor};line-height:1;letter-spacing:-3px;margin-bottom:4px;">${_esc(slide.number || '0')}</div>
+    <div style="width:64px;height:4px;background:${accentColor};margin:0 auto 16px;border-radius:2px;"></div>
+    <div style="font-size:18px;font-weight:700;color:${accentColor};letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;">${_esc(slide.label || '')}</div>
+    ${slide.context ? `<div style="font-size:13px;color:${subColor};line-height:1.6;max-width:340px;margin:0 auto;">${_escMultiline(slide.context)}</div>` : ''}
+  </div>
+  <div style="position:absolute;bottom:28px;right:28px;font-size:11px;color:${subColor};">${_esc(username)}</div>
+  ${siteHtml}
+</div>`;
 }
 
 // ─── Light / Brand Card style ─────────────────────────────────────────────────
@@ -406,7 +488,7 @@ function carouselSwitchTab(tab) {
     if (panelEl) panelEl.style.display = t === tab ? 'block' : 'none';
   });
   if (tab === 'editor') carouselRenderEditor();
-  if (tab === 'settings') { _carouselBuildColorPresets(); _carouselUpdateSettingsPreview(); }
+  if (tab === 'settings') { _carouselBuildColorPresets(); carouselBuildThemeSelector(); _carouselUpdateSettingsPreview(); }
 }
 
 // ─── Image uploads ────────────────────────────────────────────────────────────
@@ -543,6 +625,43 @@ async function carouselSaveSlide() {
   }
 }
 
+// ─── Save to Library ──────────────────────────────────────────────────────────
+
+async function carouselSaveToLibrary() {
+  const btn = document.getElementById('carousel-save-library-btn');
+  if (btn) { btn.textContent = 'Saving…'; btn.disabled = true; }
+  try {
+    const titleSlide = carouselState.slides.find(s => s.type === 'title');
+    const title = titleSlide?.heading || 'Carousel';
+    const sessionId = (typeof appData !== 'undefined' && appData.sessionId) || null;
+    const res = await authFetch('/api/posts/save-carousel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        slides: carouselState.slides,
+        title,
+        settings: {
+          accentColor: carouselState.accentColor,
+          bgColor: carouselState.bgColor,
+          slideStyle: carouselState.slideStyle,
+          theme: carouselState.theme,
+          logoText: carouselState.logoText,
+          websiteUrl: carouselState.websiteUrl,
+        },
+      }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Save failed');
+    if (btn) btn.textContent = 'Saved ✓';
+    setTimeout(() => { if (btn) { btn.textContent = 'Save to Library'; btn.disabled = false; } }, 2000);
+  } catch (err) {
+    console.error('carouselSaveToLibrary error:', err);
+    alert('Could not save to library. Please try again.');
+    if (btn) { btn.textContent = 'Save to Library'; btn.disabled = false; }
+  }
+}
+
 // ─── Editor ───────────────────────────────────────────────────────────────────
 
 function carouselRenderEditor() {
@@ -577,11 +696,18 @@ function _escContent(str) {
 }
 
 function _carouselSlideItemHTML(slide, i) {
-  const label = slide.type === 'title'
-    ? `🖼 ${_esc(slide.heading || 'Title slide')}`
-    : slide.type === 'cta'
-      ? `↗ ${_esc(slide.heading || 'CTA slide')}`
-      : `📋 ${_esc(slide.heading || `Slide ${i}`)}`;
+  const total = carouselState.slides.length;
+  const typeLabels = { title: '🖼', content: '📋', cta: '↗', quote: '❝', stat: '📊' };
+  const typeLabel = typeLabels[slide.type] || '▪';
+  const previewText = slide.heading || slide.text || slide.number || `Slide ${i + 1}`;
+  const label = `${typeLabel} ${_esc(previewText)}`;
+
+  const upDisabled = i === 0 ? 'disabled' : '';
+  const downDisabled = i === total - 1 ? 'disabled' : '';
+  const reorderBtns = `<div class="carousel-reorder-btns">
+    <button class="carousel-reorder-btn" onclick="event.stopPropagation();carouselMoveSlide(${i},-1)" ${upDisabled} title="Move up">↑</button>
+    <button class="carousel-reorder-btn" onclick="event.stopPropagation();carouselMoveSlide(${i},1)" ${downDisabled} title="Move down">↓</button>
+  </div>`;
 
   let fields = '';
 
@@ -616,7 +742,32 @@ function _carouselSlideItemHTML(slide, i) {
          <input type="text" value="${_escAttr(slide.action || '')}" oninput="carouselUpdateField(${i},'action',this.value)">
        </div>
        <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
+  } else if (slide.type === 'quote') {
+    fields = `<div class="carousel-field">
+         <label class="carousel-field-label">Quote text</label>
+         <textarea oninput="carouselUpdateField(${i},'text',this.value)">${_escContent(slide.text || '')}</textarea>
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Attribution (optional)</label>
+         <input type="text" value="${_escAttr(slide.attribution || '')}" placeholder="— Name or source" oninput="carouselUpdateField(${i},'attribution',this.value)">
+       </div>
+       <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
+  } else if (slide.type === 'stat') {
+    fields = `<div class="carousel-field">
+         <label class="carousel-field-label">Number / metric</label>
+         <input type="text" value="${_escAttr(slide.number || '')}" placeholder="e.g. 73% or 3×" oninput="carouselUpdateField(${i},'number',this.value)">
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Label (max 4 words)</label>
+         <input type="text" value="${_escAttr(slide.label || '')}" placeholder="e.g. more saves" oninput="carouselUpdateField(${i},'label',this.value)">
+       </div>
+       <div class="carousel-field">
+         <label class="carousel-field-label">Context (1–2 sentences)</label>
+         <textarea oninput="carouselUpdateField(${i},'context',this.value)">${_escContent(slide.context || '')}</textarea>
+       </div>
+       <button class="carousel-delete-slide-btn" onclick="carouselDeleteSlide(${i})">Delete slide</button>`;
   } else {
+    // content type
     fields = `<div class="carousel-field">
          <label class="carousel-field-label">Slide number label</label>
          <input type="text" value="${_escAttr(slide.number || '')}" oninput="carouselUpdateField(${i},'number',this.value)">
@@ -651,7 +802,10 @@ function _carouselSlideItemHTML(slide, i) {
       <span class="carousel-slide-num">${i + 1}</span>
       <span>${label}</span>
     </div>
-    <span class="carousel-slide-item-chevron">▾</span>
+    <div style="display:flex;align-items:center;gap:0.25rem;">
+      ${reorderBtns}
+      <span class="carousel-slide-item-chevron">▾</span>
+    </div>
   </div>
   <div class="carousel-slide-item-body">${fields}</div>
 </div>`;
@@ -659,12 +813,21 @@ function _carouselSlideItemHTML(slide, i) {
 
 function carouselToggleSlideItem(i) {
   const item = document.getElementById(`cslide-item-${i}`);
-  if (item) item.classList.toggle('open');
+  if (item) {
+    item.classList.toggle('open');
+    if (item.classList.contains('open')) {
+      // Navigate preview to the opened slide
+      carouselState.currentSlide = i;
+      carouselUpdatePreview();
+    }
+  }
 }
 
 function carouselUpdateField(i, key, value) {
   if (!carouselState.slides[i]) return;
   carouselState.slides[i][key] = value;
+  // Jump preview to the slide being edited for live feedback
+  carouselState.currentSlide = i;
   carouselUpdatePreview();
   carouselSaveTemplate();
 }
@@ -682,6 +845,17 @@ function carouselDeleteSlide(i) {
   if (carouselState.currentSlide >= carouselState.slides.length) {
     carouselState.currentSlide = carouselState.slides.length - 1;
   }
+  carouselRenderEditor();
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+}
+
+function carouselMoveSlide(i, dir) {
+  const slides = carouselState.slides;
+  const newIdx = i + dir;
+  if (newIdx < 0 || newIdx >= slides.length) return;
+  [slides[i], slides[newIdx]] = [slides[newIdx], slides[i]];
+  carouselState.currentSlide = newIdx;
   carouselRenderEditor();
   carouselUpdatePreview();
   carouselSaveTemplate();
@@ -717,18 +891,74 @@ function carouselAddCtaSlide() {
   setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
 }
 
+function carouselAddQuoteSlide() {
+  carouselState.slides.push({
+    type: 'quote',
+    text: 'The best time to start was yesterday. The second best time is now.',
+    attribution: '',
+  });
+  carouselRenderEditor();
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+  setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
+}
+
+function carouselAddStatSlide() {
+  carouselState.slides.push({
+    type: 'stat',
+    number: '0×',
+    label: 'Add your metric',
+    context: 'Add context explaining what this number means and why it matters.',
+  });
+  carouselRenderEditor();
+  carouselUpdatePreview();
+  carouselSaveTemplate();
+  setTimeout(() => carouselToggleSlideItem(carouselState.slides.length - 1), 50);
+}
+
+// ─── Theme selector ───────────────────────────────────────────────────────────
+
+function carouselBuildThemeSelector() {
+  const container = document.getElementById('carousel-theme-selector');
+  if (!container) return;
+  container.innerHTML = CAROUSEL_THEMES.map(t => {
+    const isActive = carouselState.theme === t.id;
+    return `<button class="carousel-theme-swatch${isActive ? ' active' : ''}"
+      onclick="carouselSetTheme('${t.id}')"
+      title="${t.name}"
+      style="background:${t.bg};border:2px solid ${isActive ? t.accent : 'rgba(255,255,255,0.12)'};position:relative;overflow:hidden;">
+      <span style="position:absolute;bottom:3px;left:0;right:0;height:5px;background:${t.accent};"></span>
+      <span class="carousel-theme-name">${t.name}</span>
+    </button>`;
+  }).join('');
+}
+
+function carouselSetTheme(themeId) {
+  const theme = CAROUSEL_THEMES.find(t => t.id === themeId);
+  if (!theme) return;
+  carouselState.theme = themeId;
+  carouselSetStyle(theme.slideStyle, /* skipSave */ true);
+  carouselSetAccent(theme.accent, false, /* skipSave */ true);
+  carouselSetBg(theme.bg, false, /* skipSave */ true);
+  carouselBuildThemeSelector();
+  carouselUpdatePreview();
+  _carouselUpdateSettingsPreview();
+  carouselSaveTemplate();
+}
+
 // ─── Template persistence ─────────────────────────────────────────────────────
 
 function carouselSaveTemplate() {
   try {
     const username = (carouselState.slides[0] && carouselState.slides[0].username) || '@yourhandle';
-    // Strip per-slide images and avatar before saving — they can be several MB and blow the localStorage quota
+    // Strip per-slide images before saving — they can be several MB and blow localStorage quota
     // Avatar is persisted separately under CAROUSEL_AVATAR_KEY
     const slides = carouselState.slides.map(s => ({ ...s, image: null }));
     localStorage.setItem(CAROUSEL_TEMPLATE_KEY, JSON.stringify({
       accentColor: carouselState.accentColor,
       bgColor: carouselState.bgColor,
       slideStyle: carouselState.slideStyle,
+      theme: carouselState.theme,
       logoText: carouselState.logoText,
       websiteUrl: carouselState.websiteUrl,
       username,
@@ -764,6 +994,7 @@ function carouselLoadTemplate() {
       const bgSection = document.getElementById('carousel-bg-section');
       if (bgSection) bgSection.style.display = t.slideStyle === 'dark' ? 'block' : 'none';
     }
+    if (t.theme) carouselState.theme = t.theme;
     if (t.logoText !== undefined) {
       carouselState.logoText = t.logoText;
       const el = document.getElementById('carousel-logo-text');
@@ -784,7 +1015,7 @@ function carouselLoadTemplate() {
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
-function carouselSetStyle(style) {
+function carouselSetStyle(style, skipSave) {
   carouselState.slideStyle = style;
   document.querySelectorAll('.carousel-style-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.style === style);
@@ -793,7 +1024,7 @@ function carouselSetStyle(style) {
   if (bgSection) bgSection.style.display = style === 'dark' ? 'block' : 'none';
   carouselUpdatePreview();
   _carouselUpdateSettingsPreview();
-  carouselSaveTemplate();
+  if (!skipSave) carouselSaveTemplate();
 }
 
 function carouselSetLogoText(val) {
@@ -831,7 +1062,7 @@ function _carouselBuildColorPresets() {
   }
 }
 
-function carouselSetAccent(color, fromPreset) {
+function carouselSetAccent(color, fromPreset, skipSave) {
   carouselState.accentColor = color;
   const picker = document.getElementById('carousel-accent-picker');
   const hex = document.getElementById('carousel-accent-hex');
@@ -839,10 +1070,10 @@ function carouselSetAccent(color, fromPreset) {
   if (hex) hex.textContent = color;
   if (fromPreset) _carouselBuildColorPresets();
   carouselUpdatePreview();
-  carouselSaveTemplate();
+  if (!skipSave) carouselSaveTemplate();
 }
 
-function carouselSetBg(color, fromPreset) {
+function carouselSetBg(color, fromPreset, skipSave) {
   carouselState.bgColor = color;
   const picker = document.getElementById('carousel-bg-picker');
   const hex = document.getElementById('carousel-bg-hex');
@@ -850,7 +1081,7 @@ function carouselSetBg(color, fromPreset) {
   if (hex) hex.textContent = color;
   if (fromPreset) _carouselBuildColorPresets();
   carouselUpdatePreview();
-  carouselSaveTemplate();
+  if (!skipSave) carouselSaveTemplate();
 }
 
 // ─── Template import / export ─────────────────────────────────────────────────
@@ -861,6 +1092,7 @@ function carouselExportTemplate() {
     accentColor: carouselState.accentColor,
     bgColor: carouselState.bgColor,
     slideStyle: carouselState.slideStyle,
+    theme: carouselState.theme,
     logoText: carouselState.logoText,
     websiteUrl: carouselState.websiteUrl,
     slides: carouselState.slides.map(s => {
@@ -1004,9 +1236,13 @@ function carouselHandleTemplateUpload(input) {
       if (!Array.isArray(template.slides)) throw new Error('Invalid template — missing slides array');
       carouselState.slides = template.slides;
       carouselState.currentSlide = 0;
-      if (template.accentColor) carouselSetAccent(template.accentColor, false);
-      if (template.bgColor) carouselSetBg(template.bgColor, false);
-      if (template.slideStyle) carouselSetStyle(template.slideStyle);
+      if (template.theme) {
+        carouselSetTheme(template.theme);
+      } else {
+        if (template.accentColor) carouselSetAccent(template.accentColor, false, true);
+        if (template.bgColor) carouselSetBg(template.bgColor, false, true);
+        if (template.slideStyle) carouselSetStyle(template.slideStyle, true);
+      }
       if (template.logoText !== undefined) {
         carouselState.logoText = template.logoText;
         const logoInput = document.getElementById('carousel-logo-text');
@@ -1029,6 +1265,38 @@ function carouselHandleTemplateUpload(input) {
   input.value = '';
 }
 
+// Used by the library to load a saved carousel back into the editor
+function carouselLoadFromData(data) {
+  if (!data || !Array.isArray(data.slides)) return false;
+  carouselState.slides = data.slides;
+  carouselState.currentSlide = 0;
+  if (data.settings) {
+    const s = data.settings;
+    if (s.theme) {
+      carouselSetTheme(s.theme);
+    } else {
+      if (s.accentColor) carouselSetAccent(s.accentColor, false, true);
+      if (s.bgColor) carouselSetBg(s.bgColor, false, true);
+      if (s.slideStyle) carouselSetStyle(s.slideStyle, true);
+    }
+    if (s.logoText !== undefined) {
+      carouselState.logoText = s.logoText;
+      const el = document.getElementById('carousel-logo-text');
+      if (el) el.value = s.logoText;
+    }
+    if (s.websiteUrl !== undefined) {
+      carouselState.websiteUrl = s.websiteUrl;
+      const el = document.getElementById('carousel-website-url');
+      if (el) el.value = s.websiteUrl;
+    }
+  }
+  carouselUpdatePreview();
+  carouselRenderEditor();
+  carouselBuildThemeSelector();
+  carouselSwitchTab('preview');
+  return true;
+}
+
 function carouselReset() {
   if (!confirm('Reset to default content? This will clear all slides, images, and saved brand settings.')) return;
   localStorage.removeItem(CAROUSEL_TEMPLATE_KEY);
@@ -1041,13 +1309,15 @@ function carouselReset() {
   carouselState.accentColor = '#39FF14';
   carouselState.bgColor = '#0a0a0a';
   carouselState.slideStyle = 'dark';
+  carouselState.theme = 'dark';
   carouselState.logoText = 'BRAND.';
   carouselState.websiteUrl = '';
   const logoInput = document.getElementById('carousel-logo-text');
   if (logoInput) logoInput.value = 'BRAND.';
   const siteInput = document.getElementById('carousel-website-url');
   if (siteInput) siteInput.value = '';
-  carouselSetStyle('dark');
+  carouselSetStyle('dark', true);
+  carouselBuildThemeSelector();
   carouselUpdatePreview();
   carouselRenderEditor();
   _carouselBuildColorPresets();
