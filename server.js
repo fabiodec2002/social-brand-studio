@@ -649,8 +649,10 @@ function buildInstagramInstructions(format, subType) {
       - ${pillarNotes[subType] || pillarNotes.personality}
       - Write like you're talking to one specific person, not broadcasting to an audience.
       - Each slide: 1 punchy idea, 1–2 sentences max.
+      - MECHANISM RULE: If you mention a result or change, name the specific thing that caused it — even in 2–3 words. "Stopped checking email before noon — changed everything" not "I made a small change and it changed everything."
       - End with a binary-choice poll ("Which are you? A or B?"), a fill-in-the-blank ("The thing I wish I'd done earlier was ___"), or "DM me [specific keyword]" to drive replies. These get responses; "What do you think?" does not.
-      - No hashtags needed for Stories.`;
+      - No hashtags needed for Stories.
+      - BANNED: transformation / breakthrough / doing the work / showing up / on this journey / manifest / alignment / game changer / hustle culture / thought leader / crushing it.`;
   }
 
   if (format === 'reel') {
@@ -662,10 +664,13 @@ function buildInstagramInstructions(format, subType) {
     return `Write a Reel hook + caption (80–150 words total).
       - ${styleNotes[subType] || styleNotes.talking}
       - First 3 seconds are everything — open with a scroll-stopping declarative, not a question.
+      - COLD OPEN RULE: Start mid-action, mid-thought, or mid-story. Never with an intro or setup. WRONG: "Today I want to talk about something that changed my business." RIGHT: "I lost my biggest client last Tuesday. Here's exactly what I did next." The viewer must feel they interrupted you — not that you're beginning a presentation.
       - Short sentences, high energy, punchy rhythm. Use sentence fragments for emphasis.
       - PRONOUN ARCHITECTURE: Open with "I" (specific experience). Pivot to "you" in the lesson (payoff is about the reader, not the creator).
+      - MECHANISM RULE: Never state an outcome without naming HOW. BAD: "This changed my life." GOOD: "Deleting my task list and replacing it with a single weekly goal cut my decision fatigue in half."
       - CTA: one specific ask only. "Comment [keyword] and I'll DM you the full breakdown" drives both comments and DMs simultaneously. Or: "Which of these surprised you most? Comment the number."
-      - HASHTAGS: 3–5 specific hashtags after two blank lines. No hashtag with over 500k posts. Hard platform limit: 5 maximum.`;
+      - HASHTAGS: 3–5 specific hashtags after two blank lines. No hashtag with over 500k posts. Hard platform limit: 5 maximum.
+      - BANNED COACHING JARGON: transformation / breakthrough / mastery / hustle culture / crushing it / game changer / level up / authentic self / doing the work / showing up / on this journey / manifest / alignment / thought leader / paradigm shift.`;
   }
 
   if (format === 'normal') {
@@ -688,7 +693,7 @@ The best open-question posts make readers comment because they actually have an 
     };
     return `Write a single Instagram feed caption (150-220 words).
 
-ABOVE THE FOLD — first ~20 words (critical):
+ABOVE THE FOLD — first ~125 characters (critical):
 These appear before the "more" cutoff on mobile. All-or-nothing. Must establish tension and withhold resolution. Must NOT complete its thought.
 Proven hook openers (pick the type that fits the content):
 - Confession: "I almost [quit/lost everything/fired my best client]..."
@@ -702,6 +707,7 @@ BODY STRUCTURE:
 - 3–5 short paragraphs, 1–3 lines each, blank line between each.
 - Rhythm pattern: short paragraph → longer paragraph → short → CTA. Never all paragraphs the same length.
 - At least one sentence fragment used for emphasis (once only — not in every paragraph).
+- MID-BODY REHOOK (paragraph 3): One short sentence that resets attention. Options: "Here's the part nobody talks about:" / "This is where it gets counterintuitive:" / A sentence that contradicts or complicates what you just said. This holds dwell time past the first scroll.
 - ${subTypeNotes[subType] || subTypeNotes.personal}
 
 PRONOUN ARCHITECTURE:
@@ -716,11 +722,16 @@ CTA (one line, pick one type and be specific):
 - For COMMENTS: binary choice ("A or B?"), fill-in-blank, or "Drop a [emoji] if this is you."
 Never: "Let me know in the comments" / "What do you think?" / "Drop your thoughts below."
 
+MECHANISM RULE: Never state an outcome without naming the mechanism.
+BAD: "This changed everything for me." — GOOD: "Cutting my offer from 6 services to 1 raised my close rate from 20% to 68%."
+Every outcome → specific cause. Every claim → specific evidence or method.
+
 KEYWORD-FIRST: Embed the primary topic keyword naturally in the first 1–2 sentences. Instagram now crawls captions for search ranking.
 
 HASHTAGS: 3–5 specific hashtags after two blank lines. No hashtag broader than 500k posts. Maximum 5 — hard platform limit since December 2025.
 
-BANNED: "In today's world" / "It's no secret that" / "When it comes to" / "At the end of the day" / "I'm excited to share" / "Honored and humbled" / passive voice / capitalizing Success / Mindset / Abundance / Journey as spiritual nouns / any sentence that could appear on a motivational poster unchanged.`;
+BANNED: "In today's world" / "It's no secret that" / "When it comes to" / "At the end of the day" / "I'm excited to share" / "Honored and humbled" / passive voice / capitalizing Success / Mindset / Abundance / Journey as spiritual nouns / any sentence that could appear on a motivational poster unchanged.
+COACHING JARGON (also banned): transformation / breakthrough / mastery / outside the box / outside your comfort zone / embrace change / thought leader / guru / paradigm shift / hustle culture / crushing it / game changer / level up / authentic self / passion project / doing the work / showing up / on this journey / manifest / alignment / abundance mindset / SMART goals / learnings (use "lessons") / synergy / incentivize.`;
   }
 
   // Default: carousel post
@@ -750,12 +761,24 @@ Use EXACTLY ONE of these 6 proven formulas — adapted to the brand's content an
   5. Contrarian:        "[Common accepted belief] is wrong. Here's what actually works."
   6. Promise:           "How to [specific outcome] in [timeframe] (even if [the main objection])"
 NEVER START WITH: "Today I want to share" / "I've been thinking about" / "In today's world" / vague intros / rhetorical questions with obvious answers.
+End Slide 1 with "Swipe →" — this indicator increases swipe-through 15–30%.
+Text placement: keep text in the top 60% of the slide (Instagram UI covers the bottom third on mobile).
+TARGET: 7–10 slides total. Under 6 feels thin; over 10 loses the audience before the CTA.
 
 ━━━ SLIDE 2 — STAKES ━━━
 Why does this matter RIGHT NOW for this specific person? What do they lose or miss if they don't know this?
 Max 2 short sentences. No slide numbers on this one — it should feel like a natural follow-up to the hook.
 
-━━━ SLIDES 3–N — BODY (one idea per slide — non-negotiable) ━━━
+━━━ SLIDE 3 — REHOOK (mandatory) ━━━
+Audience attention drops sharply after slide 2. Slide 3 must re-engage skimmers before continuing.
+Start slide 3 with ONE of these transition openers:
+  — "But here's what most people miss:"
+  — "The counterintuitive part:"
+  — "Wait — this changes everything:"
+  — "Here's where it gets interesting:"
+Deliver genuine value on this slide AND reset attention for the remaining slides. This is your second hook.
+
+━━━ SLIDES 4–N — BODY (one idea per slide — non-negotiable) ━━━
 WORD BUDGET: 15–25 words per slide body. Hard cap: 30 words. NOT 3–5 sentences.
 ONE IDEA PER SLIDE. If you find yourself writing "also" or "and", split into two slides.
 HEADLINE: 3–6 words, action-verb first ("Fix this first", "Cut the middle step", "Never skip this").
@@ -793,8 +816,10 @@ Reading level: 5th–7th grade equivalent. Conversational authority — like a s
 Sentence length: 7–10 words average. Fragments are fine. No complex subordinate clauses.
 Never hedge: remove "maybe", "might", "could be", "kind of", "sort of" from every sentence.
 Active verbs, present tense where possible. Concrete nouns over abstract concepts.
+MECHANISM RULE: Never state an outcome without naming the mechanism. BAD: "This changed everything." GOOD: "Cutting from 6 offers to 1 tripled my close rate." Every claim → specific cause or evidence.
 
-BANNED: Moreover / Furthermore / That being said / tapestry / resonate / delve / pivotal / showcase / passive voice / "It goes without saying" / "As you can see" / "In today's world" / "It's no secret that" / "When it comes to" / "At the end of the day" / "I'm excited to share" / capitalizing Success/Mindset/Journey as spiritual nouns.`;
+BANNED: Moreover / Furthermore / That being said / tapestry / resonate / delve / pivotal / showcase / passive voice / "It goes without saying" / "As you can see" / "In today's world" / "It's no secret that" / "When it comes to" / "At the end of the day" / "I'm excited to share" / capitalizing Success/Mindset/Journey as spiritual nouns.
+COACHING JARGON (also banned): transformation / breakthrough / mastery / outside the box / outside your comfort zone / embrace change / thought leader / guru / paradigm shift / hustle culture / crushing it / game changer / level up / authentic self / passion project / doing the work / showing up / on this journey / manifest / alignment / SMART goals / learnings (use "lessons") / synergy / incentivize.`;
 }
 
 function buildTwitterInstructions(format) {
@@ -929,7 +954,9 @@ RULES — check every one, fix any that fail:
 
 6. TEMPORAL OR SENSORY GROUNDING: Check whether the post contains at least one grounding detail — a specific time, place, or physical sensation. If one is present, good. If absent, do NOT fabricate one — instead, check whether there is a vague reference ("recently", "one morning") that can be made more concrete based on what is already in the post. Never invent a location, date, or detail not implied by the existing text.
 
-Return ONLY the revised post. If all 6 rules pass, return the original unchanged.`,
+7. MECHANISM CHECK: Scan for vague outcome claims — phrases like "this changed everything", "I grew significantly", "it worked", "it made a huge difference", "I saw results". For each, either (a) sharpen the language using the mechanism or cause already implied in the post — or (b) remove the vague claim entirely. Do NOT invent specifics not in the original text. Declarative outcomes without mechanisms destroy credibility with personal brand audiences.
+
+Return ONLY the revised post. If all 7 rules pass, return the original unchanged.`,
     }],
   });
   return response.choices[0].message.content.trim();
