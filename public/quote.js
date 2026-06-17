@@ -168,7 +168,7 @@ function _avatarHTML(avatarImage, size, border = 'none') {
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#c9a96e22;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:${border};"><span style="font-size:${Math.floor(size*0.4)}px;color:#c9a96e;">✦</span></div>`;
 }
 
-// 1. Twitter/X style
+// 1. Twitter/X style (Hormozi layout — no logo, verified badge next to name)
 function _buildTwitterCard(state, w, h) {
   const pad = Math.round(w * 0.1);
   const authorSize = Math.round(w * 0.038);
@@ -176,35 +176,33 @@ function _buildTwitterCard(state, w, h) {
   const quoteSize  = _calcFontSize(state.text, w, h, 0.072, 0.048, pad);
   const subtextSize = Math.round(w * 0.034);
   const avatarSize = Math.round(w * 0.12);
+  const checkSize  = Math.round(w * 0.036);
   const name = _esc(state.authorName || 'Your Name');
   const handle = _esc(state.authorHandle ? '@' + state.authorHandle.replace(/^@/, '') : '@yourhandle');
+
+  // Blue verified checkmark SVG (Twitter blue #1D9BF0)
+  const verifiedBadge = `<svg width="${checkSize}" height="${checkSize}" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;flex-shrink:0;margin-left:${Math.round(checkSize*0.15)}px;"><path fill="#1D9BF0" d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91-1.01-1-2.52-1.26-3.91-.8C14.67 2.88 13.43 2 12 2c-1.43 0-2.67.88-3.34 2.19-1.39-.46-2.9-.2-3.91.81-1 1.01-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12c0 1.43.88 2.67 2.19 3.34-.46 1.39-.2 2.9.81 3.91 1.01 1 2.52 1.26 3.91.8C9.33 21.12 10.57 22 12 22c1.43 0 2.67-.88 3.34-2.19 1.39.46 2.9.2 3.91-.81 1-1.01 1.26-2.52.8-3.91C21.12 14.67 22 13.43 22 12zm-11.22 3.1L7.48 11.5l1.42-1.42 2.08 2.08 4.62-4.62 1.42 1.42-6.06 6.14z"/></svg>`;
 
   return `<div style="
     width:${w}px;height:${h}px;box-sizing:border-box;
     background:#ffffff;
-    font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-family:-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif;
     padding:${pad}px;
-    display:flex;flex-direction:column;justify-content:space-between;
-    border:1px solid #e5e7eb;
+    display:flex;flex-direction:column;
   ">
-    <div style="display:flex;align-items:center;gap:${Math.round(w*0.03)}px;margin-bottom:${Math.round(h*0.04)}px;">
+    <div style="display:flex;align-items:center;gap:${Math.round(w*0.03)}px;margin-bottom:${Math.round(h*0.05)}px;">
       ${_avatarHTML(state.avatarImage, avatarSize)}
       <div>
-        <div style="font-weight:700;font-size:${authorSize}px;color:#0f1419;line-height:1.2;">${name}</div>
-        <div style="font-size:${handleSize}px;color:#536471;margin-top:2px;">${handle}</div>
+        <div style="display:flex;align-items:center;font-weight:700;font-size:${authorSize}px;color:#0f1419;line-height:1.2;">${name}${verifiedBadge}</div>
+        <div style="font-size:${handleSize}px;color:#536471;margin-top:3px;">${handle}</div>
       </div>
     </div>
-    <div style="flex:1;display:flex;align-items:center;">
-      <p style="
-        margin:0;font-size:${quoteSize}px;font-weight:400;
-        color:#0f1419;line-height:1.5;letter-spacing:-0.01em;
-        word-break:break-word;
-      ">${_esc(state.text) || '<span style="color:#9ca3af;font-style:italic;">Your quote will appear here…</span>'}</p>
-    </div>
-    ${state.subtext ? `<p style="margin:${Math.round(h*0.03)}px 0 0;font-size:${subtextSize}px;color:#536471;line-height:1.4;">${_esc(state.subtext)}</p>` : ''}
-    <div style="margin-top:${Math.round(h*0.04)}px;padding-top:${Math.round(h*0.025)}px;border-top:1px solid #eff3f4;">
-      <svg style="width:${Math.round(w*0.044)}px;height:auto;" viewBox="0 0 24 24" fill="#0f1419"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.855L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-    </div>
+    <p style="
+      margin:0;font-size:${quoteSize}px;font-weight:400;
+      color:#0f1419;line-height:1.5;letter-spacing:-0.01em;
+      word-break:break-word;
+    ">${_esc(state.text) || '<span style="color:#9ca3af;font-style:italic;">Your quote will appear here…</span>'}</p>
+    ${state.subtext ? `<p style="margin:${Math.round(h*0.04)}px 0 0;font-size:${subtextSize}px;color:#536471;line-height:1.4;">${_esc(state.subtext)}</p>` : ''}
   </div>`;
 }
 
