@@ -673,6 +673,29 @@
       margin-bottom: 0.5rem;
     }
 
+    .control-group-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
+    .text-input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.65rem 0.85rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 300;
+      border-radius: 2px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .text-input:focus { border-color: var(--border2); }
+    .text-input::placeholder { color: var(--text3); }
+
     select, .select-styled {
       width: 100%;
       background: var(--bg3);
@@ -2917,6 +2940,7 @@
     }
     .phase-subnav-btn:hover { color: var(--text2); border-color: var(--border); }
     .phase-subnav-btn.active { color: var(--gold); border-color: rgba(201,169,110,0.3); background: rgba(201,169,110,0.06); }
+    .quote-style-btn.active, .quote-ratio-btn.active { color: var(--gold) !important; border-color: rgba(201,169,110,0.5) !important; background: rgba(201,169,110,0.1) !important; }
 
     /* Phase content area */
     .phase-content-area {
@@ -3706,6 +3730,9 @@
           <div class="sidebar-subnav-item" id="ssub-carousel" onclick="showTool('create','carousel')">
             <span class="sidebar-subnav-dot"></span>Carousel Builder
           </div>
+          <div class="sidebar-subnav-item" id="ssub-quotes" onclick="showTool('create','quotes')">
+            <span class="sidebar-subnav-dot"></span>Quote Cards
+          </div>
         </div>
 
         <!-- Library -->
@@ -4052,6 +4079,7 @@
         <button class="phase-subnav-btn" id="psnav-hooks" onclick="showTool('create','hooks')">Hooks</button>
         <button class="phase-subnav-btn" id="psnav-remake" onclick="showTool('create','remake')">Viral</button>
         <button class="phase-subnav-btn" id="psnav-carousel" onclick="showTool('create','carousel')">Carousel</button>
+        <button class="phase-subnav-btn" id="psnav-quotes" onclick="showTool('create','quotes')">Quotes</button>
       </div>
 
       <!-- Publish subnav -->
@@ -4372,6 +4400,119 @@
               <div class="carousel-field-label">Live preview</div>
               <div class="carousel-settings-preview" id="carousel-settings-preview"></div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quote Studio Tab -->
+      <div id="tab-quotes" class="tab-content" style="display:none">
+        <div class="section-title">Quote Studio</div>
+        <div class="section-subtitle">Create shareable quote cards — generate with AI or write your own</div>
+
+        <div style="display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap;">
+
+          <!-- Left: Controls -->
+          <div style="flex:0 0 280px;min-width:220px;display:flex;flex-direction:column;gap:1.25rem;">
+
+            <!-- AI Generation -->
+            <div class="control-group">
+              <div class="control-group-title">Generate with AI</div>
+              <label style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;display:block;">Topic or theme</label>
+              <input id="quote-ai-topic" class="text-input" type="text" placeholder="e.g. discipline, business growth, identity…" style="width:100%;box-sizing:border-box;">
+              <label style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:10px 0 4px;display:block;">Tone</label>
+              <select id="quote-ai-tone" class="text-input" style="width:100%;box-sizing:border-box;">
+                <option value="authentic">Authentic</option>
+                <option value="educational">Educational</option>
+                <option value="storytelling">Storytelling</option>
+                <option value="motivational">Motivational</option>
+                <option value="casual">Casual</option>
+                <option value="contrarian">Contrarian</option>
+              </select>
+              <button id="quote-generate-btn" class="primary-btn" style="width:100%;margin-top:10px;" onclick="quoteGenerateAI()">Generate Quote</button>
+              <div id="quote-ai-status" style="font-size:0.72rem;margin-top:6px;min-height:16px;"></div>
+            </div>
+
+            <!-- Manual text -->
+            <div class="control-group">
+              <div class="control-group-title">Or write your own</div>
+              <label style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;display:block;">Quote text</label>
+              <textarea id="quote-text-input" class="text-input" rows="4" placeholder="Write your quote here…" style="width:100%;box-sizing:border-box;resize:vertical;" oninput="quoteUpdateField('text',this.value)"></textarea>
+              <label style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:10px 0 4px;display:block;">Supporting line <span style="opacity:0.5;">(optional)</span></label>
+              <input id="quote-subtext-input" class="text-input" type="text" placeholder="e.g. From my newsletter this week" style="width:100%;box-sizing:border-box;" oninput="quoteUpdateField('subtext',this.value)">
+            </div>
+
+            <!-- Brand identity -->
+            <div class="control-group">
+              <div class="control-group-title">Your brand</div>
+              <label style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;display:block;">Name</label>
+              <input id="quote-author-name" class="text-input" type="text" placeholder="Alex Hormozi" style="width:100%;box-sizing:border-box;" oninput="quoteUpdateField('authorName',this.value)">
+              <label style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:8px 0 4px;display:block;">Handle <span style="opacity:0.5;">(optional)</span></label>
+              <input id="quote-author-handle" class="text-input" type="text" placeholder="@yourhandle" style="width:100%;box-sizing:border-box;" oninput="quoteUpdateField('authorHandle',this.value)">
+              <label style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin:8px 0 4px;display:block;">Profile photo <span style="opacity:0.5;">(optional)</span></label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <label style="cursor:pointer;padding:5px 12px;border:1px solid var(--border);border-radius:6px;font-size:0.72rem;color:var(--text2);">
+                  Upload photo
+                  <input type="file" accept="image/*" style="display:none;" onchange="quoteHandleAvatarUpload(this)">
+                </label>
+                <div id="quote-avatar-preview-wrap" style="display:none;">
+                  <img id="quote-avatar-preview" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border);">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right: Preview + styles -->
+          <div style="flex:1;min-width:300px;display:flex;flex-direction:column;gap:1.25rem;">
+
+            <!-- Style presets -->
+            <div>
+              <div class="control-group-title" style="margin-bottom:10px;">Style</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="quote-style-btn active" data-style="twitter" onclick="quoteSetStyle('twitter')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">Twitter / X</button>
+                <button class="quote-style-btn" data-style="dark" onclick="quoteSetStyle('dark')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">Dark Luxury</button>
+                <button class="quote-style-btn" data-style="minimal" onclick="quoteSetStyle('minimal')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">Minimal</button>
+                <button class="quote-style-btn" data-style="gradient" onclick="quoteSetStyle('gradient')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">Gradient</button>
+                <button class="quote-style-btn" data-style="bold" onclick="quoteSetStyle('bold')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">Bold</button>
+              </div>
+            </div>
+
+            <!-- Ratio -->
+            <div>
+              <div class="control-group-title" style="margin-bottom:10px;">Size</div>
+              <div style="display:flex;gap:8px;">
+                <button class="quote-ratio-btn active" data-ratio="square" onclick="quoteSetRatio('square')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">□ Square</button>
+                <button class="quote-ratio-btn" data-ratio="portrait" onclick="quoteSetRatio('portrait')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">▭ Portrait</button>
+                <button class="quote-ratio-btn" data-ratio="wide" onclick="quoteSetRatio('wide')" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);font-size:0.72rem;cursor:pointer;transition:all 0.15s;">▬ Wide</button>
+              </div>
+            </div>
+
+            <!-- Color pickers (shown for non-twitter styles) -->
+            <div id="quote-color-row" style="display:none;gap:16px;align-items:center;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <label style="font-size:0.72rem;color:var(--text2);">Accent</label>
+                <input id="quote-accent-color" type="color" value="#c9a96e" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:0;" oninput="quoteUpdateField('accentColor',this.value)">
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;" id="quote-bg-color-wrap">
+                <label style="font-size:0.72rem;color:var(--text2);">Background</label>
+                <input id="quote-bg-color" type="color" value="#0c0c0b" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:0;" oninput="quoteUpdateField('bgColor',this.value)">
+              </div>
+            </div>
+
+            <!-- Live preview -->
+            <div>
+              <div class="control-group-title" style="margin-bottom:10px;">Preview</div>
+              <div style="display:flex;justify-content:flex-start;">
+                <div id="quote-preview-display" style="border-radius:8px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.35);"></div>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button id="quote-download-btn" class="primary-btn" onclick="quoteExportPNG()">Download PNG</button>
+              <button id="quote-save-btn" class="secondary-btn" onclick="quoteSaveToLibrary()">Save to Library</button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -6262,6 +6403,7 @@
 
   function _showTabSideEffects(tabName) {
     if (tabName === 'carousel' && typeof carouselInit === 'function') carouselInit();
+    if (tabName === 'quotes' && typeof quoteInit === 'function') quoteInit();
     if (tabName === 'library') loadLibrary();
     if (tabName === 'ideas') populateIdeasPillarSelect();
     if (tabName === 'machine') buildMachineCTAGrid();
@@ -9552,5 +9694,6 @@
 
 </script>
 <script src="carousel.js"></script>
+<script src="quote.js"></script>
 </body>
 </html>

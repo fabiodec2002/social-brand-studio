@@ -1433,6 +1433,69 @@ Return ONLY valid JSON:
     .sort((a, b) => b.fitScore - a.fitScore || b.likes - a.likes);
 }
 
+async function generateQuotePost({ personalityMap, strategy, brandContext, topic, tone, brandType }) {
+  const isPersonal = brandType !== 'business';
+  const brandName = isPersonal
+    ? (personalityMap?.name || 'the author')
+    : (personalityMap?.company_name || personalityMap?.name || 'the brand');
+
+  const voiceAdjectives = (strategy?.brand_voice?.adjectives || []).join(', ') || 'direct, confident';
+  const toneOfVoice = brandContext?.tone_of_voice || voiceAdjectives;
+
+  const toneDirections = {
+    authentic: 'Vulnerable, mid-thought. Sounds like something said out loud without editing.',
+    educational: 'One sharp observation that reframes how the reader sees a familiar problem.',
+    storytelling: 'A captured moment — present tense, sensory, like the first line of a scene.',
+    motivational: 'Earned. Grounded in a specific reality, not generic encouragement.',
+    casual: 'The thing you say to a smart friend, not a stage. Contractions allowed.',
+    contrarian: 'Names a widely-held belief and quietly dismantles it. No hedging.',
+  };
+
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    response_format: { type: 'json_object' },
+    messages: [{
+      role: 'user',
+      content: `Write a short, shareable quote card text for ${brandName}.
+
+TOPIC: ${topic || 'their core expertise and worldview'}
+
+BRAND VOICE: ${toneOfVoice}
+TONE DIRECTION: ${toneDirections[tone] || toneDirections.authentic}
+
+RULES — mandatory, non-negotiable:
+- 1 to 3 sentences maximum. Shorter is almost always better.
+- Every word earns its place. Cut filler ruthlessly.
+- No buzzwords: no "game-changer", "synergy", "empower", "unlock", "journey", "elevate", "leverage", "navigate", "thrive"
+- No motivational-poster clichés. No rhyming for the sake of it.
+- Active voice. Present tense preferred.
+- Must feel like it came from a real person with a specific perspective — not a generic caption
+- Do NOT start with "I" as the first word
+- The subtext (if used) supports the quote — it does NOT repeat it or explain it
+
+BRAND DATA:
+${JSON.stringify({
+  values: personalityMap?.values,
+  expertise: personalityMap?.professional_experience?.areas_of_expertise || personalityMap?.expertise,
+  personality: personalityMap?.personality_notes,
+  mission: brandContext?.missie || strategy?.unique_value_proposition,
+}, null, 2)}
+
+Return ONLY valid JSON:
+{
+  "quote": "the main quote text (1-3 sentences, max 220 chars)",
+  "subtext": "optional supporting line — leave empty string if not needed (max 100 chars)"
+}`
+    }],
+  });
+
+  const parsed = JSON.parse(response.choices[0].message.content);
+  return {
+    quote: (parsed.quote || '').trim(),
+    subtext: (parsed.subtext || '').trim(),
+  };
+}
+
 async function getCacheRow(platform) {
   const rows = await sql`SELECT posts, cached_at, run_id, run_status FROM viral_cache WHERE platform = ${platform}`;
   return rows[0] ?? null;
@@ -2608,6 +2671,38 @@ Return ONLY valid JSON:
 
     const { ideas } = JSON.parse(response.choices[0].message.content);
     res.json({ success: true, ideas: ideas || [] });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Quote Post ───────────────────────────────────────────────────────────────
+
+app.post('/api/generate-quote-post', requireAuth, async (req, res) => {
+  try {
+    const { sessionId, topic, tone, brandType, personalityMap, strategy, brandContext, saveOnly, quoteText } = req.body;
+    if (!personalityMap || !strategy) return res.status(400).json({ error: 'personalityMap and strategy required' });
+
+    const validTones = ['authentic', 'educational', 'storytelling', 'motivational', 'casual', 'contrarian'];
+    const resolvedTone = validTones.includes(tone) ? tone : 'authentic';
+
+    let quote, subtext;
+    if (saveOnly && quoteText) {
+      quote = String(quoteText).trim().slice(0, 500);
+      subtext = '';
+    } else {
+      ({ quote, subtext } = await generateQuotePost({ personalityMap, strategy, brandContext, topic, tone: resolvedTone, brandType: brandType || 'personal' }));
+    }
+
+    const postId = crypto.randomUUID();
+    const pillarName = (topic || 'Quote').slice(0, 80);
+    await sql`
+      INSERT INTO generated_posts (id, session_id, user_id, platform, format, subtype, pillar_name, tone, content, voice_score, voice_note, status)
+      VALUES (${postId}, ${sessionId || null}, ${req.user.id}, 'instagram', 'quote', ${resolvedTone},
+              ${pillarName}, ${resolvedTone}, ${quote}, NULL, NULL, 'draft')
+    `;
+
+    res.json({ success: true, quote, subtext: subtext || '', savedId: postId });
   } catch (err) {
     return serverErr(res, err);
   }
