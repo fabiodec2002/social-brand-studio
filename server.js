@@ -281,6 +281,7 @@ async function initDb() {
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ`;
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ`;
   await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS image_url TEXT`;
+  await sql`ALTER TABLE generated_posts ADD COLUMN IF NOT EXISTS subtext TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram_profile_url TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_timezone TEXT DEFAULT 'UTC'`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_email TEXT`;
@@ -2143,9 +2144,9 @@ app.get('/api/posts', requireAuth, async (req, res) => {
     const { sessionId, platform, status } = req.query;
     let rows;
     if (sessionId) {
-      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} AND session_id = ${sessionId} ORDER BY created_at DESC LIMIT 200`;
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} AND session_id = ${sessionId} ORDER BY created_at DESC LIMIT 200`;
     } else {
-      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 200`;
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 200`;
     }
     if (platform) rows = rows.filter(r => r.platform === platform);
     if (status) rows = rows.filter(r => r.status === status);
@@ -2689,7 +2690,7 @@ app.post('/api/generate-quote-post', requireAuth, async (req, res) => {
     let quote, subtext;
     if (saveOnly && quoteText) {
       quote = String(quoteText).trim().slice(0, 500);
-      subtext = '';
+      subtext = String(req.body.subtextText || '').trim().slice(0, 200);
     } else {
       ({ quote, subtext } = await generateQuotePost({ personalityMap, strategy, brandContext, topic, tone: resolvedTone, brandType: brandType || 'personal' }));
     }
@@ -2697,9 +2698,9 @@ app.post('/api/generate-quote-post', requireAuth, async (req, res) => {
     const postId = crypto.randomUUID();
     const pillarName = (topic || 'Quote').slice(0, 80);
     await sql`
-      INSERT INTO generated_posts (id, session_id, user_id, platform, format, subtype, pillar_name, tone, content, voice_score, voice_note, status)
+      INSERT INTO generated_posts (id, session_id, user_id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status)
       VALUES (${postId}, ${sessionId || null}, ${req.user.id}, 'instagram', 'quote', ${resolvedTone},
-              ${pillarName}, ${resolvedTone}, ${quote}, NULL, NULL, 'draft')
+              ${pillarName}, ${resolvedTone}, ${quote}, ${subtext || null}, NULL, NULL, 'draft')
     `;
 
     res.json({ success: true, quote, subtext: subtext || '', savedId: postId });

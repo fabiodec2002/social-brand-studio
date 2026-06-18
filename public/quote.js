@@ -484,6 +484,7 @@ async function quoteSaveToLibrary() {
         tone: document.getElementById('quote-ai-tone')?.value || 'authentic',
         saveOnly: true,
         quoteText: quoteState.text,
+        subtextText: quoteState.subtext,
       }),
     });
     const data = await res.json();
