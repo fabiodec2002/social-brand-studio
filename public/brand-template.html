@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand Architecture Document — Social Brand Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #c9a96e;
+      --gold-light: #e0c99a;
+      --gold-dim: rgba(201,169,110,0.15);
+      --bg: #0c0c0b;
+      --surface: #141412;
+      --surface2: #1c1b18;
+      --border: rgba(201,169,110,0.2);
+      --text: #e8e4dc;
+      --muted: #8a8578;
+      --label: #c5bfb3;
+      --serif: 'Cormorant Garamond', serif;
+      --sans: 'Outfit', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 0;
+    }
+
+    /* ── Print bar ── */
+    .print-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: #0c0c0b;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 40px;
+      gap: 16px;
+    }
+    .print-bar-logo {
+      font-family: var(--serif);
+      font-size: 15px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .print-bar-actions { display: flex; gap: 10px; }
+    .btn {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--label);
+      padding: 7px 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-primary {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .btn-primary:hover { background: rgba(201,169,110,0.25); }
+
+    /* ── Page wrapper ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 100px 40px 80px;
+    }
+
+    /* ── Cover ── */
+    .cover {
+      text-align: center;
+      padding: 60px 0 80px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 60px;
+    }
+    .cover-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 24px;
+    }
+    .cover-title {
+      font-family: var(--serif);
+      font-size: 48px;
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .cover-subtitle {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--muted);
+      margin-bottom: 48px;
+    }
+    .cover-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      max-width: 540px;
+      margin: 0 auto 32px;
+    }
+    .cover-meta-cell {
+      background: var(--surface);
+      padding: 16px 20px;
+    }
+    .cover-meta-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .field-line {
+      border: none;
+      border-bottom: 1px solid var(--gold);
+      background: transparent;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 400;
+      width: 100%;
+      outline: none;
+      padding: 4px 0;
+    }
+    .field-line::placeholder { color: var(--muted); font-weight: 300; }
+    .brand-type-row {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .brand-type-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--label);
+    }
+    .brand-type-option input[type="radio"] { accent-color: var(--gold); width: 14px; height: 14px; }
+    .cover-intro {
+      max-width: 560px;
+      margin: 0 auto;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .cover-intro strong { color: var(--gold); font-weight: 500; }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 64px;
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-number {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      background: var(--gold-dim);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      white-space: nowrap;
+      margin-top: 4px;
+    }
+    .section-title-block {}
+    .section-title {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .section-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-style: italic;
+    }
+    .section-framework-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      border: 1px solid rgba(201,169,110,0.15);
+      padding: 2px 8px;
+    }
+
+    /* ── Question block ── */
+    .q-block {
+      margin-bottom: 36px;
+    }
+    .q-header {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .q-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gold);
+      min-width: 24px;
+      padding-top: 2px;
+    }
+    .q-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .q-hint {
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 3px;
+    }
+    .q-example {
+      font-size: 12px;
+      color: rgba(201,169,110,0.6);
+      font-style: italic;
+      margin-top: 4px;
+      padding-left: 4px;
+      border-left: 2px solid rgba(201,169,110,0.2);
+    }
+    .q-body { padding-left: 36px; }
+
+    /* ── Answer areas ── */
+    textarea.field-area {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 300;
+      line-height: 1.7;
+      padding: 14px 16px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      min-height: 80px;
+    }
+    textarea.field-area:focus { border-color: var(--gold); }
+    textarea.field-area.tall { min-height: 120px; }
+    textarea.field-area.short { min-height: 56px; }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .field-row-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      min-width: 64px;
+    }
+    .field-line-wide {
+      border: none;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 400;
+      flex: 1;
+      outline: none;
+      padding: 5px 0;
+      transition: border-color 0.2s;
+    }
+    .field-line-wide:focus { border-bottom-color: var(--gold); }
+    .field-line-wide::placeholder { color: var(--muted); font-weight: 300; }
+
+    /* List fields */
+    .list-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .list-bullet {
+      width: 5px; height: 5px;
+      background: var(--gold);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Tone sliders */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .slider-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 80px;
+      align-items: center;
+      gap: 14px;
+    }
+    .slider-label-left { text-align: right; font-size: 12px; color: var(--muted); }
+    .slider-label-right { text-align: left; font-size: 12px; color: var(--muted); }
+    input[type="range"] {
+      accent-color: var(--gold);
+      width: 100%;
+    }
+
+    /* Opinion pieces list */
+    .opinion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      counter-reset: opinion;
+    }
+    .opinion-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .opinion-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gold);
+      min-width: 22px;
+    }
+
+    /* ── Style section ── */
+    .style-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 28px;
+      margin-bottom: 48px;
+    }
+    .style-section-title {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .style-section-desc { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+    .style-posts {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .style-post-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    /* ── Footer ── */
+    .doc-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+      margin-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      letter-spacing: 0.05em;
+    }
+    .doc-footer-brand { color: var(--gold); }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    /* ── Print styles ── */
+    @media print {
+      body { background: #fff; color: #1a1a1a; }
+      :root {
+        --bg: #fff; --surface: #f9f9f7; --surface2: #f2f1ee;
+        --border: rgba(0,0,0,0.12); --text: #1a1a1a;
+        --muted: #777; --label: #444; --gold: #8a6d3b;
+        --gold-dim: rgba(138,109,59,0.08); --gold-light: #b8983e;
+      }
+      .print-bar { display: none; }
+      .page { padding: 40px; max-width: 100%; }
+      textarea.field-area { border: 1px solid #ddd; background: #fafafa; color: #1a1a1a; }
+      .field-line, .field-line-wide { border-bottom-color: #bbb; color: #1a1a1a; }
+      .section { page-break-inside: avoid; }
+      .q-block { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Print bar -->
+<div class="print-bar">
+  <div class="print-bar-logo">Social Brand Studio</div>
+  <div class="print-bar-actions">
+    <button class="btn" onclick="window.print()">Print / Export PDF</button>
+    <a href="/" style="text-decoration:none"><button class="btn btn-primary">Upload to App →</button></a>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-eyebrow">Social Brand Studio</div>
+    <h1 class="cover-title">Brand Architecture<br>Document</h1>
+    <p class="cover-subtitle">The complete brand brief for AI-powered content generation</p>
+
+    <div class="cover-meta">
+      <div class="cover-meta-cell">
+        <div class="cover-meta-label">Name / Brand</div>
+        <input class="field-line" type="text" placeholder="Your name or company" />
+      </div>
+      <div class="cover-meta-cell">
+        <div class="cover-meta-label">Website</div>
+        <input class="field-line" type="text" placeholder="yoursite.com" />
+      </div>
+      <div class="cover-meta-cell">
+        <div class="cover-meta-label">Date</div>
+        <input class="field-line" type="text" placeholder="DD / MM / YYYY" />
+      </div>
+    </div>
+
+    <div class="brand-type-row">
+      <label class="brand-type-option">
+        <input type="radio" name="brand_type" value="personal" checked />
+        Personal Brand
+      </label>
+      <label class="brand-type-option">
+        <input type="radio" name="brand_type" value="business" />
+        Business Brand
+      </label>
+    </div>
+
+    <hr class="divider" style="max-width:360px; margin: 32px auto;" />
+
+    <p class="cover-intro">
+      Answer every question as honestly and specifically as possible.
+      <strong>Vague answers produce generic content.</strong> Specific answers — real numbers, real stories, real client language — are what allow the AI to write in your exact voice and produce posts that feel genuinely yours. There are no wrong answers. There is only more detail or less detail.
+    </p>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       SECTION 1: Identity Foundation
+  ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <div class="section-title-block">
+        <h2 class="section-title">Identity Foundation</h2>
+        <p class="section-desc">Why you exist, what you stand for, where you're going</p>
+        <div class="section-framework-tags">
+          <span class="tag">Matt Gray — Founder OS</span>
+          <span class="tag">Dan Martell — Authority Engine</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">01</span>
+        <div>
+          <div class="q-label">What is your brand in one powerful sentence?</div>
+          <div class="q-hint">Not a tagline — a positioning claim. What do you do, for whom, and what becomes possible because of it?</div>
+          <div class="q-example">e.g. "I help ambitious founders build a personal brand so strong that clients find them — without cold outreach."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area short" placeholder="Your brand statement..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">02</span>
+        <div>
+          <div class="q-label">What are your 3–5 non-negotiable core values?</div>
+          <div class="q-hint">These are the filters for what you say yes to publicly. If your content, partnerships, or offers violate these, it feels wrong — to you and to your audience.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="list-field">
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Value 1 — and what it means in practice" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Value 2" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Value 3" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Value 4 (optional)" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Value 5 (optional)" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">03</span>
+        <div>
+          <div class="q-label">What is your 1–3 year vision?</div>
+          <div class="q-hint">Not a mission statement. The concrete future state you're publicly pulling toward — what your life, business, or impact looks like when you've arrived.</div>
+          <div class="q-example">e.g. "In 3 years I run a $5M/year one-person business, working 4 hours a day, from wherever I choose — and I've helped 500 founders do the same."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="Describe the future you're building toward..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">04</span>
+        <div>
+          <div class="q-label">How do your best clients or followers naturally describe you?</div>
+          <div class="q-hint">Not how you describe yourself — how do THEY describe what you do when recommending you? Quote real testimonials or DMs if you have them.</div>
+          <div class="q-example">e.g. "The person who finally made LinkedIn make sense for me" / "A straight-talking strategist who actually builds things, not just talks"</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="In their own words..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">05</span>
+        <div>
+          <div class="q-label">What is the one thing you want to be the most known person in the world for?</div>
+          <div class="q-hint">Your north star claim. If you could be famous for one thing among the people who matter to you, what would it be?</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area short" placeholder="The one lane I want to own..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       SECTION 2: Origin Story & Authority
+  ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <div class="section-title-block">
+        <h2 class="section-title">Origin Story & Authority</h2>
+        <p class="section-desc">The proof that earns you the right to teach or sell</p>
+        <div class="section-framework-tags">
+          <span class="tag">Hormozi — Proof Stack</span>
+          <span class="tag">Martell — Contrast Arc</span>
+          <span class="tag">Gray — Origin Story</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">06</span>
+        <div>
+          <div class="q-label">What is your origin story?</div>
+          <div class="q-hint">The narrative arc that gives you the right to teach or lead in this space. The before (where you were), the turning point (what happened), and the discovery (what changed everything). Be specific — name the moment, the decision, the result.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area tall" placeholder="Before I found this path, I was...&#10;The moment everything changed was...&#10;What I discovered was..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">07</span>
+        <div>
+          <div class="q-label">What is your evidence stack?</div>
+          <div class="q-hint">Your 5 most specific proof points. Exact numbers, exact results, exact timelines. Generic claims ("I've helped hundreds of clients") produce generic content. Specific proof ("47 founders hit their first $10K month in under 90 days") is what the AI can use.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="list-field">
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Proof point 1 — specific number, result, timeline" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Proof point 2" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Proof point 3" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Proof point 4" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Proof point 5" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">08</span>
+        <div>
+          <div class="q-label">What is your Contrast Arc?</div>
+          <div class="q-hint">A belief you held that turned out to be completely wrong — and what you discovered instead. This is one of the most powerful content structures because it teaches through your growth, not your expertise.</div>
+          <div class="q-example">e.g. "I used to believe that more followers = more revenue. Then I lost 80% of my following in an algorithm change and made my best month ever. I discovered that email subscribers at 1,000 are worth more than Instagram followers at 50,000."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row">
+            <span class="field-row-label">I used to think</span>
+            <input class="field-line-wide" type="text" placeholder="The wrong belief..." />
+          </div>
+          <div class="field-row">
+            <span class="field-row-label">Then I realized</span>
+            <input class="field-line-wide" type="text" placeholder="What changed..." />
+          </div>
+          <div class="field-row">
+            <span class="field-row-label">Which revealed</span>
+            <input class="field-line-wide" type="text" placeholder="The real truth / insight..." />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">09</span>
+        <div>
+          <div class="q-label">What have you done that most people in your industry would consider impossible or surprising?</div>
+          <div class="q-hint">The achievement that makes people raise an eyebrow when they hear it. This becomes a "pattern interrupt" in your content — it breaks autopilot scrolling.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area short" placeholder="The thing people don't expect..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">10</span>
+        <div>
+          <div class="q-label">What do you know now that you wish someone had told you 5 years ago?</div>
+          <div class="q-hint">The shortcut, the lesson, the mindset shift that would have saved you time, money, or pain. This is pure content gold — it positions you as a guide, not a lecturer.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="The lesson I paid dearly for..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       SECTION 3: Market & Avatar
+  ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">03</div>
+      <div class="section-title-block">
+        <h2 class="section-title">Market & Avatar</h2>
+        <p class="section-desc">Who you serve and what they're really going through</p>
+        <div class="section-framework-tags">
+          <span class="tag">Hormozi — Pain / Dream / Vehicle</span>
+          <span class="tag">Priestley — Campaign Micro-Niche</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">11</span>
+        <div>
+          <div class="q-label">Who is your exact buyer?</div>
+          <div class="q-hint">Specific role, company stage, situation. Not "business owners" — describe the specific person at a specific moment in their journey.</div>
+          <div class="q-example">e.g. "B2B SaaS founders doing $300K–$2M ARR, who have a product that works but have no idea how to market it — they've tried paid ads, hired a content agency, and neither moved the needle."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="Describe your exact buyer in full detail..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">12</span>
+        <div>
+          <div class="q-label">What is the daily pain they carry — in their own words?</div>
+          <div class="q-hint">The inner monologue. What do they say to themselves at 2am when they can't sleep? Not what you think they feel — what they actually say. Use their language, not yours.</div>
+          <div class="q-example">e.g. "Why is my competitor with a worse product getting all the attention? I'm doing everything right and nothing is working. Maybe I'm just not good at this."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="In their exact voice, the thoughts they're not saying out loud..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">13</span>
+        <div>
+          <div class="q-label">What is their specific dream outcome?</div>
+          <div class="q-hint">The emotional end state — not the feature or deliverable. Not "more leads" — what does having more leads actually give them? What does life look and feel like on the other side?</div>
+          <div class="q-example">e.g. "They want to be the person in their industry who gets invited to speak, who gets inbound opportunities they don't have to chase, who other founders mention when asked who to follow."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="The life they're actually buying when they buy your offer..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">14</span>
+        <div>
+          <div class="q-label">What is the vehicle they believe in?</div>
+          <div class="q-hint">The method or mechanism your buyer thinks will get them to their dream outcome. What's the approach they've already bought into? Aligning to this reduces resistance.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area short" placeholder="They believe the path forward is..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">15</span>
+        <div>
+          <div class="q-label">What is the buying trigger?</div>
+          <div class="q-hint">The specific moment or event that finally pushes them to take action. What tips a fence-sitter into a buyer?</div>
+          <div class="q-example">e.g. "They just watched a competitor land a Forbes feature and realized visibility is the lever they're missing."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area short" placeholder="The moment they decide enough is enough..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">16</span>
+        <div>
+          <div class="q-label">What have they already tried that didn't work? Why did it fail?</div>
+          <div class="q-hint">This is critical for positioning. If you understand why their previous attempts failed, you can position your approach as the thing that finally works — and show you understand their frustration.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="They've tried X, Y, Z. It failed because..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">17</span>
+        <div>
+          <div class="q-label">Does your market have these four qualities? Describe each briefly.</div>
+          <div class="q-hint">Hormozi's market selection criteria. If any of the four are weak, that's a positioning problem worth naming.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Massive Pain</span><input class="field-line-wide" type="text" placeholder="The problem is urgent and expensive because..." /></div>
+          <div class="field-row"><span class="field-row-label">Purchasing Power</span><input class="field-line-wide" type="text" placeholder="They can afford a premium solution because..." /></div>
+          <div class="field-row"><span class="field-row-label">Easy to Target</span><input class="field-line-wide" type="text" placeholder="They congregate at..." /></div>
+          <div class="field-row"><span class="field-row-label">Growing Market</span><input class="field-line-wide" type="text" placeholder="This market is expanding because..." /></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       SECTION 4: Positioning
+  ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">04</div>
+      <div class="section-title-block">
+        <h2 class="section-title">Positioning</h2>
+        <p class="section-desc">How you own a specific lane in the market</p>
+        <div class="section-framework-tags">
+          <span class="tag">Priestley — The Pitch</span>
+          <span class="tag">Hormozi — Niche Formula</span>
+          <span class="tag">Martell — Positioning Claim</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">18</span>
+        <div>
+          <div class="q-label">Complete Priestley's Pitch: "I work with ___ to solve ___ so that they can ___."</div>
+          <div class="q-hint">The test: does it make someone ask "How do you do that?" If they can nod and move on, it's too broad. Keep tightening until it generates curiosity.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">I work with</span><input class="field-line-wide" type="text" placeholder="[specific audience]" /></div>
+          <div class="field-row"><span class="field-row-label">to solve</span><input class="field-line-wide" type="text" placeholder="[specific problem]" /></div>
+          <div class="field-row"><span class="field-row-label">so they can</span><input class="field-line-wide" type="text" placeholder="[specific outcome]" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">19</span>
+        <div>
+          <div class="q-label">What is your micro-niche?</div>
+          <div class="q-hint">Narrow enough to eliminate all direct competition. Wide enough to build a business. The micro-niche is the intersection of your buyer, their stage, and your unique method.</div>
+          <div class="q-example">e.g. "LinkedIn content strategy for bootstrapped B2B SaaS founders at $500K–$5M ARR"</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area short" placeholder="My micro-niche is..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">20</span>
+        <div>
+          <div class="q-label">What do you do differently or better than anyone else in your space?</div>
+          <div class="q-hint">Not features — method, philosophy, or approach. The thing that makes your clients say "I've never seen this done this way before."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="The way I work that no one else does..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">21</span>
+        <div>
+          <div class="q-label">What is your contrarian belief?</div>
+          <div class="q-hint">An opinion about your industry that most people in it would disagree with. The hill you're willing to die on. This is the engine of thought leadership — if everyone agrees with you, you're not saying anything.</div>
+          <div class="q-example">e.g. "The entire personal branding industry is selling vanity metrics. Posting daily doesn't build a business. Building one undeniable offer and talking about it obsessively for 12 months does."</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="Most people in my industry believe X. I believe the opposite — and here's why..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">22</span>
+        <div>
+          <div class="q-label">What do you explicitly refuse to be associated with?</div>
+          <div class="q-hint">What you are NOT, what you won't do, who you won't work with, what tactics you reject. Saying no clearly is what makes your yes credible.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="I will never... I don't work with... I refuse to..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">23</span>
+        <div>
+          <div class="q-label">What is the name of your methodology, framework, or signature approach?</div>
+          <div class="q-hint">A named system is more valuable than unnamed expertise. "The Buyback Loop," "The Content GPS," "The Grand Slam Offer" — these names create intellectual property from raw knowledge. If you don't have one yet, describe the steps and we'll name it.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Name</span><input class="field-line-wide" type="text" placeholder="The _____________ Method / Framework / System / Loop" /></div>
+        </div>
+        <textarea class="field-area" style="margin-top:10px;" placeholder="Describe the 5–7 steps (even if unnamed)..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       SECTION 5: Offer Architecture
+  ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">05</div>
+      <div class="section-title-block">
+        <h2 class="section-title">Offer Architecture</h2>
+        <p class="section-desc">What you sell and how it's structured</p>
+        <div class="section-framework-tags">
+          <span class="tag">Hormozi — Grand Slam Offer</span>
+          <span class="tag">Priestley — Product Ecosystem</span>
+          <span class="tag">Gray — Founder Flywheel</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">24</span>
+        <div>
+          <div class="q-label">What is your free entry point?</div>
+          <div class="q-hint">The asset that pulls strangers into your world before they pay anything. Newsletter, podcast, YouTube, lead magnet, free community, viral content.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Type</span><input class="field-line-wide" type="text" placeholder="e.g. Weekly newsletter, YouTube channel, Free audit..." /></div>
+          <div class="field-row"><span class="field-row-label">Name / Title</span><input class="field-line-wide" type="text" placeholder="e.g. The Brand Brief, The SaaS Growth Show..." /></div>
+          <div class="field-row"><span class="field-row-label">Platform</span><input class="field-line-wide" type="text" placeholder="Where it lives..." /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">25</span>
+        <div>
+          <div class="q-label">What is your entry-level offer?</div>
+          <div class="q-hint">The low-ticket or low-commitment product that converts an audience member into a buyer for the first time. A book, workshop, scorecard, challenge, masterclass, template pack.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Product</span><input class="field-line-wide" type="text" placeholder="What is it?" /></div>
+          <div class="field-row"><span class="field-row-label">Price</span><input class="field-line-wide" type="text" placeholder="Price point" /></div>
+          <div class="field-row"><span class="field-row-label">Promise</span><input class="field-line-wide" type="text" placeholder="What transformation does it deliver?" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">26</span>
+        <div>
+          <div class="q-label">What is your core offer?</div>
+          <div class="q-hint">The primary transformation — your main revenue driver. Group program, 1:1 coaching, done-with-you service, consulting retainer, mastermind.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Product</span><input class="field-line-wide" type="text" placeholder="Name and format" /></div>
+          <div class="field-row"><span class="field-row-label">Price</span><input class="field-line-wide" type="text" placeholder="Price point or range" /></div>
+          <div class="field-row"><span class="field-row-label">Duration</span><input class="field-line-wide" type="text" placeholder="Time commitment" /></div>
+          <div class="field-row"><span class="field-row-label">Promise</span><input class="field-line-wide" type="text" placeholder="The specific transformation delivered" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">27</span>
+        <div>
+          <div class="q-label">What is your premium or done-for-you offer?</div>
+          <div class="q-hint">Highest ticket, most hands-on engagement. The offer where you do the most work with or for the client. Investment partnerships, agency retainers, fractional roles, intensive VIP days.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Product</span><input class="field-line-wide" type="text" placeholder="Name and format (or 'N/A — not yet')" /></div>
+          <div class="field-row"><span class="field-row-label">Price</span><input class="field-line-wide" type="text" placeholder="Investment level" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">28</span>
+        <div>
+          <div class="q-label">What is your Grand Slam Offer — every obstacle removed, every objection answered?</div>
+          <div class="q-hint">List what the buyer gets, every problem it solves, and the guarantee that eliminates their biggest remaining risk. Think: if someone said "I would buy this immediately if only ___" — what fills that blank, and is it in your offer?</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div style="margin-bottom:8px;"><span class="field-row-label" style="display:block;margin-bottom:4px;">What they get</span>
+            <textarea class="field-area short" placeholder="Everything included in the offer..."></textarea>
+          </div>
+          <div style="margin-bottom:8px;"><span class="field-row-label" style="display:block;margin-bottom:4px;">Obstacles it removes</span>
+            <textarea class="field-area short" placeholder="Every 'but what about...' it answers..."></textarea>
+          </div>
+          <div class="field-row"><span class="field-row-label">Guarantee</span><input class="field-line-wide" type="text" placeholder="The risk reversal that removes the last objection..." /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">29</span>
+        <div>
+          <div class="q-label">What is your Signature Process — the 5–7 steps that describe how you create the transformation?</div>
+          <div class="q-hint">The methodology that makes your approach teachable, repeatable, and protectable. Give each step a name. This becomes the spine of your content and your sales conversations.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="list-field">
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Step 1 —" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Step 2 —" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Step 3 —" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Step 4 —" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Step 5 —" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Step 6 (optional)" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Step 7 (optional)" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">30</span>
+        <div>
+          <div class="q-label">What is the single best result a client has gotten working with you?</div>
+          <div class="q-hint">One specific, concrete sentence. The story you tell when someone asks "does this actually work?" Name the outcome, the timeline, the before/after.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area short" placeholder="[Client / type] went from __ to __ in __ weeks/months by..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       SECTION 6: Content Architecture
+  ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">06</div>
+      <div class="section-title-block">
+        <h2 class="section-title">Content Architecture</h2>
+        <p class="section-desc">How you show up and what you own</p>
+        <div class="section-framework-tags">
+          <span class="tag">Gray — Content GPS (3×3×3)</span>
+          <span class="tag">Martell — 3 Owned Territories</span>
+          <span class="tag">Priestley — 10-12 Opinion Pieces</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">31</span>
+        <div>
+          <div class="q-label">What are your 3 core content topics — the zones of expertise you publicly own?</div>
+          <div class="q-hint">The three subjects you can talk about indefinitely with genuine authority. Every post you write should map back to one of these three. Choosing three forces you to go deep instead of wide.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Topic 1</span><input class="field-line-wide" type="text" placeholder="e.g. Personal brand building for founders" /></div>
+          <div class="field-row"><span class="field-row-label">Topic 2</span><input class="field-line-wide" type="text" placeholder="e.g. Content systems and distribution" /></div>
+          <div class="field-row"><span class="field-row-label">Topic 3</span><input class="field-line-wide" type="text" placeholder="e.g. Offer design and positioning" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">32</span>
+        <div>
+          <div class="q-label">What are your 3 signature content formats or angles — how you deliver ideas differently?</div>
+          <div class="q-hint">Not platforms — delivery styles. The structural patterns your best content follows. A numbered list that challenges a common belief. A single story that teaches a principle. A "hot take" backed by data. Your 3 formats × 3 topics = 9 combinations that never run dry.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Format 1</span><input class="field-line-wide" type="text" placeholder="e.g. 'The mistake list' — what X people get wrong about Y" /></div>
+          <div class="field-row"><span class="field-row-label">Format 2</span><input class="field-line-wide" type="text" placeholder="e.g. Behind-the-scenes story with a principle revealed at the end" /></div>
+          <div class="field-row"><span class="field-row-label">Format 3</span><input class="field-line-wide" type="text" placeholder="e.g. Contrarian take — 'Everyone does X. I do Y. Here's why Y wins.'" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">33</span>
+        <div>
+          <div class="q-label">What are your 3 unique perspectives — the POVs only you can articulate?</div>
+          <div class="q-hint">The angles on your topics that come from your specific lived experience, failures, or unusual vantage point. What do you see that others in your space consistently miss?</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">POV 1</span><input class="field-line-wide" type="text" placeholder="e.g. 'Distribution is the moat — not the content itself'" /></div>
+          <div class="field-row"><span class="field-row-label">POV 2</span><input class="field-line-wide" type="text" placeholder="e.g. 'Your offer IS your brand — everything else is amplification'" /></div>
+          <div class="field-row"><span class="field-row-label">POV 3</span><input class="field-line-wide" type="text" placeholder="e.g. 'The personal brand game is won in the DMs, not the feed'" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">34</span>
+        <div>
+          <div class="q-label">List 10–12 core opinion pieces — beliefs or claims you could write long essays on.</div>
+          <div class="q-hint">Your contrarian views, proprietary insights, things most people in your industry get wrong. These are the essays, threads, or videos that would build your authority fastest. Even a working title is enough.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="opinion-list">
+          <div class="opinion-item"><span class="opinion-num">01.</span><input class="field-line-wide" type="text" placeholder="Opinion / essay title" /></div>
+          <div class="opinion-item"><span class="opinion-num">02.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">03.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">04.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">05.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">06.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">07.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">08.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">09.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">10.</span><input class="field-line-wide" type="text" placeholder="" /></div>
+          <div class="opinion-item"><span class="opinion-num">11.</span><input class="field-line-wide" type="text" placeholder="(optional)" /></div>
+          <div class="opinion-item"><span class="opinion-num">12.</span><input class="field-line-wide" type="text" placeholder="(optional)" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">35</span>
+        <div>
+          <div class="q-label">What is your primary distribution platform — and what role does each platform play in your funnel?</div>
+          <div class="q-hint">Describe where you show up first, and what purpose each channel serves (awareness vs. conversion vs. retention). Don't try to be everywhere — describe where your buyer actually lives.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="field-group">
+          <div class="field-row"><span class="field-row-label">Primary</span><input class="field-line-wide" type="text" placeholder="Platform + why it's your anchor" /></div>
+          <div class="field-row"><span class="field-row-label">Secondary</span><input class="field-line-wide" type="text" placeholder="Platform + role in funnel" /></div>
+          <div class="field-row"><span class="field-row-label">Email / List</span><input class="field-line-wide" type="text" placeholder="Newsletter name + frequency" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">36</span>
+        <div>
+          <div class="q-label">What is your content production system?</div>
+          <div class="q-hint">How does content get made without consuming your highest-value hours? Who does what? What tools? What is the weekly or monthly rhythm? (Even "just me, every morning at 7am" is a system — describe it.)</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="My content production looks like..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       SECTION 7: Brand Associations & Visibility
+  ─────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-number">07</div>
+      <div class="section-title-block">
+        <h2 class="section-title">Brand Associations & Visibility</h2>
+        <p class="section-desc">Who knows you, who you partner with, what your name means</p>
+        <div class="section-framework-tags">
+          <span class="tag">Priestley — 5 Ps: Profile &amp; Partnerships</span>
+          <span class="tag">Hormozi — Association Engineering</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">37</span>
+        <div>
+          <div class="q-label">List 10 associations you want your name to carry.</div>
+          <div class="q-hint">Words, feelings, ideas, people — what should come to mind when someone hears your name? What reputation are you building?</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="list-field">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <input class="field-line-wide" type="text" placeholder="Association 1" />
+            <input class="field-line-wide" type="text" placeholder="Association 2" />
+            <input class="field-line-wide" type="text" placeholder="Association 3" />
+            <input class="field-line-wide" type="text" placeholder="Association 4" />
+            <input class="field-line-wide" type="text" placeholder="Association 5" />
+            <input class="field-line-wide" type="text" placeholder="Association 6" />
+            <input class="field-line-wide" type="text" placeholder="Association 7" />
+            <input class="field-line-wide" type="text" placeholder="Association 8" />
+            <input class="field-line-wide" type="text" placeholder="Association 9" />
+            <input class="field-line-wide" type="text" placeholder="Association 10" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">38</span>
+        <div>
+          <div class="q-label">Who are the right 1,000 people who need to know you exist?</div>
+          <div class="q-hint">Not 1 million — the specific 1,000 buyers, partners, and referrers who, if they knew you well, would change everything. Where do they congregate? Specific events, communities, Slack groups, subreddits, podcasts.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="My 1,000 are mostly [type of person] who hang out at/on..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">39</span>
+        <div>
+          <div class="q-label">List 5–10 dream appearances, stages, or media placements.</div>
+          <div class="q-hint">Specific podcasts, events, publications, or newsletters where your exact buyer concentrates. Being on these is a shortcut to Priestley's "selective fame" — known by the right people, not everyone.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="list-field">
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Podcast / stage / publication 1" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="Podcast / stage / publication 2" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="3" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="4" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="5" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="6 (optional)" /></div>
+          <div class="list-item"><span class="list-bullet"></span><input class="field-line-wide" type="text" placeholder="7 (optional)" /></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">40</span>
+        <div>
+          <div class="q-label">Who are 10 non-competing professionals who serve your exact buyer?</div>
+          <div class="q-hint">Potential partnership targets. They solve a different problem for the same person. A warm intro from them is worth 1,000 cold posts. Name real people or companies.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="list-field">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <input class="field-line-wide" type="text" placeholder="Partner 1 — what they do" />
+            <input class="field-line-wide" type="text" placeholder="Partner 2" />
+            <input class="field-line-wide" type="text" placeholder="Partner 3" />
+            <input class="field-line-wide" type="text" placeholder="Partner 4" />
+            <input class="field-line-wide" type="text" placeholder="Partner 5" />
+            <input class="field-line-wide" type="text" placeholder="Partner 6" />
+            <input class="field-line-wide" type="text" placeholder="Partner 7" />
+            <input class="field-line-wide" type="text" placeholder="Partner 8" />
+            <input class="field-line-wide" type="text" placeholder="Partner 9" />
+            <input class="field-line-wide" type="text" placeholder="Partner 10" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">41</span>
+        <div>
+          <div class="q-label">Who are your Dream 100?</div>
+          <div class="q-hint">The influencers, thought leaders, and collaborators in your space whose audience overlaps with yours. Not who you idolize — who shares your exact buyer and whose endorsement or collaboration would accelerate your brand. List the ones that come to mind first.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <textarea class="field-area" placeholder="The people I want to be seen alongside, collaborate with, or be endorsed by..."></textarea>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">42</span>
+        <div>
+          <div class="q-label">What is your brand personality in 4 adjectives?</div>
+          <div class="q-hint">If your brand were a person walking into a room, how would they be described? These become the guardrails for every piece of content.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;">
+          <input class="field-line-wide" type="text" placeholder="Adjective 1" />
+          <input class="field-line-wide" type="text" placeholder="Adjective 2" />
+          <input class="field-line-wide" type="text" placeholder="Adjective 3" />
+          <input class="field-line-wide" type="text" placeholder="Adjective 4" />
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-header">
+        <span class="q-num">43</span>
+        <div>
+          <div class="q-label">Describe your tone of voice.</div>
+          <div class="q-hint">Rate yourself on each axis. 1 = far left, 5 = far right. There are no right answers — only honest ones.</div>
+        </div>
+      </div>
+      <div class="q-body">
+        <div class="slider-group">
+          <div class="slider-row">
+            <span class="slider-label-left">Formal</span>
+            <input type="range" min="1" max="5" value="3" />
+            <span class="slider-label-right">Casual</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label-left">Direct</span>
+            <input type="range" min="1" max="5" value="3" />
+            <span class="slider-label-right">Nurturing</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label-left">Serious</span>
+            <input type="range" min="1" max="5" value="2" />
+            <span class="slider-label-right">Playful</span>
+          </div>
+        </div>
+        <textarea class="field-area" style="margin-top:14px;" placeholder="In your own words — describe how you sound when you're at your best. Quote a line or two from content you've written that sounds exactly like you."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       OPTIONAL: Style Cloning Section
+  ─────────────────────────────────────────────── -->
+  <div class="style-section">
+    <h3 class="style-section-title">Style Cloning — Optional</h3>
+    <p class="style-section-desc">Paste 3–5 of your best-performing posts, emails, or articles below. The AI will extract your exact writing fingerprint — sentence rhythm, vocabulary patterns, structural habits — so every generated post sounds unmistakably like you.</p>
+    <div class="style-posts">
+      <div>
+        <div class="style-post-label">POST 01</div>
+        <textarea class="field-area tall" placeholder="Paste your best LinkedIn post, email, or any piece of writing that sounds most like you..."></textarea>
+      </div>
+      <div>
+        <div class="style-post-label">POST 02</div>
+        <textarea class="field-area tall" placeholder="Another example — ideally a different format or topic..."></textarea>
+      </div>
+      <div>
+        <div class="style-post-label">POST 03</div>
+        <textarea class="field-area tall" placeholder="A third example..."></textarea>
+      </div>
+      <div>
+        <div class="style-post-label">POST 04 (optional)</div>
+        <textarea class="field-area" placeholder=""></textarea>
+      </div>
+      <div>
+        <div class="style-post-label">POST 05 (optional)</div>
+        <textarea class="field-area" placeholder=""></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="doc-footer">
+    <span class="doc-footer-brand">Social Brand Studio</span>
+    <span>Upload this document at app.socialbrandstudio.com → New Session</span>
+    <span>v1.0 · 2025</span>
+  </div>
+
+</div>
+
+<script>
+  // Persist form state to localStorage so the document auto-saves
+  (function() {
+    const STORAGE_KEY = 'sbs_brand_doc_v1';
+    const inputs = document.querySelectorAll('input, textarea');
+
+    // Restore saved state
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    inputs.forEach((el, i) => {
+      if (saved[i] !== undefined) el.value = saved[i];
+    });
+
+    // Save on change (debounced)
+    let timer;
+    function save() {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const state = {};
+        inputs.forEach((el, i) => { state[i] = el.value; });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }, 400);
+    }
+
+    inputs.forEach(el => el.addEventListener('input', save));
+
+    // Slider labels
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+      slider.addEventListener('input', save);
+    });
+  })();
+</script>
+
+</body>
+</html>

@@ -3746,7 +3746,55 @@ async function runInstagramMetricsAgent() {
 
 const publishingUsers = new Set(); // idempotency guard
 
-async function publishToLinkedIn(accessToken, platformUserId, content) {
+async function publishToLinkedIn(accessToken, platformUserId, content, imageUrl = null) {
+  let mediaAssetUrn = null;
+
+  if (imageUrl) {
+    if (!isSafeUrl(imageUrl)) throw new Error(`Unsafe image URL blocked: ${imageUrl}`);
+
+    // Step 1: Initialize LinkedIn image upload
+    const initRes = await fetch('https://api.linkedin.com/v2/images?action=initializeUpload', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'X-Restli-Protocol-Version': '2.0.0',
+      },
+      body: JSON.stringify({
+        initializeUploadRequest: { owner: `urn:li:person:${platformUserId}` },
+      }),
+    });
+    const initData = await initRes.json();
+    if (!initRes.ok) throw new Error(`LinkedIn image init error: ${JSON.stringify(initData)}`);
+    const { uploadUrl, image } = initData.value;
+    mediaAssetUrn = image;
+
+    // Step 2: Fetch the image and stream it to LinkedIn's upload URL
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) throw new Error(`Failed to fetch image for LinkedIn: ${imageUrl}`);
+    const imgBuffer = await imgRes.arrayBuffer();
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': imgRes.headers.get('content-type') || 'image/jpeg',
+      },
+      body: imgBuffer,
+    });
+    if (!uploadRes.ok) {
+      const errText = await uploadRes.text().catch(() => uploadRes.status);
+      throw new Error(`LinkedIn image upload error: ${errText}`);
+    }
+  }
+
+  // Step 3: Publish the post (with or without image)
+  const shareContent = {
+    shareCommentary: { text: content },
+    shareMediaCategory: mediaAssetUrn ? 'IMAGE' : 'NONE',
+    ...(mediaAssetUrn && { media: [{ status: 'READY', media: mediaAssetUrn }] }),
+  };
+
   const res = await fetch('https://api.linkedin.com/v2/ugcPosts', {
     method: 'POST',
     headers: {
@@ -3757,18 +3805,12 @@ async function publishToLinkedIn(accessToken, platformUserId, content) {
     body: JSON.stringify({
       author: `urn:li:person:${platformUserId}`,
       lifecycleState: 'PUBLISHED',
-      specificContent: {
-        'com.linkedin.ugc.ShareContent': {
-          shareCommentary: { text: content },
-          shareMediaCategory: 'NONE',
-        },
-      },
+      specificContent: { 'com.linkedin.ugc.ShareContent': shareContent },
       visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' },
     }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(`LinkedIn API error: ${JSON.stringify(data)}`);
-  // LinkedIn returns the post URN in X-RestLi-Id header or in the response body
   return data.id || res.headers.get('x-restli-id') || null;
 }
 
@@ -3847,7 +3889,7 @@ async function runPublishAgent() {
         let platformPostId = null;
 
         if (post.platform === 'linkedin') {
-          platformPostId = await publishToLinkedIn(plainToken, token.platform_user_id, post.content);
+          platformPostId = await publishToLinkedIn(plainToken, token.platform_user_id, post.content, post.image_url || null);
         } else if (post.platform === 'instagram') {
           if (!post.image_url) {
             // Log as pending_image instead of failing — user needs to attach an image URL first
