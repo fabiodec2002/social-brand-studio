@@ -2144,15 +2144,30 @@ app.get('/api/posts', requireAuth, async (req, res) => {
     const { sessionId, platform, status } = req.query;
     let rows;
     if (sessionId) {
-      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} AND session_id = ${sessionId} ORDER BY created_at DESC LIMIT 200`;
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, image_url, scheduled_for, created_at FROM generated_posts WHERE user_id = ${req.user.id} AND session_id = ${sessionId} ORDER BY created_at DESC LIMIT 200`;
     } else {
-      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, created_at FROM generated_posts WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 200`;
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, image_url, scheduled_for, created_at FROM generated_posts WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 200`;
     }
     if (platform) rows = rows.filter(r => r.platform === platform);
     if (status) rows = rows.filter(r => r.status === status);
     res.json({ success: true, posts: rows });
   } catch (err) {
     return serverErr(res, err);
+  }
+});
+
+app.get('/api/posts/scheduled', requireAuth, async (req, res) => {
+  try {
+    const rows = await sql`
+      SELECT id, platform, format, subtype, pillar_name, tone, content, image_url, scheduled_for, created_at
+      FROM generated_posts
+      WHERE user_id = ${req.user.id} AND status = 'approved' AND scheduled_for IS NOT NULL
+      ORDER BY scheduled_for ASC
+      LIMIT 50
+    `;
+    res.json({ posts: rows });
+  } catch (err) {
+    serverErr(res, err);
   }
 });
 
@@ -2225,7 +2240,7 @@ app.get('/api/posts/review-queue', requireAuth, async (req, res) => {
   try {
     const posts = await sql`
       SELECT gp.id, gp.platform, gp.format, gp.subtype, gp.pillar_name, gp.tone,
-             gp.content, gp.voice_score, gp.voice_note, gp.status, gp.created_at,
+             gp.content, gp.voice_score, gp.voice_note, gp.status, gp.image_url, gp.created_at,
              iq.topic as idea_topic, iq.hook as idea_hook, iq.angle as idea_angle
       FROM generated_posts gp
       LEFT JOIN idea_queue iq ON iq.post_id = gp.id

@@ -8,16 +8,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Outfit:wght@300;400;500&family=Poppins:wght@300;400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0c0c0b;
-      --bg2: #141413;
-      --bg3: #1c1c1a;
-      --border: rgba(255,255,255,0.09);
-      --border2: rgba(255,255,255,0.16);
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --bg3: #1a1a1a;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.14);
       --gold: #c9a96e;
       --gold2: #e8c98a;
-      --text: #f0ede8;
-      --text2: #c4bdb5;
-      --text3: #8a8078;
+      --accent: #f0f0f0;
+      --accent-hover: #ffffff;
+      --text: #e8e8e8;
+      --text2: #888888;
+      --text3: #505050;
       --red: #8B0000;
       --linkedin: #0077b5;
       --instagram: #c13584;
@@ -27,8 +29,8 @@
       --neon-orange: #F59E0B;
       --neon-blue:   #3B82F6;
       --neon-magenta:#EC4899;
-      --glass-bg: rgba(255,255,255,0.03);
-      --glass-border: rgba(255,255,255,0.07);
+      --glass-bg: rgba(255,255,255,0.025);
+      --glass-border: rgba(255,255,255,0.06);
     }
 
     /* Nav group labels */
@@ -200,15 +202,15 @@
       overflow-x: hidden;
     }
 
-    /* Noise texture overlay */
+    /* Noise texture overlay — very subtle grain */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.015'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 0;
-      opacity: 0.4;
+      opacity: 0.2;
     }
 
     .app { position: relative; z-index: 1; }
@@ -216,28 +218,29 @@
     /* Header */
     header {
       border-bottom: 1px solid var(--border);
-      padding: 1.5rem 3rem;
+      padding: 1.1rem 3rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
     .logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.5rem;
-      font-weight: 300;
-      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
       color: var(--text);
     }
 
-    .logo span { color: var(--gold); font-style: italic; }
+    .logo span { color: var(--text); }
 
     .logo-sub {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.2em;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 300;
+      letter-spacing: 0;
       color: var(--text3);
-      text-transform: uppercase;
+      text-transform: none;
       margin-top: 2px;
     }
 
@@ -258,15 +261,16 @@
     }
 
     .upload-hero h1 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 300;
-      line-height: 1.1;
-      margin-bottom: 1.5rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 500;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.25rem;
     }
 
     .upload-hero h1 em {
-      font-style: italic;
+      font-style: normal;
       color: var(--gold);
     }
 
@@ -279,18 +283,18 @@
 
     .upload-zone {
       border: 1px dashed var(--border2);
-      border-radius: 2px;
+      border-radius: 10px;
       padding: 3rem;
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
       position: relative;
       background: var(--bg2);
     }
 
     .upload-zone:hover, .upload-zone.drag-over {
-      border-color: var(--gold);
-      background: rgba(201, 169, 110, 0.03);
+      border-color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.03);
     }
 
     .upload-zone input[type="file"] {
@@ -334,7 +338,7 @@
       display: none;
       background: var(--bg2);
       border: 1px solid var(--border2);
-      border-radius: 2px;
+      border-radius: 10px;
       padding: 1.75rem 2rem;
       text-align: left;
       animation: fadeIn 0.25s ease;
@@ -388,18 +392,17 @@
     .confirm-analyse-btn {
       width: 100%;
       padding: 0.9rem;
-      background: var(--gold);
-      color: #0c0c0b;
+      background: var(--accent);
+      color: #0a0a0a;
       border: none;
-      border-radius: 2px;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: background 0.15s;
     }
-    .confirm-analyse-btn:hover { opacity: 0.88; }
+    .confirm-analyse-btn:hover { background: var(--accent-hover); }
     .confirm-back-link {
       font-family: 'DM Mono', monospace;
       font-size: 0.7rem;
@@ -427,12 +430,12 @@
     .loading-overlay.active { display: flex; }
 
     .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--border2);
-      border-top-color: var(--gold);
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid var(--border2);
+      border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.85s linear infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -483,11 +486,11 @@
     }
 
     .brand-statement {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1rem;
-      line-height: 1.5;
-      color: var(--gold);
-      font-style: italic;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--text2);
+      font-style: normal;
     }
 
     .nav-item {
@@ -509,7 +512,7 @@
       left: 0;
       width: 2px;
       height: 20px;
-      background: var(--gold);
+      background: rgba(255,255,255,0.5);
     }
 
     .nav-item { position: relative; }
@@ -522,7 +525,7 @@
       flex-shrink: 0;
     }
 
-    .nav-item.active .nav-dot { background: var(--gold); }
+    .nav-item.active .nav-dot { background: rgba(255,255,255,0.5); }
 
     /* Main content area */
     .main-content {
@@ -543,17 +546,18 @@
       padding-bottom: 1rem;
       color: var(--text3);
       cursor: pointer;
-      border-bottom: 1px solid transparent;
+      border-bottom: 1.5px solid transparent;
       margin-bottom: -1px;
-      transition: all 0.2s;
-      font-family: 'DM Mono', monospace;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      font-size: 0.75rem;
+      transition: all 0.15s;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      font-size: 0.85rem;
     }
 
     .tab:hover { color: var(--text2); }
-    .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .tab.active { color: var(--text); border-bottom-color: var(--text); }
 
     /* Strategy view */
     .strategy-grid {
@@ -566,7 +570,7 @@
     .strategy-card {
       background: var(--bg2);
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 8px;
       padding: 1.5rem;
     }
 
@@ -664,21 +668,23 @@
     .generator-controls { display: flex; flex-direction: column; gap: 1rem; }
 
     .control-group label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text3);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text2);
       display: block;
       margin-bottom: 0.5rem;
     }
 
     .control-group-title {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text3);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text2);
     }
 
     .text-input {
@@ -699,65 +705,65 @@
     select, .select-styled {
       width: 100%;
       background: var(--bg3);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border2);
       color: var(--text);
-      padding: 0.75rem 1rem;
+      padding: 0.7rem 1rem;
       font-family: 'Outfit', sans-serif;
       font-size: 0.875rem;
       font-weight: 300;
       appearance: none;
       cursor: pointer;
-      border-radius: 2px;
+      border-radius: 6px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s;
     }
 
-    select:hover, select:focus { border-color: var(--border2); }
+    select:hover, select:focus { border-color: rgba(255,255,255,0.25); }
 
     .pillar-select-list { display: flex; flex-direction: column; gap: 0.5rem; }
 
     .pillar-select-item {
-      padding: 0.75rem 1rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 2px;
+      padding: 0.65rem 0.875rem;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       color: var(--text2);
-      transition: all 0.2s;
+      transition: all 0.15s;
     }
 
-    .pillar-select-item:hover { border-color: var(--border2); color: var(--text); }
-    .pillar-select-item.active { border-color: var(--gold); color: var(--gold); }
+    .pillar-select-item:hover { border-color: var(--border2); color: var(--text); background: rgba(255,255,255,0.04); }
+    .pillar-select-item.active { border-color: rgba(255,255,255,0.3); color: var(--text); background: rgba(255,255,255,0.07); }
 
     .generate-btn {
-      background: var(--gold);
-      color: var(--bg);
+      background: var(--accent);
+      color: #0a0a0a;
       border: none;
-      padding: 1rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
+      padding: 0.85rem 1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
       cursor: pointer;
       width: 100%;
-      border-radius: 2px;
-      transition: all 0.2s;
+      border-radius: 6px;
+      transition: background 0.15s;
       margin-top: 0.5rem;
     }
 
-    .generate-btn:hover { background: var(--gold2); }
-    .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .secondary-btn { font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.75rem 1.5rem; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: border-color 0.2s, color 0.2s; margin-top: 1rem; }
-    .secondary-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .generate-btn:hover { background: var(--accent-hover); }
+    .generate-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .secondary-btn { font-family: 'Outfit', sans-serif; font-size: 0.8rem; font-weight: 400; letter-spacing: 0; padding: 0.65rem 1.25rem; background: rgba(255,255,255,0.05); color: var(--text2); border: 1px solid var(--border2); border-radius: 6px; cursor: pointer; transition: all 0.15s; margin-top: 1rem; }
+    .secondary-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.2); }
 
     /* Post output */
     .post-output { display: flex; flex-direction: column; gap: 1.5rem; }
 
     .post-card {
       background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
+      border: 1px solid var(--border2);
+      border-radius: 10px;
       overflow: hidden;
       animation: fadeUp 0.4s ease;
     }
@@ -776,11 +782,12 @@
     }
 
     .platform-badge {
-      font-family: 'DM Mono', monospace;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.3rem 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+      padding: 0.25rem 0.65rem;
       border-radius: 20px;
     }
 
@@ -788,19 +795,19 @@
     .platform-badge.instagram { background: rgba(193, 53, 132, 0.15); color: #d47ab0; }
 
     .post-meta {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
       color: var(--text3);
-      letter-spacing: 0.04em;
+      letter-spacing: 0;
     }
 
     .post-body {
-      padding: 1.5rem;
-      font-size: 0.95rem;
-      line-height: 1.85;
+      padding: 1.75rem 2rem;
+      font-size: 0.975rem;
+      line-height: 1.9;
       color: var(--text);
       white-space: pre-wrap;
-      min-height: 120px;
+      min-height: 140px;
     }
 
     .post-body.generating {
@@ -808,82 +815,88 @@
       font-style: italic;
     }
 
+    /* Primary action bar — shown after generation */
     .post-card-footer {
-      padding: 1rem 1.5rem;
+      padding: 0.875rem 1.25rem;
       border-top: 1px solid var(--border);
       display: flex;
-      gap: 0.75rem;
+      gap: 0.5rem;
+      align-items: center;
+      background: rgba(255,255,255,0.02);
     }
 
+    /* Copy is the primary action — stands out */
     .post-action-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.5rem 1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      padding: 0.5rem 0.9rem;
       background: transparent;
       border: 1px solid var(--border2);
       color: var(--text2);
       cursor: pointer;
-      border-radius: 2px;
-      transition: all 0.2s;
+      border-radius: 6px;
+      transition: all 0.15s;
     }
 
-    .post-action-btn:hover { border-color: var(--border2); color: var(--text); }
-    .post-action-btn.copied { border-color: rgba(100, 200, 130, 0.3); color: #7dba90; }
-    .post-action-btn.carousel-inject-btn { border-color: rgba(201,169,110,0.25); color: var(--gold); margin-left: auto; }
+    .post-action-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); background: rgba(255,255,255,0.05); }
+    .post-action-btn.copied { border-color: rgba(100, 200, 130, 0.4); color: #7dba90; background: rgba(100,200,130,0.06); }
+    .post-action-btn.post-copy-primary { background: var(--accent); color: #0a0a0a; border-color: transparent; font-weight: 500; }
+    .post-action-btn.post-copy-primary:hover { background: var(--accent-hover); }
+    .post-action-btn.post-copy-primary.copied { background: rgba(100,200,130,0.15); color: #7dba90; border-color: rgba(100,200,130,0.3); }
+    .post-action-btn.carousel-inject-btn { border-color: rgba(201,169,110,0.3); color: var(--gold); margin-left: auto; }
     .post-action-btn.carousel-inject-btn:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
 
-    /* Refine row */
+    /* Refine row — always visible, feels like an inline chat */
     .refine-row {
-      padding: 0.75rem 1.5rem;
+      padding: 0.75rem 1.25rem;
       border-top: 1px solid var(--border);
       display: flex;
       gap: 0.5rem;
+      align-items: center;
     }
 
     .refine-input {
       flex: 1;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 2px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
       color: var(--text);
       font-family: 'Outfit', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 300;
-      padding: 0.5rem 0.75rem;
+      padding: 0.55rem 0.875rem;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s;
     }
 
     .refine-input::placeholder { color: var(--text3); }
-    .refine-input:focus { border-color: var(--border2); }
+    .refine-input:focus { border-color: rgba(255,255,255,0.25); }
 
     .refine-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.5rem 1rem;
-      background: transparent;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      padding: 0.55rem 0.9rem;
+      background: rgba(255,255,255,0.06);
       border: 1px solid var(--border2);
       color: var(--text2);
       cursor: pointer;
-      border-radius: 2px;
-      transition: all 0.2s;
+      border-radius: 6px;
+      transition: all 0.15s;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
-    .refine-btn:hover { border-color: var(--gold); color: var(--gold); }
-    .refine-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .refine-btn:hover { border-color: rgba(255,255,255,0.25); color: var(--text); background: rgba(255,255,255,0.09); }
+    .refine-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
     /* Custom topic */
     .custom-topic-input {
       width: 100%;
       background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 2px;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
       color: var(--text);
       font-family: 'Outfit', sans-serif;
       font-size: 0.875rem;
@@ -892,12 +905,12 @@
       outline: none;
       resize: vertical;
       min-height: 70px;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s;
       display: none;
     }
 
     .custom-topic-input::placeholder { color: var(--text3); }
-    .custom-topic-input:focus { border-color: var(--border2); }
+    .custom-topic-input:focus { border-color: rgba(255,255,255,0.25); }
     .pillar-select-item.custom { border-style: dashed; }
 
     /* Extra context / reference materials collapsible sections */
@@ -906,17 +919,18 @@
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
       color: var(--text3);
       padding: 0.5rem 0;
       border-bottom: 1px solid var(--border);
-      transition: color 0.2s;
+      transition: color 0.15s;
       user-select: none;
     }
-    .context-toggle:hover { color: var(--gold); }
+    .context-toggle:hover { color: var(--text2); }
     .context-toggle.open { color: var(--text2); }
     .context-toggle-hint {
       font-size: 0.62rem;
@@ -1037,34 +1051,37 @@
 
     /* Section title */
     .section-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.75rem;
-      font-weight: 300;
-      margin-bottom: 0.5rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.01em;
     }
 
     .section-subtitle {
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       color: var(--text2);
       margin-bottom: 2rem;
+      line-height: 1.5;
     }
 
     /* Upload new */
     .upload-new-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
       padding: 0.5rem 1rem;
       background: transparent;
       border: 1px solid var(--border2);
       color: var(--text2);
       cursor: pointer;
-      border-radius: 2px;
-      transition: all 0.2s;
+      border-radius: 6px;
+      transition: all 0.15s;
     }
 
-    .upload-new-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .upload-new-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
 
     /* Previous sessions */
     .sessions-section {
@@ -1074,10 +1091,11 @@
     }
 
     .sessions-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
       color: var(--text3);
       margin-bottom: 1rem;
     }
@@ -1089,13 +1107,13 @@
       padding: 0.875rem 1rem;
       background: var(--bg2);
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 8px;
       margin-bottom: 0.5rem;
       cursor: pointer;
-      transition: border-color 0.2s;
+      transition: all 0.15s;
     }
 
-    .session-item:hover { border-color: var(--border2); }
+    .session-item:hover { border-color: var(--border2); background: rgba(255,255,255,0.03); }
 
     .session-info { flex: 1; min-width: 0; }
 
@@ -1157,21 +1175,21 @@
     }
 
     .tone-btn {
-      padding: 0.6rem 0.75rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 2px;
+      padding: 0.55rem 0.75rem;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
       cursor: pointer;
       font-family: 'Outfit', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 300;
+      font-size: 0.82rem;
+      font-weight: 400;
       color: var(--text2);
-      transition: all 0.2s;
+      transition: all 0.15s;
       text-align: left;
     }
 
-    .tone-btn:hover { border-color: var(--border2); color: var(--text); }
-    .tone-btn.active { border-color: var(--gold); color: var(--gold); }
+    .tone-btn:hover { border-color: var(--border2); color: var(--text); background: rgba(255,255,255,0.04); }
+    .tone-btn.active { border-color: rgba(255,255,255,0.3); color: var(--text); background: rgba(255,255,255,0.07); }
 
     /* Remake This panel */
     .platform-toggle {
@@ -1526,18 +1544,20 @@
     }
 
     .auth-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2rem;
-      font-weight: 300;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
       margin-bottom: 2.5rem;
     }
 
-    .auth-logo span { color: var(--gold); font-style: italic; }
+    .auth-logo span { color: var(--text); font-style: normal; }
 
     .auth-card {
       background: var(--bg2);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border2);
       padding: 2rem;
+      border-radius: 10px;
     }
 
     .auth-tabs {
@@ -1549,23 +1569,25 @@
     }
 
     .auth-tab {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
       color: var(--text3);
       background: none;
       border: none;
       cursor: pointer;
       padding: 0;
-      transition: color 0.2s;
+      transition: color 0.15s;
     }
 
-    .auth-tab.active { color: var(--gold); }
+    .auth-tab.active { color: var(--text); }
 
     .auth-error {
       background: rgba(139, 0, 0, 0.12);
       border: 1px solid rgba(139, 0, 0, 0.3);
+      border-radius: 6px;
       color: #c47070;
       font-size: 0.82rem;
       padding: 0.65rem 1rem;
@@ -2825,23 +2847,24 @@
       display: flex;
       align-items: center;
       gap: 0.45rem;
-      padding: 0.85rem 1.25rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      padding: 0.85rem 1.1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
       color: var(--text3);
       background: transparent;
       border: none;
-      border-bottom: 2px solid transparent;
+      border-bottom: 1.5px solid transparent;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s;
       white-space: nowrap;
       position: relative;
       flex-shrink: 0;
     }
     .phase-btn:hover { color: var(--text2); }
-    .phase-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .phase-btn.active { color: var(--text); border-bottom-color: rgba(255,255,255,0.5); }
 
     .phase-dot {
       width: 6px; height: 6px;
@@ -2926,21 +2949,22 @@
 
     .phase-subnav-btn {
       padding: 0.4rem 0.9rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.66rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
       color: var(--text3);
       background: transparent;
       border: 1px solid transparent;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s;
       white-space: nowrap;
     }
-    .phase-subnav-btn:hover { color: var(--text2); border-color: var(--border); }
-    .phase-subnav-btn.active { color: var(--gold); border-color: rgba(201,169,110,0.3); background: rgba(201,169,110,0.06); }
-    .quote-style-btn.active, .quote-ratio-btn.active { color: var(--gold) !important; border-color: rgba(201,169,110,0.5) !important; background: rgba(201,169,110,0.1) !important; }
+    .phase-subnav-btn:hover { color: var(--text2); background: rgba(255,255,255,0.04); }
+    .phase-subnav-btn.active { color: var(--text); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); }
+    .quote-style-btn.active, .quote-ratio-btn.active { color: var(--text) !important; border-color: rgba(255,255,255,0.35) !important; background: rgba(255,255,255,0.08) !important; }
 
     /* Phase content area */
     .phase-content-area {
@@ -2964,7 +2988,7 @@
     }
     .context-banner.visible { display: flex; }
     .context-banner-msg { font-size: 0.8rem; color: var(--text2); flex: 1; }
-    .context-banner-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--gold); text-decoration: none; white-space: nowrap; cursor: pointer; }
+    .context-banner-link { font-family: 'Outfit', sans-serif; font-size: 0.8rem; font-weight: 500; letter-spacing: 0; color: var(--text2); text-decoration: none; white-space: nowrap; cursor: pointer; }
     .context-banner-link:hover { text-decoration: underline; }
     .context-banner-close { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 0.85rem; padding: 0; }
 
@@ -3104,22 +3128,22 @@
     flex-shrink: 0;
   }
   .sidebar-logo-wordmark {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 1.15rem;
-    font-weight: 300;
-    letter-spacing: 0.03em;
+    font-family: 'Outfit', sans-serif;
+    font-style: normal;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--text);
     line-height: 1.2;
   }
-  .sidebar-logo-wordmark em { color: var(--gold); font-style: italic; }
+  .sidebar-logo-wordmark em { color: var(--text); font-style: normal; }
   .sidebar-logo-sub {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.52rem;
-    letter-spacing: 0.18em;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0;
     color: var(--text3);
-    text-transform: uppercase;
-    margin-top: 0.3rem;
+    text-transform: none;
+    margin-top: 0.2rem;
   }
 
   .sidebar-nav {
@@ -3137,10 +3161,11 @@
     padding: 0.6rem 1.25rem;
     cursor: pointer;
     color: var(--text3);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
     transition: color 0.15s, background 0.15s;
     position: relative;
     border-left: 2px solid transparent;
@@ -3151,8 +3176,8 @@
     text-align: left;
     outline: none;
   }
-  .sidebar-nav-item:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
-  .sidebar-nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,169,110,0.08); }
+  .sidebar-nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .sidebar-nav-item.active { color: var(--text); border-left-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06); }
   .sidebar-nav-item svg {
     width: 14px; height: 14px;
     flex-shrink: 0;
@@ -3170,8 +3195,8 @@
     font-weight: 700;
     padding: 0.1rem 0.35rem;
     border-radius: 20px;
-    background: var(--gold);
-    color: #0c0c0b;
+    background: rgba(255,255,255,0.15);
+    color: var(--text);
     line-height: 1.4;
     min-width: 16px;
     text-align: center;
@@ -3190,19 +3215,20 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.45rem 1.25rem 0.45rem 2.6rem;
+    padding: 0.4rem 1.25rem 0.4rem 2.6rem;
     cursor: pointer;
     color: var(--text3);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
     transition: color 0.15s, background 0.15s;
     border-left: 2px solid transparent;
     user-select: none;
   }
-  .sidebar-subnav-item:hover { color: var(--text2); background: rgba(255,255,255,0.02); }
-  .sidebar-subnav-item.active { color: var(--gold); border-left-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.05); }
+  .sidebar-subnav-item:hover { color: var(--text2); background: rgba(255,255,255,0.03); }
+  .sidebar-subnav-item.active { color: var(--text); border-left-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.05); }
   .sidebar-subnav-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: 0.6; }
 
   /* Bottom section */
@@ -3212,39 +3238,41 @@
     flex-shrink: 0;
   }
   .sidebar-session-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.52rem;
-    letter-spacing: 0.12em;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--text3);
-    text-transform: uppercase;
+    text-transform: none;
     margin-bottom: 0.3rem;
   }
   .sidebar-session-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.88rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
     color: var(--text2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 0.5rem;
-    font-style: italic;
+    font-style: normal;
   }
   .sidebar-session-switch {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--text3);
-    text-transform: uppercase;
+    text-transform: none;
     background: transparent;
     border: 1px solid var(--border);
-    padding: 0.28rem 0.55rem;
+    padding: 0.28rem 0.6rem;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 5px;
     transition: border-color 0.15s, color 0.15s;
     margin-bottom: 0.75rem;
     display: block;
   }
-  .sidebar-session-switch:hover { border-color: var(--gold); color: var(--gold); }
+  .sidebar-session-switch:hover { border-color: rgba(255,255,255,0.25); color: var(--text2); }
   .sidebar-user-email {
     font-family: 'DM Mono', monospace;
     font-size: 0.57rem;
@@ -3255,11 +3283,12 @@
     margin-bottom: 0.4rem;
   }
   .sidebar-logout {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--text3);
-    text-transform: uppercase;
+    text-transform: none;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -3295,43 +3324,46 @@
     z-index: 5;
   }
   .section-header-eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.52rem;
-    letter-spacing: 0.16em;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--text3);
-    text-transform: uppercase;
-    margin-bottom: 0.35rem;
+    text-transform: none;
+    margin-bottom: 0.25rem;
   }
   .section-header-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.9rem;
-    font-weight: 300;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
     color: var(--text);
     line-height: 1.1;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.25rem;
   }
   .section-header-sub {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: var(--text3);
     line-height: 1.5;
     max-width: 460px;
   }
   .section-header-action {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
     padding: 0.55rem 1.1rem;
-    background: var(--gold);
-    color: #0c0c0b;
+    background: var(--accent);
+    color: #0a0a0a;
     border: none;
-    border-radius: 3px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.15s;
     white-space: nowrap;
     flex-shrink: 0;
   }
-  .section-header-action:hover { background: var(--gold2); }
+  .section-header-action:hover { background: var(--accent-hover); }
 
   /* ── Dashboard ──────────────────────────────────────────────────────── */
   #section-dashboard {
@@ -3992,7 +4024,7 @@
       </button>
       <button class="phase-btn" id="pbtn-publish" onclick="showPhase('publish')">
         <span class="phase-dot" id="pdot-publish"></span>Publish
-        <span id="review-badge" style="display:none;background:var(--gold);color:#0c0c0b;font-family:'DM Mono',monospace;font-size:0.5rem;font-weight:700;border-radius:20px;padding:0.05rem 0.4rem;line-height:1.5">0</span>
+        <span id="review-badge" style="display:none;background:rgba(255,255,255,0.15);color:var(--text);font-family:'Outfit',sans-serif;font-size:0.6rem;font-weight:600;border-radius:20px;padding:0.05rem 0.4rem;line-height:1.5">0</span>
       </button>
       <button class="phase-btn" id="pbtn-analyze" onclick="showPhase('analyze')">
         <span class="phase-dot" id="pdot-analyze"></span>Analyze
@@ -4120,7 +4152,7 @@
         <div class="strategy-grid">
           <div class="strategy-card full-width">
             <h3>Brand statement</h3>
-            <p id="brand-statement" style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); font-style: italic;"></p>
+            <p id="brand-statement" style="font-family: 'Outfit', sans-serif; font-size: 1rem; color: var(--text); line-height: 1.65;"></p>
           </div>
           <div class="strategy-card">
             <h3>Target audience</h3>
@@ -4632,8 +4664,8 @@
           </div>
 
           <div class="post-output" id="post-output">
-            <div style="color: var(--text3); font-size: 0.85rem; padding: 2rem 0; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.1rem;">
-              Select your options and generate your first post...
+            <div style="color: var(--text3); font-size: 0.875rem; padding: 3rem 1.5rem; font-family: 'Outfit', sans-serif; font-weight: 300; line-height: 1.6; text-align: center;">
+              Choose your platform, pillar, and tone — then hit Generate.
             </div>
           </div>
         </div>
@@ -4913,18 +4945,27 @@
           </div>
         </div>
 
-        <!-- Approve modal -->
-        <div id="review-approve-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center">
-          <div style="background:#1a1a18;border:1px solid rgba(201,169,110,0.25);border-radius:12px;padding:2rem;max-width:440px;width:90%;position:relative">
-            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:1rem">SCHEDULE POST</div>
-            <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem">Confirm the scheduled time for this post. You can adjust it below.</div>
+        <!-- Approve / Schedule modal -->
+        <div id="review-approve-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center">
+          <div style="background:#1a1a18;border:1px solid rgba(201,169,110,0.25);border-radius:12px;padding:2rem;max-width:480px;width:90%;position:relative;max-height:90vh;overflow-y:auto">
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:0.5rem">SCHEDULE POST</div>
+
+            <!-- Caption preview -->
+            <div style="margin-bottom:1rem">
+              <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.35rem">POST CAPTION (published as-is)</div>
+              <div id="review-schedule-caption-preview" style="font-size:0.78rem;color:var(--text2);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:0.65rem 0.8rem;line-height:1.55;max-height:90px;overflow:hidden;text-overflow:ellipsis;white-space:pre-wrap"></div>
+            </div>
+
             <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--text3);display:block;margin-bottom:0.4rem">PUBLISH AT</label>
             <input type="datetime-local" id="review-schedule-input" style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box;margin-bottom:1rem">
+
+            <!-- Image URL for platforms that support/require it -->
             <div id="review-image-url-wrap" style="display:none;margin-bottom:1.25rem">
-              <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:#f97316;display:block;margin-bottom:0.4rem">INSTAGRAM IMAGE URL <span style="color:var(--text3)">(required to publish)</span></label>
+              <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:#f97316;display:block;margin-bottom:0.4rem">IMAGE URL <span style="color:var(--text3)">(required for Instagram — this image will be posted with the caption above)</span></label>
               <input type="url" id="review-image-url-input" placeholder="https://your-cdn.com/image.jpg" style="width:100%;background:#111110;border:1px solid rgba(249,115,22,0.35);color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box">
-              <div style="font-size:0.72rem;color:var(--text3);margin-top:0.4rem">Upload your carousel PNG to any CDN (Cloudinary, Imgur, etc.) and paste the URL here.</div>
+              <div style="font-size:0.7rem;color:var(--text3);margin-top:0.35rem;line-height:1.4">Upload your image to a public CDN (Cloudinary, Imgur, S3) and paste the direct URL here. The <em>caption</em> above will appear as the post text on Instagram.</div>
             </div>
+
             <div style="display:flex;gap:0.75rem">
               <button onclick="reviewApproveConfirm()" style="flex:1;padding:0.75rem;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.5);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.08em;border-radius:6px;cursor:pointer">CONFIRM SCHEDULE</button>
               <button onclick="closeReviewApproveModal()" style="padding:0.75rem 1rem;background:transparent;border:1px solid rgba(255,255,255,0.12);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.72rem;border-radius:6px;cursor:pointer">Cancel</button>
@@ -4933,7 +4974,7 @@
         </div>
 
         <!-- Reject modal -->
-        <div id="review-reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center">
+        <div id="review-reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;align-items:center;justify-content:center">
           <div style="background:#1a1a18;border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:2rem;max-width:440px;width:90%;position:relative">
             <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:#f87171;margin-bottom:1rem">REJECT POST</div>
             <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1.25rem">Your rejection reason teaches the AI what not to create. Choose the best reason:</div>
@@ -4953,8 +4994,19 @@
           </div>
         </div>
 
-        <!-- OAuth connect section -->
+        <!-- Scheduled Queue -->
         <div style="margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:#0EA5E9">SCHEDULED QUEUE</div>
+            <button class="post-action-btn" onclick="loadScheduledQueue()" style="font-size:0.65rem">Refresh</button>
+          </div>
+          <div id="scheduled-queue-list">
+            <div style="font-size:0.8rem;color:var(--text3)">Loading...</div>
+          </div>
+        </div>
+
+        <!-- OAuth connect section -->
+        <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.06)">
           <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text3);margin-bottom:1.25rem">CONNECT PLATFORMS TO ENABLE AUTO-PUBLISHING</div>
           <div style="display:flex;gap:1rem;flex-wrap:wrap">
             <div id="oauth-linkedin-card" style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.25rem">
@@ -6023,19 +6075,19 @@
       <div class="post-body generating" id="post-body-${p}">Generating your post...</div>
       <div id="voice-note-${p}" class="voice-note" style="display:none"></div>
       <div class="post-card-footer">
-        <button class="post-action-btn" id="copy-btn-${p}" onclick="copyPost('${p}')">Copy</button>
-        <button class="post-action-btn" onclick="regenerate('${p}')">Regenerate</button>
-        <button class="post-action-btn shorter" onclick="resizePost('${p}','shorter')" title="Make shorter">Shorter</button>
-        <button class="post-action-btn longer" onclick="resizePost('${p}','longer')" title="Make longer">Longer</button>
+        <button class="post-action-btn post-copy-primary" id="copy-btn-${p}" onclick="copyPost('${p}')">Copy</button>
+        <button class="post-action-btn" onclick="resizePost('${p}','shorter')" title="Make shorter">Shorter</button>
+        <button class="post-action-btn" onclick="resizePost('${p}','longer')" title="Make longer">Longer</button>
         <button class="post-action-btn" onclick="toggleVariations('${p}')">Variations</button>
+        <button class="post-action-btn" onclick="regenerate('${p}')">Regenerate</button>
         ${showCarouselBtn ? `<button class="post-action-btn carousel-inject-btn" id="carousel-btn-${p}" onclick="sendToCarousel('${p}')">→ Carousel</button>` : ''}
       </div>
       <div class="refine-row">
-        <input class="refine-input" id="refine-input-${p}" placeholder="Edit instruction — e.g. make it shorter, change the hook, add more personality...">
-        <button class="refine-btn" id="refine-btn-${p}" onclick="refinePost('${p}')">Refine</button>
+        <input class="refine-input" id="refine-input-${p}" placeholder="Refine this post — e.g. make it shorter, change the hook, add a stat...">
+        <button class="refine-btn" id="refine-btn-${p}" onclick="refinePost('${p}')">Apply</button>
       </div>
       <div class="variations-panel" id="variations-panel-${p}">
-        <div style="font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:0.25rem;">Variations — click to use</div>
+        <div style="font-family:'Outfit',sans-serif;font-size:0.75rem;color:var(--text3);margin-bottom:0.5rem;">4 angle variations — click to use</div>
         <div class="variations-list" id="variations-list-${p}"><div style="color:var(--text3);font-size:0.8rem;font-style:italic;">Click to generate 4 variations of this post...</div></div>
         <button class="post-action-btn" style="margin-top:0.75rem" onclick="generateVariations('${p}')">Generate variations</button>
       </div>
@@ -6418,7 +6470,7 @@
     if (tabName === 'brain-diary') loadBrainDiary();
     if (tabName === 'metaverse') { loadMetaverse(); if (!_metaverseTimer) _metaverseTimer = setInterval(loadMetaverse, 10000); }
     else { if (_metaverseTimer) { clearInterval(_metaverseTimer); _metaverseTimer = null; } }
-    if (tabName === 'review') { loadReviewQueue(); loadOAuthStatus(); }
+    if (tabName === 'review') { loadReviewQueue(); loadOAuthStatus(); loadScheduledQueue(); }
   }
 
   function _checkContextBanners(phaseName) {
@@ -7968,6 +8020,14 @@
         ? `<span class="post-meta" style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.06em;text-transform:uppercase;">${_escHtml(p.format)}</span>`
         : '';
 
+      const scheduledBadge = p.status === 'approved' && p.scheduled_for
+        ? `<span class="post-meta" style="color:#0EA5E9;border-color:rgba(14,165,233,0.25)">◷ ${new Date(p.scheduled_for).toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>`
+        : '';
+
+      const approveBtn = p.status === 'approved'
+        ? `<button class="post-action-btn" onclick="libSetStatus('${p.id}', 'approved', this)" style="color:var(--gold)">Edit schedule</button>`
+        : `<button class="post-action-btn" onclick="libSetStatus('${p.id}', 'approved', this)">Approve &amp; schedule</button>`;
+
       return `
         <div class="lib-post-card" id="lib-card-${p.id}">
           <div class="lib-post-meta">
@@ -7977,13 +8037,14 @@
             ${p.tone ? `<span class="post-meta">${_escHtml(p.tone)}</span>` : ''}
             ${voiceBadge}
             <span class="lib-status-badge ${p.status}">${p.status}</span>
+            ${scheduledBadge}
             <span class="post-meta" style="margin-left:auto">${date}</span>
           </div>
           ${previewHtml}
           ${expandBtn}
           <div class="lib-post-actions">
             ${copyBtn}
-            <button class="post-action-btn" onclick="libSetStatus('${p.id}', 'approved', this)" ${p.status === 'approved' ? 'style="color:var(--gold)"' : ''}>Approve</button>
+            ${approveBtn}
             <button class="post-action-btn" onclick="libSetStatus('${p.id}', 'published', this)" ${p.status === 'published' ? 'style="color:#5aaedb"' : ''}>Mark published</button>
             <button class="post-action-btn" onclick="libDeletePost('${p.id}')" style="margin-left:auto;color:var(--text3)">Delete</button>
           </div>
@@ -8025,12 +8086,17 @@
   }
 
   async function libSetStatus(id, status, btn) {
+    if (status === 'approved') {
+      // Route through the scheduling modal so scheduled_for gets set
+      const post = libraryPosts.find(p => p.id === id);
+      if (post) openScheduleModal(post, 'library');
+      return;
+    }
     try {
       await authFetch(`/api/posts/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
       const post = libraryPosts.find(p => p.id === id);
       if (post) post.status = status;
       renderLibrary();
-      if (status === 'approved') showWhatNext('Post approved. Track its performance.', 'View performance →', 'analyze', 'analytics');
     } catch {}
   }
 
@@ -9320,6 +9386,37 @@
 
   let reviewQueue = [];
   let reviewIndex = 0;
+  let _scheduleModalPost = null; // {id, platform, image_url, content} for the post being scheduled
+  let _scheduleModalSource = 'review'; // 'review' | 'library'
+
+  function openScheduleModal(post, source = 'review') {
+    _scheduleModalPost = post;
+    _scheduleModalSource = source;
+    // Pre-fill optimal time: next business hour
+    const d = new Date();
+    d.setHours(d.getHours() + 2, 0, 0, 0);
+    while ([0, 6].includes(d.getDay())) d.setDate(d.getDate() + 1);
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('review-schedule-input').value = local;
+    // Show image URL field for platforms that need an image (Instagram, LinkedIn with image)
+    const imageWrap = document.getElementById('review-image-url-wrap');
+    const imageInput = document.getElementById('review-image-url-input');
+    const needsImage = ['instagram'].includes(post.platform);
+    if (needsImage) {
+      imageWrap.style.display = 'block';
+      imageInput.value = post.image_url || '';
+    } else {
+      imageWrap.style.display = 'none';
+      imageInput.value = '';
+    }
+    // Show caption preview (the post content that will be published as the image caption)
+    const captionPreview = document.getElementById('review-schedule-caption-preview');
+    if (captionPreview) {
+      captionPreview.textContent = (post.content || '').slice(0, 200) + ((post.content || '').length > 200 ? '…' : '');
+    }
+    const modal = document.getElementById('review-approve-modal');
+    modal.style.display = 'flex';
+  }
 
   async function loadReviewQueue() {
     try {
@@ -9427,38 +9524,20 @@
   function reviewApprove() {
     const post = reviewQueue[reviewIndex];
     if (!post) return;
-    // Pre-fill optimal time: next weekday at 10:00 local
-    const d = new Date();
-    d.setHours(d.getHours() + 2, 0, 0, 0);
-    // Advance to a weekday if needed
-    while ([0, 6].includes(d.getDay())) d.setDate(d.getDate() + 1);
-    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    document.getElementById('review-schedule-input').value = local;
-    // Show image URL field for Instagram posts
-    const imageWrap = document.getElementById('review-image-url-wrap');
-    const imageInput = document.getElementById('review-image-url-input');
-    if (post.platform === 'instagram') {
-      imageWrap.style.display = 'block';
-      imageInput.value = post.image_url || '';
-    } else {
-      imageWrap.style.display = 'none';
-      imageInput.value = '';
-    }
-    const modal = document.getElementById('review-approve-modal');
-    modal.style.display = 'flex';
+    openScheduleModal(post, 'review');
   }
 
   function closeReviewApproveModal() {
     document.getElementById('review-approve-modal').style.display = 'none';
+    _scheduleModalPost = null;
   }
 
   async function reviewApproveConfirm() {
-    const post = reviewQueue[reviewIndex];
+    const post = _scheduleModalPost;
     if (!post) return;
     const scheduledFor = document.getElementById('review-schedule-input').value;
     const imageUrl = document.getElementById('review-image-url-input').value.trim();
     try {
-      // Save image URL first if provided (required for Instagram publishing)
       if (imageUrl) {
         const imgRes = await authFetch(`/api/posts/${post.id}/image-url`, {
           method: 'PATCH',
@@ -9477,11 +9556,19 @@
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
       closeReviewApproveModal();
-      reviewQueue.splice(reviewIndex, 1);
-      reviewIndex = Math.min(reviewIndex, Math.max(0, reviewQueue.length - 1));
-      renderReviewCard();
-      updateReviewBadge(reviewQueue.length);
-      showWhatNext('Post approved. Track its performance.', 'View performance →', 'analyze', 'analytics');
+      loadScheduledQueue();
+      if (_scheduleModalSource === 'library') {
+        const libPost = libraryPosts.find(p => p.id === post.id);
+        if (libPost) { libPost.status = 'approved'; libPost.scheduled_for = data.scheduled_for; }
+        renderLibrary();
+        showWhatNext('Post scheduled. It will publish automatically.', 'View library →', 'publish', 'library');
+      } else {
+        reviewQueue.splice(reviewIndex, 1);
+        reviewIndex = Math.min(reviewIndex, Math.max(0, reviewQueue.length - 1));
+        renderReviewCard();
+        updateReviewBadge(reviewQueue.length);
+        showWhatNext('Post scheduled. It will publish automatically.', 'View queue →', 'publish', 'review');
+      }
     } catch (err) {
       alert('Failed to approve post: ' + err.message);
     }
@@ -9520,6 +9607,49 @@
     } catch (err) {
       alert('Failed to reject post: ' + err.message);
     }
+  }
+
+  // ─── SCHEDULED QUEUE ────────────────────────────────────────────────────────
+
+  async function loadScheduledQueue() {
+    const el = document.getElementById('scheduled-queue-list');
+    if (!el) return;
+    try {
+      const data = await authFetch('/api/posts/scheduled').then(r => r.json());
+      const posts = data.posts || [];
+      if (!posts.length) {
+        el.innerHTML = '<div style="font-size:0.8rem;color:var(--text3);padding:0.5rem 0">No posts scheduled yet. Approve posts from the queue above to schedule them.</div>';
+        return;
+      }
+      const platformLabels = { linkedin:'LinkedIn', instagram:'Instagram', twitter:'Twitter/X', tiktok:'TikTok', email:'Email' };
+      el.innerHTML = posts.map(p => {
+        const when = new Date(p.scheduled_for);
+        const isOverdue = when < new Date();
+        const whenStr = when.toLocaleString('en-GB', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+        const preview = (p.content || '').slice(0, 120) + ((p.content || '').length > 120 ? '…' : '');
+        return `<div style="display:flex;gap:1rem;align-items:flex-start;padding:0.85rem 1rem;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;margin-bottom:0.6rem">
+          <div style="flex-shrink:0;min-width:90px;text-align:center">
+            <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.08em;color:${isOverdue?'#f87171':'#0EA5E9'};margin-bottom:0.2rem">${isOverdue?'OVERDUE':'SCHEDULED'}</div>
+            <div style="font-size:0.72rem;color:var(--text2);line-height:1.4">${whenStr}</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.35rem;flex-wrap:wrap">
+              <span class="platform-badge ${p.platform}" style="font-size:0.58rem;padding:0.15rem 0.45rem">${platformLabels[p.platform]||p.platform}</span>
+              ${p.pillar_name?`<span style="font-size:0.68rem;color:var(--text3)">${p.pillar_name}</span>`:''}
+              ${p.image_url?`<span style="font-size:0.65rem;color:#4ade80;font-family:'DM Mono',monospace">◉ image attached</span>`:(p.platform==='instagram'?`<span style="font-size:0.65rem;color:#f87171;font-family:'DM Mono',monospace">⚠ no image</span>`:'')}
+            </div>
+            <div style="font-size:0.78rem;color:var(--text2);line-height:1.5">${preview}</div>
+          </div>
+          <button onclick="schedQueueReschedule('${p.id}','${p.platform}',${JSON.stringify(p.image_url||'')},${JSON.stringify(p.content||'')})" style="flex-shrink:0;background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.3rem 0.6rem;border-radius:4px;cursor:pointer" title="Edit schedule">Edit</button>
+        </div>`;
+      }).join('');
+    } catch {
+      el.innerHTML = '<div style="font-size:0.8rem;color:var(--text3)">Could not load scheduled queue.</div>';
+    }
+  }
+
+  function schedQueueReschedule(postId, platform, imageUrl, content) {
+    openScheduleModal({ id: postId, platform, image_url: imageUrl, content }, 'library');
   }
 
   function oauthConnect(platform) {
