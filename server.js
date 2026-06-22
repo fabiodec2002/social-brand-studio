@@ -578,6 +578,8 @@ Return a JSON object with this exact structure:
   "growth_tactics": ["3 specific growth tactics tailored to their background and skills"]
 }
 
+Build EXACTLY 3 content pillars — the 3 strongest, most distinct themes for this person. The user can add up to 2 more pillars themselves later, so keep these 3 as the essential core.
+
 Return ONLY valid JSON, no markdown, no explanation. Make it deeply specific to their personality map data.`;
 
   const businessPrompt = `You are an expert brand strategist for companies and organizations. Based on this brand brief, create a comprehensive social media strategy.
@@ -625,7 +627,7 @@ Return a JSON object with this exact structure:
   "growth_tactics": ["3 specific growth tactics tailored to this company's market, strengths, and ideal client"]
 }
 
-Build 4–5 content pillars. Suggested mix for most companies: 1) Industry Education, 2) Social Proof / Results, 3) Product or Service Spotlight, 4) Company Culture / Team, 5) Thought Leadership.
+Build EXACTLY 3 content pillars — the 3 strongest, most distinct themes for this company. Suggested mix: 1) Industry Education, 2) Social Proof / Results, 3) Product or Service Spotlight. The user can add up to 2 more pillars themselves later, so keep these 3 as the essential core.
 
 Return ONLY valid JSON, no markdown, no explanation. Make it deeply specific to this company's actual data.`;
 

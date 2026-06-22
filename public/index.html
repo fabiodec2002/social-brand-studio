@@ -625,6 +625,29 @@
     .pillar-card:hover { border-color: var(--border2); }
     .pillar-card.selected { border-color: var(--gold); }
 
+    .pillar-card.add-pillar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 120px;
+      border-style: dashed;
+      border-color: var(--border2);
+      color: var(--text3);
+      text-align: center;
+    }
+    .pillar-card.add-pillar:hover { border-color: var(--gold); color: var(--gold); }
+    .add-pillar-icon { font-size: 1.6rem; font-weight: 300; line-height: 1; }
+    .add-pillar-label { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; }
+    .add-pillar-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+
     .pillar-name {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.2rem;
@@ -5803,61 +5826,8 @@
       gtCont.appendChild(div);
     });
 
-    // Pillars
-    const pillarsGrid = document.getElementById('pillars-grid');
-    const pillarSelectList = document.getElementById('pillar-select-list');
-
-    strategy.content_pillars.forEach((pillar, i) => {
-      // Grid card
-      const card = document.createElement('div');
-      card.className = 'pillar-card';
-      card.dataset.pillarIdx = i;
-      const painHtml = pillar.audience_pain_point
-        ? `<div class="pillar-pain"><div class="pain-label">Addresses</div><div class="pain-text">${pillar.audience_pain_point}</div></div>`
-        : '';
-      card.innerHTML = `
-        <div class="pillar-name">${pillar.name}</div>
-        <div class="pillar-desc">${pillar.description}</div>
-        ${painHtml}
-        <div class="pillar-freq">${pillar.post_frequency}</div>
-        <div class="platform-dots">
-          ${pillar.platform_fit.includes('linkedin') ? '<span class="platform-dot linkedin">LinkedIn</span>' : ''}
-          ${pillar.platform_fit.includes('instagram') ? '<span class="platform-dot instagram">Instagram</span>' : ''}
-        </div>
-        <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
-          ${pillar.content_ideas.map(idea => `<div style="font-size:0.78rem;color:var(--text3);margin-bottom:0.4rem;padding-left:0.75rem;border-left:1px solid var(--border2);">${idea}</div>`).join('')}
-        </div>
-      `;
-      pillarsGrid.appendChild(card);
-
-      // Select item for generator
-      const item = document.createElement('div');
-      item.className = 'pillar-select-item' + (i === 0 ? ' active' : '');
-      item.dataset.pillarId = pillar.id;
-      item.textContent = pillar.name;
-      item.onclick = () => {
-        document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
-        item.classList.add('active');
-        selectedPillar = pillar.id;
-        document.getElementById('custom-topic-input').style.display = 'none';
-      };
-      pillarSelectList.appendChild(item);
-      if (i === 0) selectedPillar = pillar.id;
-    });
-
-    // Custom topic option
-    const customItem = document.createElement('div');
-    customItem.className = 'pillar-select-item custom';
-    customItem.dataset.pillarId = 'custom';
-    customItem.textContent = '+ Custom topic';
-    customItem.onclick = () => {
-      document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
-      customItem.classList.add('active');
-      selectedPillar = 'custom';
-      document.getElementById('custom-topic-input').style.display = 'block';
-      document.getElementById('custom-topic-input').focus();
-    };
-    pillarSelectList.appendChild(customItem);
+    // Pillars (grid cards + generator select list)
+    renderPillars();
 
     // Platform strategy
     const platGrid = document.getElementById('platform-strategy-grid');
@@ -7895,6 +7865,127 @@
       const ind = document.getElementById('save-indicator');
       if (ind) { ind.classList.add('visible'); setTimeout(() => ind.classList.remove('visible'), 2000); }
     } catch (_) {}
+  }
+
+  // ── Content pillars (render + add, capped at 5) ──────────────────────────────
+
+  const MAX_PILLARS = 5;
+
+  function renderPillars() {
+    const strategy = appData.strategy;
+    if (!strategy || !Array.isArray(strategy.content_pillars)) return;
+    const pillars = strategy.content_pillars;
+    const pillarsGrid = document.getElementById('pillars-grid');
+    const pillarSelectList = document.getElementById('pillar-select-list');
+    if (!pillarsGrid || !pillarSelectList) return;
+
+    const prevSelected = selectedPillar;
+    const keepSelected = prevSelected === 'custom' || pillars.some(p => p.id === prevSelected);
+
+    pillarsGrid.innerHTML = '';
+    pillarSelectList.innerHTML = '';
+
+    pillars.forEach((pillar, i) => {
+      // Grid card
+      const card = document.createElement('div');
+      card.className = 'pillar-card';
+      card.dataset.pillarIdx = i;
+      const painHtml = pillar.audience_pain_point
+        ? `<div class="pillar-pain"><div class="pain-label">Addresses</div><div class="pain-text">${pillar.audience_pain_point}</div></div>`
+        : '';
+      card.innerHTML = `
+        <div class="pillar-name">${pillar.name}</div>
+        <div class="pillar-desc">${pillar.description}</div>
+        ${painHtml}
+        <div class="pillar-freq">${pillar.post_frequency}</div>
+        <div class="platform-dots">
+          ${(pillar.platform_fit || []).includes('linkedin') ? '<span class="platform-dot linkedin">LinkedIn</span>' : ''}
+          ${(pillar.platform_fit || []).includes('instagram') ? '<span class="platform-dot instagram">Instagram</span>' : ''}
+        </div>
+        <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
+          ${(pillar.content_ideas || []).map(idea => `<div style="font-size:0.78rem;color:var(--text3);margin-bottom:0.4rem;padding-left:0.75rem;border-left:1px solid var(--border2);">${idea}</div>`).join('')}
+        </div>
+      `;
+      pillarsGrid.appendChild(card);
+
+      // Select item for generator
+      const item = document.createElement('div');
+      item.className = 'pillar-select-item';
+      item.dataset.pillarId = pillar.id;
+      item.textContent = pillar.name;
+      item.onclick = () => {
+        document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        selectedPillar = pillar.id;
+        document.getElementById('custom-topic-input').style.display = 'none';
+      };
+      pillarSelectList.appendChild(item);
+    });
+
+    // "Add pillar" card — only while under the cap
+    if (pillars.length < MAX_PILLARS) {
+      const addCard = document.createElement('div');
+      addCard.className = 'pillar-card add-pillar';
+      addCard.innerHTML = `
+        <span class="add-pillar-icon">+</span>
+        <span class="add-pillar-label">Add pillar</span>
+        <span class="add-pillar-hint">${pillars.length} of ${MAX_PILLARS}</span>
+      `;
+      addCard.onclick = addPillar;
+      pillarsGrid.appendChild(addCard);
+    }
+
+    // Custom topic option (generator select list)
+    const customItem = document.createElement('div');
+    customItem.className = 'pillar-select-item custom';
+    customItem.dataset.pillarId = 'custom';
+    customItem.textContent = '+ Custom topic';
+    customItem.onclick = () => {
+      document.querySelectorAll('.pillar-select-item').forEach(el => el.classList.remove('active'));
+      customItem.classList.add('active');
+      selectedPillar = 'custom';
+      document.getElementById('custom-topic-input').style.display = 'block';
+      document.getElementById('custom-topic-input').focus();
+    };
+    pillarSelectList.appendChild(customItem);
+
+    // Restore prior selection, or default to the first pillar (original behaviour)
+    const targetId = keepSelected ? prevSelected : (pillars[0] && pillars[0].id);
+    selectedPillar = targetId || null;
+    if (targetId) {
+      const active = pillarSelectList.querySelector(`.pillar-select-item[data-pillar-id="${targetId}"]`);
+      if (active) active.classList.add('active');
+    }
+  }
+
+  function addPillar() {
+    const pillars = appData.strategy && appData.strategy.content_pillars;
+    if (!Array.isArray(pillars) || pillars.length >= MAX_PILLARS) return;
+    pillars.push({
+      id: 'pillar_' + Date.now(),
+      name: 'New pillar',
+      description: 'What this pillar is about — click to edit.',
+      audience_pain_point: 'The audience problem this pillar addresses.',
+      client_language: [],
+      post_frequency: '1x per week',
+      platform_fit: ['linkedin'],
+      content_ideas: [],
+    });
+    renderPillars();
+    bindAppEditing();
+    scheduleSave();
+
+    // Focus the new pillar's name and select its placeholder text for quick editing
+    const cards = document.querySelectorAll('.pillar-card[data-pillar-idx]');
+    const nameEl = cards[cards.length - 1] && cards[cards.length - 1].querySelector('.pillar-name');
+    if (nameEl) {
+      nameEl.focus();
+      const range = document.createRange();
+      range.selectNodeContents(nameEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
   }
 
   // ── Bind inline editing to main app strategy views ───────────────────────────
