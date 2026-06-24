@@ -2146,9 +2146,9 @@ app.get('/api/posts', requireAuth, async (req, res) => {
     const { sessionId, platform, status } = req.query;
     let rows;
     if (sessionId) {
-      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, image_url, scheduled_for, created_at FROM generated_posts WHERE user_id = ${req.user.id} AND session_id = ${sessionId} ORDER BY created_at DESC LIMIT 200`;
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, image_url, scheduled_for, created_at, engagement_score FROM generated_posts WHERE user_id = ${req.user.id} AND session_id = ${sessionId} ORDER BY created_at DESC LIMIT 200`;
     } else {
-      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, image_url, scheduled_for, created_at FROM generated_posts WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 200`;
+      rows = await sql`SELECT id, platform, format, subtype, pillar_name, tone, content, subtext, voice_score, voice_note, status, image_url, scheduled_for, created_at, engagement_score FROM generated_posts WHERE user_id = ${req.user.id} ORDER BY created_at DESC LIMIT 200`;
     }
     if (platform) rows = rows.filter(r => r.platform === platform);
     if (status) rows = rows.filter(r => r.status === status);
@@ -2799,19 +2799,13 @@ app.delete('/api/knowledge/:id', requireAuth, async (req, res) => {
 
 // ─── Style Cloning ────────────────────────────────────────────────────────────
 
-app.post('/api/extract-style', requireAuth, async (req, res) => {
-  try {
-    const { posts, sessionId } = req.body;
-    if (!Array.isArray(posts) || posts.length < 2) return res.status(400).json({ error: 'Provide at least 2 sample posts' });
-    if (posts.length > 10) return res.status(400).json({ error: 'Maximum 10 sample posts' });
-
-    const safePosts = posts.map(p => String(p).slice(0, 1000)).join('\n\n---\n\n');
-
-    const response = await openai.chat.completions.create({
-      model: MODEL,
-      messages: [{
-        role: 'user',
-        content: `Analyze these social media posts and extract a precise style fingerprint that can be used to clone this writer's voice in future posts.
+async function extractStyleFingerprint(posts) {
+  const safePosts = posts.map(p => String(p).slice(0, 1000)).join('\n\n---\n\n');
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    messages: [{
+      role: 'user',
+      content: `Analyze these social media posts and extract a precise style fingerprint that can be used to clone this writer's voice in future posts.
 
 POSTS:
 ${safePosts}
@@ -2825,10 +2819,18 @@ Write a style fingerprint as a set of specific, actionable observations — not 
 
 Be specific — quote actual phrases where possible. This fingerprint will be injected directly into AI generation prompts.
 Keep it under 300 words.`
-      }],
-    });
+    }],
+  });
+  return response.choices[0].message.content.trim();
+}
 
-    const fingerprint = response.choices[0].message.content.trim();
+app.post('/api/extract-style', requireAuth, async (req, res) => {
+  try {
+    const { posts, sessionId } = req.body;
+    if (!Array.isArray(posts) || posts.length < 2) return res.status(400).json({ error: 'Provide at least 2 sample posts' });
+    if (posts.length > 10) return res.status(400).json({ error: 'Maximum 10 sample posts' });
+
+    const fingerprint = await extractStyleFingerprint(posts.slice(0, 10));
 
     // Save to session if provided
     if (sessionId) {
@@ -2836,6 +2838,50 @@ Keep it under 300 words.`
     }
 
     res.json({ success: true, fingerprint });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// Scrape the user's own LinkedIn posts (via Apify) and learn their writing voice from them.
+// Polling model: first call (no runId) starts a run; subsequent calls pass runId to check progress.
+app.post('/api/voice/scrape-linkedin', requireAuth, async (req, res) => {
+  try {
+    if (!process.env.APIFY_API_TOKEN) return res.status(500).json({ error: 'LinkedIn scraping is not configured (APIFY_API_TOKEN missing).' });
+    const { sessionId, runId } = req.body;
+
+    // Check an existing run
+    if (runId) {
+      const runData = await apifyCheckRun(runId);
+      if (runData?.status === 'SUCCEEDED') {
+        const raw = await apifyFetchDataset(runData.defaultDatasetId);
+        const texts = (Array.isArray(raw) ? raw : [])
+          .map(p => String(p.content || p.text || '').trim())
+          .filter(t => t.length > 40)
+          .slice(0, 10);
+        if (texts.length < 2) {
+          return res.json({ success: false, status: 'failed', error: 'Not enough posts found on that profile to learn a voice. Try pasting posts manually instead.' });
+        }
+        const fingerprint = await extractStyleFingerprint(texts);
+        if (sessionId) {
+          await sql`UPDATE sessions SET style_fingerprint = ${fingerprint} WHERE id = ${sessionId} AND user_id = ${req.user.id}`;
+        }
+        return res.json({ success: true, status: 'ready', fingerprint, posts: texts, count: texts.length });
+      }
+      if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(runData?.status)) {
+        return res.json({ success: false, status: 'failed', error: `Scrape ended with: ${runData.status}` });
+      }
+      return res.json({ success: true, status: 'processing', runId });
+    }
+
+    // Start a new run from the user's saved LinkedIn profile URL
+    const rows = await sql`SELECT linkedin_profile_url FROM users WHERE id = ${req.user.id}`;
+    const profileUrl = rows[0]?.linkedin_profile_url;
+    if (!profileUrl) {
+      return res.status(400).json({ error: 'Add your LinkedIn profile URL first, then try again.' });
+    }
+    const newRunId = await apifyStartRun('harvestapi/linkedin-profile-posts', { profileUrls: [profileUrl], maxResults: 20 });
+    return res.json({ success: true, status: 'processing', runId: newRunId });
   } catch (err) {
     return serverErr(res, err);
   }

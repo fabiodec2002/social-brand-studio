@@ -1955,10 +1955,15 @@
       outline: none;
       border-radius: 2px;
       cursor: text;
-      transition: background 0.15s, box-shadow 0.15s;
+      border-bottom: 1px dashed rgba(201,169,110,0.28);
+      transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
     }
 
-    .editable-field:hover { background: rgba(201,169,110,0.05); }
+    .editable-field:hover { background: rgba(201,169,110,0.07); border-bottom-color: rgba(201,169,110,0.55); }
+
+    /* Foundation pillar cards aren't selectable here — don't imply they're clickable */
+    .pillar-card[data-pillar-idx] { cursor: default; }
+    .pillar-card[data-pillar-idx]:hover { border-color: var(--border); }
 
     .editable-field:focus {
       background: rgba(201,169,110,0.08);
@@ -2751,6 +2756,45 @@
     .lib-post-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
     .lib-post-preview { font-size: 0.88rem; line-height: 1.6; color: var(--text2); white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
     .lib-post-preview.expanded { -webkit-line-clamp: unset; overflow: visible; }
+
+    /* ── Visual post preview / mockup (shared by Library + Review Queue) ── */
+    .post-mockup { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .post-mockup .pm-header { display: flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); }
+    .post-mockup .pm-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-family: 'Outfit', sans-serif; flex: 0 0 auto; }
+    .post-mockup .pm-name { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+    .post-mockup .pm-sub { font-size: 0.66rem; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.04em; }
+    .post-mockup .pm-body { padding: 1rem 1.1rem; }
+    .post-mockup .pm-text { white-space: pre-wrap; font-family: 'Outfit', sans-serif; font-size: 0.9rem; line-height: 1.7; color: var(--text); margin: 0; }
+    .pm-carousel-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.08em; color: var(--gold); margin-bottom: 0.7rem; text-transform: uppercase; }
+    .post-mockup-slides, .lib-carousel-strip { display: flex; gap: 0.55rem; overflow-x: auto; padding-bottom: 0.4rem; }
+    .post-mockup-slide, .lib-carousel-slide { flex: 0 0 auto; width: 150px; background: rgba(201,169,110,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; }
+    .lib-carousel-slide { width: 124px; }
+    .pm-slide-num, .lcs-num { font-family: 'DM Mono', monospace; font-size: 0.56rem; color: var(--text3); margin-bottom: 0.35rem; }
+    .pm-slide-heading, .lcs-head { font-family: 'Cormorant Garamond', serif; font-size: 1.02rem; color: var(--gold); line-height: 1.2; margin-bottom: 0.3rem; }
+    .lcs-head { font-size: 0.9rem; }
+    .pm-slide-body, .lcs-body { font-size: 0.72rem; color: var(--text2); line-height: 1.45; }
+    .lib-carousel-slide.lcs-more { display: flex; align-items: center; justify-content: center; color: var(--text3); font-family: 'DM Mono', monospace; font-size: 0.8rem; }
+
+    /* ── Performance dashboard (hand-built, no chart lib) ── */
+    .perf-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .perf-kpi { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.2rem; }
+    .perf-kpi-value { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); line-height: 1; }
+    .perf-kpi-value small { font-size: 1rem; color: var(--text3); }
+    .perf-kpi-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-top: 0.55rem; }
+    .perf-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 760px) { .perf-two-col { grid-template-columns: 1fr; } }
+    .perf-panel { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1.4rem; margin-bottom: 1.5rem; }
+    .perf-panel-title { font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 1rem; }
+    .perf-bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .perf-bar-label { width: 110px; flex: 0 0 auto; font-size: 0.78rem; color: var(--text2); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .perf-bar-track { flex: 1; background: rgba(255,255,255,0.04); border-radius: 5px; height: 20px; overflow: hidden; }
+    .perf-bar-fill { height: 100%; background: linear-gradient(90deg, rgba(201,169,110,0.45), rgba(201,169,110,0.85)); border-radius: 5px; min-width: 2px; transition: width 0.4s ease; }
+    .perf-bar-val { flex: 0 0 auto; width: 56px; font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--gold); }
+    .perf-cols { display: flex; align-items: flex-end; gap: 0.5rem; height: 130px; padding-top: 0.5rem; }
+    .perf-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.4rem; }
+    .perf-col-bar { width: 62%; min-height: 2px; background: linear-gradient(180deg, rgba(201,169,110,0.85), rgba(201,169,110,0.35)); border-radius: 3px 3px 0 0; }
+    .perf-col-cap { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--gold); }
+    .perf-col-label { font-family: 'DM Mono', monospace; font-size: 0.55rem; color: var(--text3); }
     .lib-post-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
     .lib-status-badge {
       font-family: 'DM Mono', monospace;
@@ -3756,6 +3800,9 @@
           <div class="sidebar-subnav-item" id="ssub-pillars" onclick="showSection('brand');showTool('foundation','pillars')">
             <span class="sidebar-subnav-dot"></span>Pillars
           </div>
+          <div class="sidebar-subnav-item" id="ssub-knowledge" onclick="showSection('brand');showTool('foundation','knowledge')">
+            <span class="sidebar-subnav-dot"></span>Knowledge Base
+          </div>
           <div class="sidebar-subnav-item" id="ssub-platforms" onclick="showSection('brand');showTool('foundation','platforms')">
             <span class="sidebar-subnav-dot"></span>Platform Guide
           </div>
@@ -3969,7 +4016,7 @@
         </div>
         <div class="settings-group">
           <div class="settings-group-label">Platform Connections</div>
-          <div style="font-size:0.78rem;color:var(--text3);margin-bottom:1rem;line-height:1.5">Connect your accounts to enable auto-publishing from the Publish tab.</div>
+          <div style="font-size:0.78rem;color:var(--text3);margin-bottom:1rem;line-height:1.55">Connecting is <strong style="color:var(--text2)">optional</strong> — it only enables one-click auto-publishing. You can always copy any post and publish it manually with zero setup. Connecting <strong style="color:var(--text2)">LinkedIn</strong> also lets us read your recent posts every few hours to learn what performs and sharpen future drafts.</div>
 
           <!-- LinkedIn row -->
           <div style="background:rgba(10,102,194,0.05);border:1px solid rgba(10,102,194,0.18);border-radius:8px;padding:1rem;margin-bottom:0.75rem">
@@ -3980,10 +4027,11 @@
               </div>
               <button id="settings-li-btn" onclick="oauthConnect('linkedin')" style="padding:0.45rem 1rem;background:rgba(10,102,194,0.15);border:1px solid rgba(10,102,194,0.4);color:#0a66c2;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;border-radius:5px;cursor:pointer;white-space:nowrap">Connect LinkedIn</button>
             </div>
+            <div style="font-size:0.74rem;color:var(--text3);line-height:1.5;margin-bottom:0.75rem">When connected: scheduled posts auto-publish, and your recent posts are analyzed every 6h to feed the learning loop. To train your writing voice on demand, use <strong style="color:var(--text2)">Brand → Brand Identity → Train your voice → Scrape my LinkedIn</strong>.</div>
             <!-- LinkedIn instructions accordion -->
             <div>
               <button onclick="(function(btn){var body=btn.nextElementSibling;var open=body.style.display==='block';body.style.display=open?'none':'block';btn.querySelector('.chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0;background:none;border:none;cursor:pointer;color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em">
-                <span>HOW TO SET UP</span>
+                <span>ADVANCED SETUP — ONLY FOR AUTO-PUBLISHING</span>
                 <span class="chevron" style="transition:transform 0.2s;display:inline-block;font-size:0.65rem">▼</span>
               </button>
               <div style="display:none;padding-top:0.75rem">
@@ -4009,10 +4057,11 @@
               </div>
               <button id="settings-ig-btn" onclick="oauthConnect('instagram')" style="padding:0.45rem 1rem;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.35);color:#e1306c;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;border-radius:5px;cursor:pointer;white-space:nowrap">Connect Instagram</button>
             </div>
+            <div style="font-size:0.74rem;color:var(--text3);line-height:1.5;margin-bottom:0.75rem">Instagram auto-publishing needs a technical one-time setup (a Facebook developer app). <strong style="color:var(--text2)">You don't need this to use the studio</strong> — generate posts here, then copy &amp; post them on Instagram manually.</div>
             <!-- Instagram instructions accordion -->
             <div>
               <button onclick="(function(btn){var body=btn.nextElementSibling;var open=body.style.display==='block';body.style.display=open?'none':'block';btn.querySelector('.chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0;background:none;border:none;cursor:pointer;color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em">
-                <span>HOW TO SET UP</span>
+                <span>ADVANCED SETUP — ONLY FOR AUTO-PUBLISHING</span>
                 <span class="chevron" style="transition:transform 0.2s;display:inline-block;font-size:0.65rem">▼</span>
               </button>
               <div style="display:none;padding-top:0.75rem">
@@ -4118,6 +4167,7 @@
       <div class="phase-subnav" id="psubnav-foundation">
         <button class="phase-subnav-btn" id="psnav-strategy" onclick="showTool('foundation','strategy')">Brand</button>
         <button class="phase-subnav-btn" id="psnav-pillars" onclick="showTool('foundation','pillars')">Pillars</button>
+        <button class="phase-subnav-btn" id="psnav-knowledge" onclick="showTool('foundation','knowledge')">Knowledge</button>
         <button class="phase-subnav-btn" id="psnav-platforms" onclick="showTool('foundation','platforms')">Platform guide</button>
       </div>
 
@@ -4206,7 +4256,19 @@
         <!-- Style Cloning Panel -->
         <div class="style-clone-panel" id="style-clone-panel">
           <div class="style-clone-title">Train your voice — style cloning</div>
-          <div style="font-size:0.82rem;color:var(--text3);margin-bottom:0.75rem;">Paste 2-5 of your best real posts below. The AI will extract your exact writing style and apply it to every future generation.</div>
+          <div style="font-size:0.82rem;color:var(--text3);margin-bottom:0.9rem;">Teach the AI your exact writing style so every future post sounds like you. Auto-import from LinkedIn, or paste posts manually.</div>
+
+          <!-- Auto-import from LinkedIn -->
+          <div style="background:rgba(10,102,194,0.06);border:1px solid rgba(10,102,194,0.18);border-radius:8px;padding:0.9rem 1rem;margin-bottom:1.1rem">
+            <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;color:#5aa3c9;margin-bottom:0.5rem">FASTEST — LEARN FROM YOUR LINKEDIN</div>
+            <div style="font-size:0.78rem;color:var(--text3);line-height:1.5;margin-bottom:0.6rem">We'll pull your recent LinkedIn posts and learn your voice automatically (takes 1–3 min).</div>
+            <input type="url" id="li-voice-url-input" placeholder="https://www.linkedin.com/in/your-handle/" style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Mono',monospace;font-size:0.76rem;padding:0.55rem 0.7rem;border-radius:6px;box-sizing:border-box;margin-bottom:0.6rem">
+            <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap">
+              <button class="post-action-btn" id="scrape-li-voice-btn" onclick="scrapeLinkedInVoice()" style="border-color:rgba(10,102,194,0.4);color:#5aa3c9">Scrape my LinkedIn</button>
+              <span id="scrape-li-voice-status" style="font-size:0.74rem;color:var(--text3)"></span>
+            </div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.55rem">OR PASTE POSTS MANUALLY</div>
           <div class="style-clone-posts" id="style-clone-posts">
             <textarea class="style-clone-post-input" placeholder="Paste one of your best posts here..."></textarea>
             <textarea class="style-clone-post-input" placeholder="Paste another post..."></textarea>
@@ -4227,8 +4289,23 @@
       <div id="tab-pillars" class="tab-content" style="display:none">
         <div class="section-title">Content pillars</div>
         <div class="section-subtitle">Your core topics — the foundation of your content strategy</div>
-        <div class="edit-section-hint">Click any field to edit — changes save automatically</div>
+        <div class="edit-section-hint">✏️ Click any underlined field to edit · add or remove ideas and whole pillars · changes save automatically</div>
         <div class="pillars-grid" id="pillars-grid"></div>
+      </div>
+
+      <!-- Knowledge Base Tab -->
+      <div id="tab-knowledge" class="tab-content" style="display:none">
+        <div class="section-title">Knowledge base</div>
+        <div class="section-subtitle">Books, frameworks &amp; market docs the AI draws from when writing your posts</div>
+        <div style="background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:1rem 1.15rem;margin:1.1rem 0 1.5rem;font-size:0.88rem;line-height:1.65;color:var(--text2)">
+          Drop in the thinking you want your content built on — e.g. <em>$100M Offers</em> by Hormozi, a market report, a positioning doc. Each PDF is summarized into its key frameworks &amp; vocabulary, then can be pulled into any post you generate via <strong>Create → Generate → "Use knowledge from your library"</strong>.
+        </div>
+        <label class="ref-upload-label" for="kb-pdf-input" id="kb-upload-label" style="display:inline-flex;">
+          + Add PDF to your library
+          <input type="file" id="kb-pdf-input" accept=".pdf" style="display:none" onchange="handleKnowledgeUploadManager(this.files[0])">
+        </label>
+        <div class="context-note" id="kb-upload-status" style="margin-top:0.45rem"></div>
+        <div id="knowledge-manager-list" style="margin-top:1.4rem;display:flex;flex-direction:column;gap:0.6rem"></div>
       </div>
 
       <!-- Platforms Tab -->
@@ -4262,8 +4339,24 @@
 
       <!-- Analytics Tab -->
       <div id="tab-analytics" class="tab-content" style="display:none">
-        <div class="section-title">Analytics</div>
-        <div class="section-subtitle">Import your post performance data — top posts will inform what AI generates next</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem">
+          <div>
+            <div class="section-title">Performance</div>
+            <div class="section-subtitle">How your content is performing — and what's working</div>
+          </div>
+          <button class="post-action-btn" onclick="renderPerformanceDashboard()" style="font-size:0.7rem">Refresh</button>
+        </div>
+
+        <div id="perf-dashboard"></div>
+
+        <!-- Import / manage data (collapsible) -->
+        <div style="margin-top:2.5rem;border-top:1px solid var(--border);padding-top:1.5rem">
+          <button onclick="(function(btn){var b=document.getElementById('analytics-import-panel');var open=b.style.display!=='none';b.style.display=open?'none':'block';btn.querySelector('.chevron').style.transform=open?'rotate(0deg)':'rotate(180deg)';})(this)" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0;background:none;border:none;cursor:pointer;color:var(--text2);font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.08em">
+            <span>IMPORT / MANAGE PERFORMANCE DATA</span>
+            <span class="chevron" style="transition:transform 0.2s;display:inline-block;font-size:0.7rem">▼</span>
+          </button>
+          <div id="analytics-import-panel" style="display:none;padding-top:1.25rem">
+        <div class="section-subtitle" style="margin-bottom:1rem">Import your exported CSVs so the AI learns from your real top posts.</div>
 
         <div class="analytics-platform-toggle">
           <button class="platform-toggle-btn active linkedin" id="analytics-toggle-linkedin" onclick="switchAnalyticsPlatform('linkedin')">LinkedIn</button>
@@ -4304,6 +4397,8 @@
             How to export: Meta Business Suite → Posts &amp; Stories → select date range → Export data (top right) → Export as CSV
           </div>
           <div id="analytics-table-instagram"></div>
+        </div>
+          </div>
         </div>
       </div>
 
@@ -4662,10 +4757,11 @@
             <!-- Knowledge base -->
             <div>
               <div class="context-toggle" id="ref-mat-toggle" onclick="toggleReferenceMaterials()">
-                <span id="ref-mat-toggle-label">+ Knowledge base</span>
-                <span class="context-toggle-hint">books, research, market docs</span>
+                <span id="ref-mat-toggle-label">+ Use knowledge from your library</span>
+                <span class="context-toggle-hint">pull in saved books &amp; docs</span>
               </div>
               <div id="ref-mat-body" style="display:none;" class="context-body">
+                <div class="context-note" style="margin-bottom:0.5rem;">Tick the docs to weave into this post. Add or manage your library under <strong>Brand → Knowledge Base</strong>.</div>
                 <!-- Persistent library (from DB) -->
                 <div id="knowledge-library-list"></div>
                 <label class="ref-upload-label" for="ref-save-pdf-input" id="ref-save-upload-label">
@@ -4915,7 +5011,7 @@
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
           <div>
             <div class="section-title">Review queue</div>
-            <div class="section-subtitle" id="review-subtitle">Posts generated by the team, waiting for your approval</div>
+            <div class="section-subtitle" id="review-subtitle">Draft posts waiting for your approval — yours and the agents'. Approving schedules them (no connection required).</div>
           </div>
           <div style="display:flex;gap:0.75rem;align-items:center">
             <span id="review-counter-label" style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--text3)"></span>
@@ -4926,8 +5022,9 @@
         <!-- Empty state -->
         <div id="review-empty" style="display:none;text-align:center;padding:5rem;color:var(--text3)">
           <div style="font-size:3rem;margin-bottom:1rem;opacity:0.3">✓</div>
-          <div style="font-size:1rem;margin-bottom:0.5rem">Queue is clear</div>
-          <div style="font-size:0.82rem">New posts will appear here after the auto-generation agent runs every 4 hours.</div>
+          <div style="font-size:1rem;margin-bottom:0.5rem">Nothing waiting for review</div>
+          <div style="font-size:0.82rem;max-width:420px;margin:0 auto 1.5rem;line-height:1.55">Posts you generate land here as drafts, and the auto-generation agent adds more every 4 hours. Approve one to schedule it.</div>
+          <button class="generate-btn" style="max-width:240px;margin:0 auto" onclick="showSection('create');showTool('create','generator')">Generate a post →</button>
         </div>
 
         <!-- Single post focus card -->
@@ -4955,10 +5052,10 @@
             <div id="review-idea-hook" style="color:var(--text3);font-style:italic"></div>
           </div>
 
-          <!-- Post content -->
-          <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;position:relative">
-            <pre id="review-post-content" style="white-space:pre-wrap;font-family:'Outfit',sans-serif;font-size:0.9rem;line-height:1.7;color:var(--text);margin:0"></pre>
-            <button onclick="reviewCopyPost()" style="position:absolute;top:0.75rem;right:0.75rem;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.25rem 0.5rem;border-radius:4px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(201,169,110,0.4)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--text3)'">COPY</button>
+          <!-- Post content (visual preview of how it will look) -->
+          <div style="position:relative;margin-bottom:1.5rem">
+            <div id="review-post-content"></div>
+            <button onclick="reviewCopyPost()" style="position:absolute;top:0.75rem;right:0.75rem;background:rgba(20,20,19,0.85);border:1px solid rgba(255,255,255,0.1);color:var(--text3);font-family:'DM Mono',monospace;font-size:0.6rem;padding:0.25rem 0.5rem;border-radius:4px;cursor:pointer;transition:all 0.2s;z-index:2" onmouseover="this.style.borderColor='rgba(201,169,110,0.4)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='var(--text3)'">COPY</button>
           </div>
 
           <!-- Actions -->
@@ -4980,11 +5077,12 @@
             </div>
 
             <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:var(--text3);display:block;margin-bottom:0.4rem">PUBLISH AT</label>
-            <input type="datetime-local" id="review-schedule-input" style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box;margin-bottom:1rem">
+            <input type="datetime-local" id="review-schedule-input" style="width:100%;background:#111110;border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Mono',monospace;font-size:0.8rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box;margin-bottom:0.75rem">
+            <div id="review-schedule-connection-note" style="font-size:0.74rem;line-height:1.5;color:var(--text3);margin-bottom:1rem"></div>
 
             <!-- Image URL for platforms that support/require it -->
             <div id="review-image-url-wrap" style="display:none;margin-bottom:1.25rem">
-              <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:#f97316;display:block;margin-bottom:0.4rem">IMAGE URL <span style="color:var(--text3)">(required for Instagram — this image will be posted with the caption above)</span></label>
+              <label style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;color:#f97316;display:block;margin-bottom:0.4rem">IMAGE URL <span style="color:var(--text3)">(only needed if auto-publishing to Instagram — leave blank to schedule as a manual reminder)</span></label>
               <input type="url" id="review-image-url-input" placeholder="https://your-cdn.com/image.jpg" style="width:100%;background:#111110;border:1px solid rgba(249,115,22,0.35);color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;padding:0.6rem 0.75rem;border-radius:6px;box-sizing:border-box">
               <div style="font-size:0.7rem;color:var(--text3);margin-top:0.35rem;line-height:1.4">Upload your image to a public CDN (Cloudinary, Imgur, S3) and paste the direct URL here. The <em>caption</em> above will appear as the post text on Instagram.</div>
             </div>
@@ -5030,7 +5128,8 @@
 
         <!-- OAuth connect section -->
         <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.06)">
-          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text3);margin-bottom:1.25rem">CONNECT PLATFORMS TO ENABLE AUTO-PUBLISHING</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;color:var(--text3);margin-bottom:0.5rem">CONNECT PLATFORMS TO ENABLE AUTO-PUBLISHING</div>
+          <div style="font-size:0.78rem;color:var(--text3);margin-bottom:1.25rem;line-height:1.5">Optional — you can skip this and copy/post manually. You can always connect later in Settings.</div>
           <div style="display:flex;gap:1rem;flex-wrap:wrap">
             <div id="oauth-linkedin-card" style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:1.25rem">
               <div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;color:var(--text3);margin-bottom:0.5rem">LINKEDIN</div>
@@ -5410,6 +5509,7 @@
       loadKnowledgeDocs();
       authFetch('/api/auth/profile').then(r => r.json()).then(d => {
         if (d.websiteUrl) document.getElementById('website-url-input').value = d.websiteUrl;
+        if (d.linkedinProfileUrl) { const li = document.getElementById('li-voice-url-input'); if (li) li.value = d.linkedinProfileUrl; }
       }).catch(() => {});
     } else {
       showAuthScreen();
@@ -5903,7 +6003,7 @@
     const isOpen = body.style.display !== 'none';
     body.style.display = isOpen ? 'none' : 'block';
     toggle.classList.toggle('open', !isOpen);
-    label.textContent = isOpen ? '+ Reference materials' : '− Reference materials';
+    label.textContent = isOpen ? '+ Use knowledge from your library' : '− Use knowledge from your library';
   }
 
   async function handleReferenceUpload(file) {
@@ -5941,6 +6041,97 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // ── Visual post preview helpers (shared by Library + Review Queue) ────────────
+  const _PLATFORM_META = {
+    linkedin:  { label: 'LinkedIn',  color: '#5aa3c9', bg: 'rgba(0,119,181,0.18)' },
+    instagram: { label: 'Instagram', color: '#d47ab0', bg: 'rgba(193,53,132,0.18)' },
+    twitter:   { label: 'Twitter/X', color: '#5aaedb', bg: 'rgba(29,161,242,0.18)' },
+    tiktok:    { label: 'TikTok',    color: '#69c9d0', bg: 'rgba(105,201,208,0.18)' },
+    email:     { label: 'Email',     color: '#c9a96e', bg: 'rgba(201,169,110,0.18)' },
+  };
+  function _platformMeta(p) { return _PLATFORM_META[p] || { label: p || 'Post', color: 'var(--text2)', bg: 'rgba(255,255,255,0.06)' }; }
+
+  function _brandHandle() {
+    try { if (appData && appData.strategy && (appData.strategy.brand_name || appData.strategy.name)) return appData.strategy.brand_name || appData.strategy.name; } catch (e) {}
+    if (currentUserEmail) return currentUserEmail.split('@')[0];
+    return 'Your brand';
+  }
+
+  // Parse a stored post into { kind:'carousel', slides } or { kind:'text', text }.
+  // Robust to carousels stored under any format and to JSON captions, so raw JSON never leaks to the UI.
+  function _parsePostContent(post) {
+    const raw = (post.content || '');
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && Array.isArray(parsed.slides)) return { kind: 'carousel', slides: parsed.slides };
+        if (parsed && typeof parsed === 'object') {
+          const txt = parsed.caption || parsed.text || parsed.content || parsed.body;
+          if (txt) return { kind: 'text', text: String(txt) };
+        }
+      } catch (e) {}
+    }
+    return { kind: 'text', text: raw };
+  }
+
+  function _slideField(s, ...keys) { for (const k of keys) { if (s && s[k]) return s[k]; } return ''; }
+
+  // Plain-text flatten for copy-to-clipboard (carousels become readable slide text, not JSON).
+  function _postPlainText(post) {
+    const parsed = _parsePostContent(post);
+    if (parsed.kind === 'carousel') {
+      return parsed.slides.map((s, i) => {
+        const head = _slideField(s, 'heading', 'title');
+        const body = _slideField(s, 'body', 'text', 'subtext');
+        return `Slide ${i + 1}${head ? ': ' + head : ''}${body ? '\n' + body : ''}`;
+      }).join('\n\n');
+    }
+    return parsed.text;
+  }
+
+  function _renderSlideStrip(slides, cls) {
+    const slideCls = cls === 'lib' ? 'lib-carousel-slide' : 'post-mockup-slide';
+    const numCls = cls === 'lib' ? 'lcs-num' : 'pm-slide-num';
+    const headCls = cls === 'lib' ? 'lcs-head' : 'pm-slide-heading';
+    const bodyCls = cls === 'lib' ? 'lcs-body' : 'pm-slide-body';
+    const cap = cls === 'lib' ? 5 : 12;
+    const shown = slides.slice(0, cap);
+    let html = shown.map((s, i) => `
+      <div class="${slideCls}">
+        <div class="${numCls}">${i + 1}/${slides.length}</div>
+        ${_slideField(s, 'heading', 'title') ? `<div class="${headCls}">${_escHtml(_slideField(s, 'heading', 'title'))}</div>` : ''}
+        ${_slideField(s, 'body', 'text', 'subtext') ? `<div class="${bodyCls}">${_escHtml(_slideField(s, 'body', 'text', 'subtext'))}</div>` : ''}
+      </div>`).join('');
+    if (cls === 'lib' && slides.length > cap) html += `<div class="lib-carousel-slide lcs-more">+${slides.length - cap}</div>`;
+    const wrap = cls === 'lib' ? 'lib-carousel-strip' : 'post-mockup-slides';
+    return `<div class="${wrap}">${html}</div>`;
+  }
+
+  // Full platform-styled mockup of how a post will look — used in the Review Queue.
+  function renderPostMockup(post) {
+    const meta = _platformMeta(post.platform);
+    const parsed = _parsePostContent(post);
+    const handle = _brandHandle();
+    let bodyHtml;
+    if (parsed.kind === 'carousel') {
+      bodyHtml = `<div class="pm-carousel-label">🎠 Carousel · ${parsed.slides.length} slides</div>${_renderSlideStrip(parsed.slides, 'full')}`;
+    } else {
+      bodyHtml = `<div class="pm-text">${_escHtml(parsed.text)}</div>`;
+    }
+    return `
+      <div class="post-mockup ${post.platform}">
+        <div class="pm-header">
+          <div class="pm-avatar" style="background:${meta.bg};color:${meta.color}">${_escHtml((handle[0] || 'Y').toUpperCase())}</div>
+          <div>
+            <div class="pm-name">${_escHtml(handle)}</div>
+            <div class="pm-sub">${meta.label} · now</div>
+          </div>
+        </div>
+        <div class="pm-body">${bodyHtml}</div>
+      </div>`;
+  }
+
   function renderReferenceMaterials() {
     const list = document.getElementById('ref-mat-list');
     if (!list) return;
@@ -5956,7 +6147,7 @@
     try {
       const res = await authFetch('/api/knowledge');
       const data = await res.json();
-      if (data.success) { knowledgeDocs = data.docs; renderKnowledgeLibrary(); }
+      if (data.success) { knowledgeDocs = data.docs; _renderKnowledgeViews(); }
     } catch {}
   }
 
@@ -5979,6 +6170,54 @@
     `).join('');
   }
 
+  // Refresh both the in-generator selector and the Brand → Knowledge Base manager.
+  function _renderKnowledgeViews() { renderKnowledgeLibrary(); renderKnowledgeManager(); }
+
+  // Management view under Brand → Knowledge Base (add / list / remove).
+  function renderKnowledgeManager() {
+    const list = document.getElementById('knowledge-manager-list');
+    if (!list) return;
+    if (!knowledgeDocs.length) {
+      list.innerHTML = '<div class="context-note">No documents yet. Add a PDF above — books, frameworks, research, or market docs you want your posts built on.</div>';
+      return;
+    }
+    list.innerHTML = knowledgeDocs.map(doc => `
+      <div style="display:flex;align-items:center;gap:1rem;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:0.85rem 1rem">
+        <span style="font-size:1.1rem;flex:0 0 auto">📄</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:500;color:var(--text);font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_escHtml(doc.title)}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.05em;color:var(--text3);text-transform:uppercase;margin-top:0.2rem">${_escHtml(doc.type || 'doc')}${doc.source ? ' · ' + _escHtml(doc.source) : ''}</div>
+        </div>
+        <button class="post-action-btn" onclick="deleteKnowledgeDoc('${_escHtml(doc.id)}')" style="color:var(--text3);flex:0 0 auto">Remove</button>
+      </div>
+    `).join('');
+  }
+
+  async function handleKnowledgeUploadManager(file) {
+    if (!file) return;
+    const label = document.getElementById('kb-upload-label');
+    const status = document.getElementById('kb-upload-status');
+    const origText = label ? label.firstChild.textContent : '';
+    if (label) label.firstChild.textContent = 'Saving & summarizing…';
+    if (status) status.textContent = '';
+    try {
+      const formData = new FormData();
+      formData.append('pdf', file);
+      const res = await authFetch('/api/knowledge', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Upload failed');
+      knowledgeDocs.unshift({ id: data.id, title: data.title, type: data.type, source: data.source, created_at: data.created_at });
+      selectedKnowledgeDocIds.add(data.id);
+      _renderKnowledgeViews();
+      if (status) { status.textContent = `Saved: "${data.title}" — now available when you generate posts.`; setTimeout(() => { status.textContent = ''; }, 4000); }
+    } catch (err) {
+      if (status) status.textContent = 'Error: ' + err.message;
+    } finally {
+      if (label) label.firstChild.textContent = origText;
+      const input = document.getElementById('kb-pdf-input'); if (input) input.value = '';
+    }
+  }
+
   function toggleKnowledgeDoc(id, checked) {
     if (checked) selectedKnowledgeDocIds.add(id);
     else selectedKnowledgeDocIds.delete(id);
@@ -5989,7 +6228,7 @@
       await authFetch(`/api/knowledge/${id}`, { method: 'DELETE' });
       knowledgeDocs = knowledgeDocs.filter(d => d.id !== id);
       selectedKnowledgeDocIds.delete(id);
-      renderKnowledgeLibrary();
+      _renderKnowledgeViews();
     } catch {}
   }
 
@@ -6008,7 +6247,7 @@
       if (!data.success) throw new Error(data.error || 'Upload failed');
       knowledgeDocs.unshift({ id: data.id, title: data.title, type: data.type, source: data.source, created_at: data.created_at });
       selectedKnowledgeDocIds.add(data.id);
-      renderKnowledgeLibrary();
+      _renderKnowledgeViews();
       status.textContent = `Saved: "${data.title}"`;
       setTimeout(() => { status.textContent = ''; }, 3000);
     } catch (err) {
@@ -6427,6 +6666,8 @@
     if (tabName === 'carousel' && typeof carouselInit === 'function') carouselInit();
     if (tabName === 'quotes' && typeof quoteInit === 'function') quoteInit();
     if (tabName === 'library') loadLibrary();
+    if (tabName === 'knowledge') loadKnowledgeDocs();
+    if (tabName === 'analytics') renderPerformanceDashboard();
     if (tabName === 'ideas') populateIdeasPillarSelect();
     if (tabName === 'machine') buildMachineCTAGrid();
     if (tabName === 'agents') {
@@ -7903,7 +8144,16 @@
           ${(pillar.platform_fit || []).includes('instagram') ? '<span class="platform-dot instagram">Instagram</span>' : ''}
         </div>
         <div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem;">
-          ${(pillar.content_ideas || []).map(idea => `<div style="font-size:0.78rem;color:var(--text3);margin-bottom:0.4rem;padding-left:0.75rem;border-left:1px solid var(--border2);">${idea}</div>`).join('')}
+          <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:0.6rem;">Post ideas</div>
+          ${(pillar.content_ideas || []).map((idea, j) => `
+            <div style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.45rem;padding-left:0.75rem;border-left:1px solid var(--border2);">
+              <div class="pillar-idea-text editable-field" data-pillar-idx="${i}" data-idea-idx="${j}" style="font-size:0.78rem;color:var(--text3);flex:1;min-width:0;line-height:1.5;">${_escHtml(idea)}</div>
+              <button onclick="removePillarIdea(${i}, ${j})" title="Remove idea" style="background:none;border:none;color:var(--text3);cursor:pointer;flex:0 0 auto;font-size:0.9rem;line-height:1;opacity:0.55;padding:0 0.15rem;">&times;</button>
+            </div>`).join('')}
+          <button onclick="addPillarIdea(${i})" style="background:none;border:none;color:var(--gold);cursor:pointer;font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.04em;padding:0.3rem 0;">+ Add idea</button>
+        </div>
+        <div style="margin-top:0.85rem;text-align:right;">
+          <button onclick="removePillar(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;text-transform:uppercase;opacity:0.55;">Remove pillar</button>
         </div>
       `;
       pillarsGrid.appendChild(card);
@@ -7988,6 +8238,47 @@
     }
   }
 
+  function _focusContentEditable(el) {
+    if (!el) return;
+    el.focus();
+    const r = document.createRange();
+    r.selectNodeContents(el);
+    const s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+  }
+
+  function addPillarIdea(i) {
+    const pillar = (appData.strategy && appData.strategy.content_pillars || [])[i];
+    if (!pillar) return;
+    if (!Array.isArray(pillar.content_ideas)) pillar.content_ideas = [];
+    pillar.content_ideas.push('New idea — click to edit.');
+    renderPillars();
+    bindAppEditing();
+    scheduleSave();
+    const rows = document.querySelectorAll(`.pillar-idea-text[data-pillar-idx="${i}"]`);
+    _focusContentEditable(rows[rows.length - 1]);
+  }
+
+  function removePillarIdea(i, j) {
+    const pillar = (appData.strategy && appData.strategy.content_pillars || [])[i];
+    if (!pillar || !Array.isArray(pillar.content_ideas)) return;
+    pillar.content_ideas.splice(j, 1);
+    renderPillars();
+    bindAppEditing();
+    scheduleSave();
+  }
+
+  function removePillar(i) {
+    const pillars = appData.strategy && appData.strategy.content_pillars;
+    if (!Array.isArray(pillars) || !pillars[i]) return;
+    if (!confirm(`Remove the "${pillars[i].name}" pillar? This can't be undone.`)) return;
+    pillars.splice(i, 1);
+    renderPillars();
+    bindAppEditing();
+    scheduleSave();
+  }
+
   // ── Bind inline editing to main app strategy views ───────────────────────────
 
   function bindAppEditing() {
@@ -8021,6 +8312,11 @@
       if (painEl && !painEl.hasAttribute('contenteditable')) makeEditable(painEl, v => pillar.audience_pain_point = v);
       const freqEl = card.querySelector('.pillar-freq');
       if (freqEl && !freqEl.hasAttribute('contenteditable')) makeEditable(freqEl, v => pillar.post_frequency = v);
+      card.querySelectorAll('.pillar-idea-text').forEach(el => {
+        if (el.hasAttribute('contenteditable')) return;
+        const j = parseInt(el.dataset.ideaIdx);
+        makeEditable(el, v => { if (Array.isArray(pillar.content_ideas)) pillar.content_ideas[j] = v; });
+      });
     });
 
     document.querySelectorAll('.platform-strategy-card[data-platform]').forEach(card => {
@@ -8081,28 +8377,22 @@
         ? `<span class="voice-score-badge ${p.voice_score >= 8 ? 'green' : p.voice_score >= 5 ? 'yellow' : 'red'}" style="font-size:0.6rem">Voice ${p.voice_score}/10</span>`
         : '';
 
-      const isCarousel = p.format === 'carousel';
+      const parsedContent = _parsePostContent(p);
+      const isCarousel = parsedContent.kind === 'carousel';
       let previewHtml, expandBtn, copyBtn;
 
       if (isCarousel) {
-        let slideCount = 0;
-        let titleText = p.pillar_name || 'Carousel';
-        try {
-          const parsed = JSON.parse(p.content);
-          if (parsed.slides) {
-            slideCount = parsed.slides.length;
-            const titleSlide = parsed.slides.find(s => s.type === 'title');
-            if (titleSlide?.heading) titleText = titleSlide.heading;
-          }
-        } catch (e) {}
-        previewHtml = `<div class="lib-post-preview" style="color:var(--text2);font-style:normal;">
-          🎠 Carousel &nbsp;·&nbsp; ${slideCount} slides
-          <div style="font-size:0.78rem;color:var(--text3);margin-top:0.25rem;">${_escHtml(titleText)}</div>
+        previewHtml = `<div style="margin-top:0.25rem">
+          <div style="font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.06em;color:var(--gold);text-transform:uppercase;margin-bottom:0.5rem">🎠 Carousel · ${parsedContent.slides.length} slides</div>
+          ${_renderSlideStrip(parsedContent.slides, 'lib')}
         </div>`;
-        expandBtn = `<button onclick="libOpenCarousel('${p.id}')" style="background:none;border:none;color:var(--gold);font-size:0.75rem;cursor:pointer;padding:0.35rem 0;text-align:left;font-family:'DM Mono',monospace">→ Open in Carousel Builder</button>`;
-        copyBtn = '';
+        // "Open in Carousel Builder" only applies to carousels saved with the builder schema
+        expandBtn = p.format === 'carousel'
+          ? `<button onclick="libOpenCarousel('${p.id}')" style="background:none;border:none;color:var(--gold);font-size:0.75rem;cursor:pointer;padding:0.35rem 0;text-align:left;font-family:'DM Mono',monospace">→ Open in Carousel Builder</button>`
+          : '';
+        copyBtn = `<button class="post-action-btn" onclick="libCopyPost('${p.id}', this)">Copy</button>`;
       } else {
-        previewHtml = `<div class="lib-post-preview" id="lib-preview-${p.id}" onclick="libToggleExpand('${p.id}')">${_escHtml(p.content)}</div>`;
+        previewHtml = `<div class="lib-post-preview" id="lib-preview-${p.id}" onclick="libToggleExpand('${p.id}')">${_escHtml(parsedContent.text)}</div>`;
         expandBtn = `<button id="lib-expand-btn-${p.id}" onclick="libToggleExpand('${p.id}')" style="background:none;border:none;color:var(--text3);font-size:0.75rem;cursor:pointer;padding:0.35rem 0;text-align:left;font-family:'DM Mono',monospace">↓ Read full post</button>`;
         copyBtn = `<button class="post-action-btn" onclick="libCopyPost('${p.id}', this)">Copy</button>`;
       }
@@ -8170,7 +8460,7 @@
   function libCopyPost(id, btn) {
     const post = libraryPosts.find(p => p.id === id);
     if (!post) return;
-    navigator.clipboard.writeText(post.content).then(() => {
+    navigator.clipboard.writeText(_postPlainText(post)).then(() => {
       btn.textContent = 'Copied!'; btn.classList.add('copied');
       setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
     });
@@ -8366,6 +8656,71 @@
     document.getElementById('style-fingerprint-text').textContent = '';
     if (appData.sessionId) {
       authFetch('/api/extract-style', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ posts: [], sessionId: appData.sessionId }) }).catch(() => {});
+    }
+  }
+
+  // Pull the user's own LinkedIn posts and learn their voice (reuses the Apify scraper + style extraction).
+  let _liVoicePollTimer = null;
+  async function scrapeLinkedInVoice() {
+    const btn = document.getElementById('scrape-li-voice-btn');
+    const status = document.getElementById('scrape-li-voice-status');
+    const urlInput = document.getElementById('li-voice-url-input');
+    const url = (urlInput.value || '').trim();
+    if (url && !/^https?:\/\/(www\.)?linkedin\.com\//i.test(url)) {
+      status.style.color = '#f87171'; status.textContent = 'Enter a valid LinkedIn profile URL.'; return;
+    }
+    if (_liVoicePollTimer) { clearInterval(_liVoicePollTimer); _liVoicePollTimer = null; }
+    btn.disabled = true; btn.textContent = 'Starting…'; status.style.color = 'var(--text3)'; status.textContent = '';
+    try {
+      // Persist the profile URL (merge with existing website URL so we don't wipe it)
+      if (url) {
+        let websiteUrl = '';
+        try { const p = await authFetch('/api/auth/profile').then(r => r.json()); websiteUrl = p.websiteUrl || ''; } catch {}
+        await authFetch('/api/auth/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ websiteUrl, linkedinProfileUrl: url }) });
+      }
+      const start = await authFetch('/api/voice/scrape-linkedin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: appData.sessionId }) }).then(r => r.json());
+      if (!start.success) throw new Error(start.error || 'Could not start the scrape.');
+      const runId = start.runId;
+      btn.textContent = 'Scraping…';
+      status.textContent = 'Scraping your posts… this can take 1–3 min.';
+      let attempts = 0;
+      _liVoicePollTimer = setInterval(async () => {
+        attempts++;
+        try {
+          const r = await authFetch('/api/voice/scrape-linkedin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: appData.sessionId, runId }) }).then(r => r.json());
+          if (r.status === 'ready') {
+            clearInterval(_liVoicePollTimer); _liVoicePollTimer = null;
+            if (Array.isArray(r.posts) && r.posts.length) {
+              const container = document.getElementById('style-clone-posts');
+              container.innerHTML = '';
+              r.posts.forEach(t => { const ta = document.createElement('textarea'); ta.className = 'style-clone-post-input'; ta.value = t; container.appendChild(ta); });
+            }
+            document.getElementById('style-fingerprint-text').textContent = r.fingerprint || '';
+            document.getElementById('style-fingerprint-result').style.display = 'block';
+            status.style.color = '#4ade80'; status.textContent = `Learned from ${r.count} posts — your voice is now active in generation.`;
+            btn.disabled = false; btn.textContent = 'Re-scrape';
+          } else if (r.status === 'failed' || r.success === false) {
+            clearInterval(_liVoicePollTimer); _liVoicePollTimer = null;
+            status.style.color = '#f87171'; status.textContent = r.error || 'Scrape failed.';
+            btn.disabled = false; btn.textContent = 'Scrape my LinkedIn';
+          } else {
+            status.textContent = `Scraping your posts… (${attempts * 10}s)`;
+          }
+        } catch (e) {
+          clearInterval(_liVoicePollTimer); _liVoicePollTimer = null;
+          status.style.color = '#f87171'; status.textContent = 'Error while scraping. Try again.';
+          btn.disabled = false; btn.textContent = 'Scrape my LinkedIn';
+          return;
+        }
+        if (attempts > 30) { // ~5 min cap
+          clearInterval(_liVoicePollTimer); _liVoicePollTimer = null;
+          status.style.color = '#f87171'; status.textContent = 'Timed out. Try again, or paste posts manually below.';
+          btn.disabled = false; btn.textContent = 'Scrape my LinkedIn';
+        }
+      }, 10000);
+    } catch (err) {
+      status.style.color = '#f87171'; status.textContent = err.message;
+      btn.disabled = false; btn.textContent = 'Scrape my LinkedIn';
     }
   }
 
@@ -9503,10 +9858,41 @@
     // Show caption preview (the post content that will be published as the image caption)
     const captionPreview = document.getElementById('review-schedule-caption-preview');
     if (captionPreview) {
-      captionPreview.textContent = (post.content || '').slice(0, 200) + ((post.content || '').length > 200 ? '…' : '');
+      const plain = _postPlainText(post);
+      captionPreview.textContent = plain.slice(0, 200) + (plain.length > 200 ? '…' : '');
     }
+    const connNote = document.getElementById('review-schedule-connection-note');
+    if (connNote) { connNote.textContent = 'Checking connection…'; connNote.style.color = 'var(--text3)'; }
+    _updateScheduleConnNote(post.platform);
     const modal = document.getElementById('review-approve-modal');
     modal.style.display = 'flex';
+  }
+
+  // Tell the user whether scheduling will auto-publish or just be a manual reminder.
+  async function _updateScheduleConnNote(platform) {
+    const note = document.getElementById('review-schedule-connection-note');
+    if (!note) return;
+    const label = _platformMeta(platform).label;
+    const canAutoPublish = ['linkedin', 'instagram'].includes(platform);
+    if (!canAutoPublish) {
+      note.innerHTML = `${label} has no auto-publishing — this is <strong>scheduled as a reminder</strong>. Copy the post from your Library and publish it manually.`;
+      note.style.color = 'var(--text3)';
+      return;
+    }
+    try {
+      const data = await authFetch('/api/oauth/status').then(r => r.json());
+      const connected = data.oauth?.[platform]?.connected;
+      if (connected) {
+        note.innerHTML = `✓ <strong>${label}</strong> is connected — this will <strong>auto-publish</strong> at the time above.`;
+        note.style.color = '#4ade80';
+      } else {
+        note.innerHTML = `${label} isn't connected, so it won't auto-publish. It's <strong>scheduled as a reminder</strong> — publish manually (Copy from Library), or connect ${label} in Settings.`;
+        note.style.color = 'var(--text3)';
+      }
+    } catch (_) {
+      note.innerHTML = `It will be <strong>scheduled</strong>. If the platform isn't connected, publish manually by copying from your Library.`;
+      note.style.color = 'var(--text3)';
+    }
   }
 
   async function loadReviewQueue() {
@@ -9593,8 +9979,8 @@
       ideaCtx.style.display = 'none';
     }
 
-    // Post content
-    document.getElementById('review-post-content').textContent = post.content || '';
+    // Post content — visual mockup (handles carousels/JSON gracefully, never dumps raw JSON)
+    document.getElementById('review-post-content').innerHTML = renderPostMockup(post);
   }
 
   function reviewNavigate(dir) {
@@ -9605,7 +9991,7 @@
   function reviewCopyPost() {
     const post = reviewQueue[reviewIndex];
     if (!post) return;
-    navigator.clipboard.writeText(post.content || '').then(() => {
+    navigator.clipboard.writeText(_postPlainText(post)).then(() => {
       const btn = event.target;
       btn.textContent = 'COPIED';
       setTimeout(() => { btn.textContent = 'COPY'; }, 1500);
@@ -9828,6 +10214,145 @@
   async function deleteDiaryEntry(id) {
     try { await authFetch(`/api/brain-diary/${id}`, { method: 'DELETE' }); await loadBrainDiary(); }
     catch { console.error('delete diary entry failed'); }
+  }
+
+  // ── Performance dashboard (hand-built; aggregates existing /api/posts + /api/brain-diary) ──
+  function _avg(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
+  function _round(n, d = 0) { const f = Math.pow(10, d); return Math.round(n * f) / f; }
+
+  function _perfBars(rows, opts) {
+    opts = opts || {};
+    const fmt = opts.fmt || (v => _round(v, 1));
+    if (!rows.length) return '<div class="context-note">Not enough data yet.</div>';
+    const max = Math.max(...rows.map(r => r.value), 1);
+    return rows.map(r => `
+      <div class="perf-bar-row">
+        <div class="perf-bar-label" title="${_escHtml(r.label)}">${_escHtml(r.label)}</div>
+        <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${Math.max(2, (r.value / max) * 100)}%"></div></div>
+        <div class="perf-bar-val">${fmt(r.value)}</div>
+      </div>`).join('');
+  }
+
+  function _perfColumns(rows) {
+    if (!rows.length) return '<div class="context-note">Not enough data yet.</div>';
+    const max = Math.max(...rows.map(r => r.value), 1);
+    return `<div class="perf-cols">` + rows.map(r => `
+      <div class="perf-col" title="${r.value} posts">
+        <div class="perf-col-cap">${r.value || ''}</div>
+        <div class="perf-col-bar" style="height:${Math.max(2, Math.round((r.value / max) * 92))}px"></div>
+        <div class="perf-col-label">${_escHtml(r.label)}</div>
+      </div>`).join('') + `</div>`;
+  }
+
+  async function renderPerformanceDashboard() {
+    const host = document.getElementById('perf-dashboard');
+    if (!host) return;
+    host.innerHTML = '<div class="context-note">Loading performance…</div>';
+    let posts = [], patterns = [];
+    try {
+      const url = appData.sessionId ? `/api/posts?sessionId=${appData.sessionId}` : '/api/posts';
+      posts = (await authFetch(url).then(r => r.json())).posts || [];
+    } catch {}
+    try {
+      patterns = (await authFetch('/api/brain-diary').then(r => r.json())).entries || [];
+    } catch {}
+
+    if (!posts.length) {
+      host.innerHTML = `<div style="text-align:center;padding:3rem;color:var(--text3)">
+        <div style="font-size:2.5rem;opacity:0.3;margin-bottom:0.75rem">📊</div>
+        <div style="margin-bottom:0.4rem;font-size:1rem">No posts to analyze yet</div>
+        <div style="font-size:0.82rem;max-width:420px;margin:0 auto">Generate and publish posts, then import your CSV below — this dashboard fills in automatically.</div>
+      </div>`;
+      return;
+    }
+
+    const PLAB = { linkedin: 'LinkedIn', instagram: 'Instagram', twitter: 'Twitter/X', tiktok: 'TikTok', email: 'Email' };
+    const total = posts.length;
+    const published = posts.filter(p => p.status === 'published').length;
+    const approved = posts.filter(p => p.status === 'approved').length;
+    const voiceScores = posts.map(p => p.voice_score).filter(v => v != null).map(Number);
+    const engScores = posts.map(p => Number(p.engagement_score)).filter(v => v > 0);
+    const avgVoice = voiceScores.length ? _round(_avg(voiceScores), 1) : null;
+    const avgEng = engScores.length ? _round(_avg(engScores), 1) : null;
+    const hasEng = engScores.length > 0;
+
+    // By platform
+    const byPlatform = {};
+    posts.forEach(p => { const k = p.platform || 'other'; (byPlatform[k] = byPlatform[k] || []).push(p); });
+    const platformRows = hasEng
+      ? Object.entries(byPlatform).map(([k, ps]) => {
+          const es = ps.map(p => Number(p.engagement_score)).filter(v => v > 0);
+          return { label: PLAB[k] || k, value: es.length ? _avg(es) : 0 };
+        }).filter(r => r.value > 0).sort((a, b) => b.value - a.value)
+      : Object.entries(byPlatform).map(([k, ps]) => ({ label: PLAB[k] || k, value: ps.length })).sort((a, b) => b.value - a.value);
+
+    // By pillar (avg voice score)
+    const byPillar = {};
+    posts.forEach(p => { if (p.pillar_name) (byPillar[p.pillar_name] = byPillar[p.pillar_name] || []).push(p); });
+    const pillarRows = Object.entries(byPillar).map(([k, ps]) => {
+      const vs = ps.map(p => Number(p.voice_score)).filter(v => v > 0);
+      return { label: k, value: vs.length ? _avg(vs) : 0 };
+    }).filter(r => r.value > 0).sort((a, b) => b.value - a.value).slice(0, 6);
+
+    // Posts per week (last 8 weeks)
+    const now = Date.now();
+    const WEEK = 7 * 24 * 3600 * 1000;
+    const buckets = new Array(8).fill(0);
+    posts.forEach(p => {
+      const t = new Date(p.created_at).getTime();
+      if (isNaN(t)) return;
+      const weeksAgo = Math.floor((now - t) / WEEK);
+      if (weeksAgo >= 0 && weeksAgo < 8) buckets[7 - weeksAgo]++;
+    });
+    const weekRows = buckets.map((v, i) => ({ label: i === 7 ? 'now' : `-${7 - i}w`, value: v }));
+
+    const wins = patterns.filter(e => e.type === 'win').slice(0, 3);
+    const losses = patterns.filter(e => e.type === 'loss').slice(0, 3);
+
+    const kpi = (val, label) => `<div class="perf-kpi"><div class="perf-kpi-value">${val}</div><div class="perf-kpi-label">${label}</div></div>`;
+    const patternList = (items, color, emptyMsg) => items.length
+      ? items.map(e => `<div style="border-left:3px solid ${color};padding:0.3rem 0 0.3rem 0.75rem;margin-bottom:0.7rem">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:0.98rem;line-height:1.25;margin-bottom:0.2rem">${_escHtml(e.pattern || '')}</div>
+          <div style="font-size:0.76rem;color:var(--text3);line-height:1.45">${_escHtml(e.insight || '')}</div>
+        </div>`).join('')
+      : `<div class="context-note">${emptyMsg}</div>`;
+
+    host.innerHTML = `
+      <div class="perf-kpi-grid">
+        ${kpi(total, 'Posts created')}
+        ${kpi(published, 'Published')}
+        ${kpi(approved, 'Scheduled / approved')}
+        ${kpi(avgVoice != null ? avgVoice + '<small>/10</small>' : '—', 'Avg voice score')}
+        ${kpi(avgEng != null ? avgEng : '—', 'Avg engagement score')}
+      </div>
+
+      <div class="perf-panel">
+        <div class="perf-panel-title">Posts created — last 8 weeks</div>
+        ${_perfColumns(weekRows)}
+      </div>
+
+      <div class="perf-two-col">
+        <div class="perf-panel">
+          <div class="perf-panel-title">${hasEng ? 'Avg engagement by platform' : 'Posts by platform'}</div>
+          ${_perfBars(platformRows)}
+        </div>
+        <div class="perf-panel">
+          <div class="perf-panel-title">Avg voice score by pillar</div>
+          ${_perfBars(pillarRows)}
+        </div>
+      </div>
+
+      <div class="perf-two-col">
+        <div class="perf-panel">
+          <div class="perf-panel-title" style="color:#4ade80">✓ What's working</div>
+          ${patternList(wins, '#4ade80', 'No win patterns yet — import analytics, then run the scoring agent in Brain Diary.')}
+        </div>
+        <div class="perf-panel">
+          <div class="perf-panel-title" style="color:#f87171">✕ What's not</div>
+          ${patternList(losses, '#f87171', 'No loss patterns yet.')}
+        </div>
+      </div>
+    `;
   }
 
   // ── Toast notification system ─────────────────────────────────────────────
