@@ -264,7 +264,7 @@ function _carouselBuildQuoteHTML(slide) {
     : '';
 
   const avatarSrc = avatarImage
-    ? `<img src="${avatarImage}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.25);flex-shrink:0;" crossorigin="anonymous">`
+    ? `<div style="width:26px;height:26px;border-radius:50%;background-image:url(${avatarImage});background-size:cover;background-position:center center;background-repeat:no-repeat;border:1.5px solid rgba(255,255,255,0.25);flex-shrink:0;"></div>`
     : `<div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;"></div>`;
 
   return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:${bg};position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
@@ -393,7 +393,7 @@ function _carouselBuildLightTitleHTML(slide) {
   const site = websiteUrl || '';
 
   const avatarHtml = avatarImage
-    ? `<img src="${avatarImage}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid ${accentColor};flex-shrink:0;" crossorigin="anonymous">`
+    ? `<div style="width:38px;height:38px;border-radius:50%;background-image:url(${avatarImage});background-size:cover;background-position:center center;background-repeat:no-repeat;border:2px solid ${accentColor};flex-shrink:0;"></div>`
     : `<div style="width:38px;height:38px;border-radius:50%;background:#e8e8e8;border:2px solid ${accentColor};flex-shrink:0;"></div>`;
 
   const username = slide.username ? slide.username.replace(/^@/, '') : 'Your Name';
@@ -482,7 +482,7 @@ function _carouselBuildLightCtaHTML(slide) {
   const username = (slides[0] && slides[0].username) || '@yourhandle';
 
   const avatarHtml = avatarImage
-    ? `<img src="${avatarImage}" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid ${accentColor};flex-shrink:0;" crossorigin="anonymous">`
+    ? `<div style="width:38px;height:38px;border-radius:50%;background-image:url(${avatarImage});background-size:cover;background-position:center center;background-repeat:no-repeat;border:2px solid ${accentColor};flex-shrink:0;"></div>`
     : `<div style="width:38px;height:38px;border-radius:50%;background:#e8e8e8;border:2px solid ${accentColor};flex-shrink:0;"></div>`;
 
   return `<div style="width:${SLIDE_W}px;height:${SLIDE_H}px;background:#fff;position:relative;overflow:hidden;font-family:${SLIDE_FONT};">
@@ -507,9 +507,12 @@ function _carouselBuildLightCtaHTML(slide) {
 function _carouselBuildTitleHTML(slide) {
   const { accentColor, bgColor, coverImage, coverScale, coverX, coverY } = carouselState;
 
+  // Use a background-image div (not <img object-fit:cover>): html2canvas renders
+  // object-fit:cover as object-fit:fill, stretching the photo's aspect ratio in the
+  // exported PNG. background-size:cover is honored correctly, so preview and export match.
   const coverLayer = coverImage
     ? `<div style="position:absolute;inset:0;overflow:hidden;">
-         <img src="${coverImage}" style="width:100%;height:100%;object-fit:cover;transform-origin:center center;transform:scale(${coverScale / 100}) translate(${coverX}px,${coverY}px);">
+         <div style="position:absolute;inset:0;background-image:url(${coverImage});background-repeat:no-repeat;background-size:cover;background-position:center center;transform-origin:center center;transform:scale(${coverScale / 100}) translate(${coverX}px,${coverY}px);"></div>
        </div>`
     : `<div style="position:absolute;inset:0;background:${bgColor};"></div>`;
 
@@ -548,7 +551,7 @@ function _carouselBuildContentHTML(slide, idx, total) {
   const counter = `${idx + 1}/${total}`;
 
   const imgHtml = slide.image
-    ? `<img src="${slide.image}" style="width:100%;height:150px;object-fit:cover;margin-bottom:16px;border-radius:2px;" crossorigin="anonymous">`
+    ? `<div style="width:100%;height:150px;background-image:url(${slide.image});background-size:cover;background-position:center center;background-repeat:no-repeat;margin-bottom:16px;border-radius:2px;flex-shrink:0;"></div>`
     : '';
 
   const highlightHtml = slide.highlight
@@ -604,7 +607,7 @@ function _carouselBuildDarkCtaHTML(slide) {
 
 function _carouselAvatarHTML(size) {
   if (carouselState.avatarImage) {
-    return `<img src="${carouselState.avatarImage}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.25);flex-shrink:0;" crossorigin="anonymous">`;
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url(${carouselState.avatarImage});background-size:cover;background-position:center center;background-repeat:no-repeat;border:1.5px solid rgba(255,255,255,0.25);flex-shrink:0;"></div>`;
   }
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.2);flex-shrink:0;"></div>`;
 }

@@ -40,6 +40,9 @@ async function quoteInit() {
   // Sync inputs from restored state
   _quoteSyncInputs();
 
+  // Brand identity (name, handle, photo) lives server-side — fetch it on load.
+  _quoteLoadBrand();
+
   // Ensure html2canvas is available (shared with carousel)
   if (!window.html2canvas) {
     await new Promise((resolve, reject) => {
@@ -96,6 +99,7 @@ function _quoteToggleColorPickers() {
 // ─── State persistence ────────────────────────────────────────────────────────
 
 function _quotePersist() {
+  // Avatar is intentionally excluded here — it's stored server-side, not in localStorage.
   const { text, subtext, authorName, authorHandle, style, ratio, accentColor, bgColor } = quoteState;
   localStorage.setItem('quote_state_v1', JSON.stringify({ text, subtext, authorName, authorHandle, style, ratio, accentColor, bgColor }));
 }
@@ -125,6 +129,20 @@ function quoteUpdateField(field, value) {
   quoteState[field] = value;
   _quotePersist();
   quoteRenderPreview();
+  // Brand name/handle sync across devices via the backend (debounced — these fire on every keystroke).
+  if (field === 'authorName' || field === 'authorHandle') _quoteSaveBrandTextDebounced();
+}
+
+let _quoteBrandSaveTimer = null;
+function _quoteSaveBrandTextDebounced() {
+  clearTimeout(_quoteBrandSaveTimer);
+  _quoteBrandSaveTimer = setTimeout(() => {
+    authFetch('/api/quote-brand', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: quoteState.authorName || '', handle: quoteState.authorHandle || '' }),
+    }).catch(() => { /* best-effort; localStorage still holds the value */ });
+  }, 600);
 }
 
 // ─── Preview render ───────────────────────────────────────────────────────────
@@ -163,7 +181,7 @@ function _esc(str) {
 
 function _avatarHTML(avatarImage, size, border = 'none') {
   if (avatarImage) {
-    return `<img src="${avatarImage}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:${border};flex-shrink:0;" crossorigin="anonymous">`;
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;background-image:url(${avatarImage});background-size:cover;background-position:center center;background-repeat:no-repeat;border:${border};flex-shrink:0;"></div>`;
   }
   return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#c9a96e22;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:${border};"><span style="font-size:${Math.floor(size*0.4)}px;color:#c9a96e;">✦</span></div>`;
 }
@@ -384,19 +402,98 @@ async function quoteExportPNG() {
 
 // ─── Avatar upload ────────────────────────────────────────────────────────────
 
-function quoteHandleAvatarUpload(input) {
+async function quoteHandleAvatarUpload(input) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    quoteState.avatarImage = e.target.result;
-    const preview = document.getElementById('quote-avatar-preview');
-    if (preview) preview.src = e.target.result;
-    const wrap = document.getElementById('quote-avatar-preview-wrap');
+  const statusEl = document.getElementById('quote-ai-status');
+
+  try {
+    // Downscale before storing — the avatar renders at 36–120px, so a full-res
+    // photo is pointless and would blow past size limits. ~30KB after this.
+    const dataUrl = await _quoteDownscaleImage(file, 400);
+    _quoteApplyAvatar(dataUrl);
+
+    // Persist server-side so it survives reloads and syncs across devices.
+    const res = await authFetch('/api/quote-brand', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ avatar: dataUrl }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Could not save photo');
+    if (statusEl) { statusEl.textContent = 'Photo saved ✓'; statusEl.style.color = '#7dc47d'; }
+  } catch (err) {
+    if (statusEl) { statusEl.textContent = err.message || 'Photo upload failed'; statusEl.style.color = '#e87070'; }
+  } finally {
+    input.value = ''; // allow re-uploading the same file
+  }
+}
+
+// Applies an avatar data URL to state + preview thumbnail + card render.
+function _quoteApplyAvatar(dataUrl) {
+  quoteState.avatarImage = dataUrl || null;
+  const preview = document.getElementById('quote-avatar-preview');
+  const wrap = document.getElementById('quote-avatar-preview-wrap');
+  if (dataUrl) {
+    if (preview) preview.src = dataUrl;
     if (wrap) wrap.style.display = 'block';
-    quoteRenderPreview();
-  };
-  reader.readAsDataURL(file);
+  } else if (wrap) {
+    wrap.style.display = 'none';
+  }
+  quoteRenderPreview();
+}
+
+// Fetches saved brand identity (name, handle, photo) from the backend and applies it.
+// Backend is the source of truth for these, so non-empty values override the localStorage cache.
+async function _quoteLoadBrand() {
+  try {
+    const res = await authFetch('/api/quote-brand');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.success) return;
+
+    if (data.name) {
+      quoteState.authorName = data.name;
+      const el = document.getElementById('quote-author-name');
+      if (el) el.value = data.name;
+    }
+    if (data.handle) {
+      quoteState.authorHandle = data.handle;
+      const el = document.getElementById('quote-author-handle');
+      if (el) el.value = data.handle;
+    }
+    if (data.name || data.handle) _quotePersist(); // refresh the localStorage cache
+
+    if (data.avatar) _quoteApplyAvatar(data.avatar);
+    else quoteRenderPreview(); // reflect any name/handle changes
+  } catch (_) { /* not signed in / offline — skip */ }
+}
+
+// Reads a File, draws it center-cropped to a square <= maxPx, returns a data URL.
+function _quoteDownscaleImage(file, maxPx) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read image file'));
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Unsupported or corrupt image'));
+      img.onload = () => {
+        const side = Math.min(img.width, img.height);
+        const size = Math.min(maxPx, side);
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        // Center-crop to a square, then scale to `size`.
+        const sx = (img.width - side) / 2;
+        const sy = (img.height - side) / 2;
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 // ─── AI generation ────────────────────────────────────────────────────────────

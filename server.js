@@ -285,6 +285,9 @@ async function initDb() {
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram_profile_url TEXT`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_timezone TEXT DEFAULT 'UTC'`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_email TEXT`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS quote_avatar TEXT`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS quote_author_name TEXT`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS quote_author_handle TEXT`;
 }
 
 initDb().catch(err => console.error('DB init failed:', err));
@@ -1589,6 +1592,67 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
   try {
     const { websiteUrl, linkedinProfileUrl } = req.body;
     await sql`UPDATE users SET website_url = ${websiteUrl || null}, linkedin_profile_url = ${linkedinProfileUrl || null} WHERE id = ${req.user.id}`;
+    res.json({ success: true });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+// ─── Quote Studio brand identity ────────────────────────────────────────────────
+// Stored per-user so the brand name, handle, and profile photo survive reloads and
+// sync across devices, instead of living in localStorage (which has a ~5MB quota and
+// is browser-bound). The client downscales the image before upload, so payloads stay small.
+// PUT is a partial update: an omitted field is left unchanged; an explicit null clears it.
+
+app.get('/api/quote-brand', requireAuth, async (req, res) => {
+  try {
+    const rows = await sql`SELECT quote_author_name, quote_author_handle, quote_avatar FROM users WHERE id = ${req.user.id}`;
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({
+      success: true,
+      name: rows[0].quote_author_name || '',
+      handle: rows[0].quote_author_handle || '',
+      avatar: rows[0].quote_avatar || null,
+    });
+  } catch (err) {
+    return serverErr(res, err);
+  }
+});
+
+app.put('/api/quote-brand', requireAuth, async (req, res) => {
+  try {
+    const { name, handle, avatar } = req.body;
+
+    if (avatar !== undefined && avatar !== null) {
+      if (typeof avatar !== 'string' || !/^data:image\/(png|jpe?g|gif|webp);base64,/i.test(avatar)) {
+        return res.status(400).json({ error: 'avatar must be an image data URL, or null to clear' });
+      }
+      // Client downscales to ~400px, so this should be well under 500KB. Hard cap as a guard.
+      if (avatar.length > 700_000) {
+        return res.status(413).json({ error: 'Image too large after processing — please try a smaller photo.' });
+      }
+    }
+    if (name !== undefined && name !== null && typeof name !== 'string') {
+      return res.status(400).json({ error: 'name must be a string or null' });
+    }
+    if (handle !== undefined && handle !== null && typeof handle !== 'string') {
+      return res.status(400).json({ error: 'handle must be a string or null' });
+    }
+
+    // Read-modify-write so omitted fields are preserved (partial update).
+    const rows = await sql`SELECT quote_author_name, quote_author_handle, quote_avatar FROM users WHERE id = ${req.user.id}`;
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    const cur = rows[0];
+
+    const newName   = name   !== undefined ? (name   ? name.slice(0, 120) : null)   : cur.quote_author_name;
+    const newHandle = handle !== undefined ? (handle ? handle.slice(0, 80) : null)  : cur.quote_author_handle;
+    const newAvatar = avatar !== undefined ? (avatar || null)                        : cur.quote_avatar;
+
+    await sql`
+      UPDATE users
+      SET quote_author_name = ${newName}, quote_author_handle = ${newHandle}, quote_avatar = ${newAvatar}
+      WHERE id = ${req.user.id}
+    `;
     res.json({ success: true });
   } catch (err) {
     return serverErr(res, err);
